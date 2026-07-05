@@ -275,13 +275,6 @@ export default function App() {
         <main className="flex-grow max-w-7xl mx-auto w-full px-4 sm:px-6 lg:px-8 py-8">
           {renderActiveView()}
         </main>
-
-        {/* Footer */}
-        <footer className="border-t border-[#E8E8E8] bg-white py-4 text-center text-[10px] text-muted-foreground">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            Brokerly Denní jádro · Stage 1 Core CRM
-          </div>
-        </footer>
       </div>
     </div>
   );
