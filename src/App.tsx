@@ -179,8 +179,12 @@ export default function App() {
       <aside className="w-16 bg-[#00221F] border-r border-[#00221F] flex flex-col justify-between items-center py-6 fixed left-0 top-0 bottom-0 z-40">
         <div className="flex flex-col items-center gap-8 w-full">
           {/* Brand Logo */}
-          <div className="flex flex-col items-center justify-center p-2 rounded-md bg-white/5 border border-white/10">
-            <Key className="h-5 w-5 text-[#00D991]" />
+          <div className="flex flex-col items-center justify-center w-10 h-10">
+            <img 
+              src="/White Logo - Brokerly.webp" 
+              alt="Brokerly" 
+              className="w-8 h-8 object-contain" 
+            />
           </div>
 
           {/* Navigation Menu */}
