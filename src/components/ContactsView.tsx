@@ -334,43 +334,41 @@ export const ContactsView: React.FC<ContactsViewProps> = ({
           />
         </div>
 
-        <Card className="border-[#EAE9E2] shadow-sm">
-          <div className="divide-y divide-[#EAE9E2]/60 max-h-[500px] overflow-y-auto">
-            {filteredContacts.length === 0 ? (
-              <div className="p-4 text-sm text-muted-foreground italic text-center">Nebyly nalezeny žádné kontakty.</div>
-            ) : (
-              filteredContacts.map((contact) => {
-                const isSelected = selectedContact?.id === contact.id;
-                return (
-                  <div
-                    key={contact.id}
-                    onClick={() => setSelectedContact(contact)}
-                    className={`p-3.5 cursor-pointer transition-colors duration-150 text-left ${
-                      isSelected
-                        ? 'bg-stone-100 dark:bg-stone-800'
-                        : 'hover:bg-stone-50/50 dark:hover:bg-stone-900/30'
-                    }`}
-                  >
-                    <div className="font-display font-medium text-sm text-foreground dark:text-stone-100 truncate">
-                      {contact.full_name}
-                    </div>
-                    <div className="text-xs text-muted-foreground mt-0.5 truncate flex gap-1">
-                      {contact.phone && <span className="mr-2">{contact.phone}</span>}
-                      {contact.email && <span>{contact.email}</span>}
-                    </div>
-                    <div className="flex flex-wrap gap-1 mt-1.5">
-                      {contact.roles.map((role) => (
-                        <span key={role} className="bg-[#F3F2EC] dark:bg-stone-800 text-stone-600 dark:text-stone-400 text-[9px] font-medium px-1.5 py-0.5 rounded-sm">
-                          {role}
-                        </span>
-                      ))}
-                    </div>
+        <div className="space-y-1.5 max-h-[520px] overflow-y-auto pr-1">
+          {filteredContacts.length === 0 ? (
+            <div className="p-4 text-sm text-muted-foreground italic text-center bg-white border border-border rounded-md">Nebyly nalezeny žádné kontakty.</div>
+          ) : (
+            filteredContacts.map((contact) => {
+              const isSelected = selectedContact?.id === contact.id;
+              return (
+                <div
+                  key={contact.id}
+                  onClick={() => setSelectedContact(contact)}
+                  className={`p-3.5 cursor-pointer rounded-md border border-transparent transition-all duration-150 text-left ${
+                    isSelected
+                      ? 'bg-secondary border-secondary text-foreground'
+                      : 'bg-white border-border hover:bg-stone-50'
+                  }`}
+                >
+                  <div className="font-display font-semibold text-sm text-foreground truncate">
+                    {contact.full_name}
                   </div>
-                );
-              })
-            )}
-          </div>
-        </Card>
+                  <div className="text-xs text-muted-foreground mt-1 truncate flex gap-1 font-mono">
+                    {contact.phone && <span className="mr-2">{contact.phone}</span>}
+                    {!contact.phone && contact.email && <span>{contact.email}</span>}
+                  </div>
+                  <div className="flex flex-wrap gap-1 mt-2">
+                    {contact.roles.map((role) => (
+                      <span key={role} className="bg-stone-100 text-stone-600 text-[9px] font-semibold px-2 py-0.5 rounded-full uppercase tracking-wider">
+                        {role}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              );
+            })
+          )}
+        </div>
 
         <Button
           onClick={() => setIsCreateOpen(true)}
@@ -385,13 +383,13 @@ export const ContactsView: React.FC<ContactsViewProps> = ({
       <div className="md:col-span-8">
         {selectedContact ? (
           <form onSubmit={handleSaveContact} className="space-y-6">
-            <Card className="border-[#EAE9E2] shadow-sm">
+            <Card className="border-border shadow-sm bg-white">
               <CardContent className="p-6 space-y-6">
-                <div className="border-b border-[#EAE9E2] pb-4 flex justify-between items-start">
+                <div className="border-b border-border pb-4 flex justify-between items-start">
                   <div>
-                    <h2 className="font-display text-2xl font-normal leading-tight">{editFullName}</h2>
-                    <p className="text-xs text-muted-foreground mt-0.5">
-                      Založeno: {new Date(selectedContact.created_at).toLocaleDateString('cs-CZ')}
+                    <h2 className="font-display text-2xl font-bold tracking-tight text-foreground">{editFullName}</h2>
+                    <p className="text-xs text-muted-foreground mt-1">
+                      Založeno: <span className="font-semibold font-mono">{new Date(selectedContact.created_at).toLocaleDateString('cs-CZ')}</span>
                     </p>
                   </div>
                   <div className="flex gap-2">
@@ -776,7 +774,7 @@ export const ContactsView: React.FC<ContactsViewProps> = ({
         {selectedContact && (
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 mt-6">
             {/* Log Activity */}
-            <Card className="lg:col-span-5 border-[#EAE9E2] shadow-sm">
+            <Card className="lg:col-span-5 border-border shadow-sm bg-white">
               <CardContent className="p-4 space-y-3">
                 <h4 className="font-display text-sm font-semibold">Zapsat aktivitu / připomínku</h4>
                 
@@ -898,7 +896,7 @@ export const ContactsView: React.FC<ContactsViewProps> = ({
             </Card>
 
             {/* History timeline */}
-            <Card className="lg:col-span-7 border-[#EAE9E2] shadow-sm">
+            <Card className="lg:col-span-7 border-border shadow-sm bg-white">
               <CardContent className="p-4 space-y-3">
                 <h4 className="font-display text-sm font-semibold">Historie kontaktu</h4>
                 <div className="space-y-3 max-h-[300px] overflow-y-auto pr-1">
@@ -906,7 +904,7 @@ export const ContactsView: React.FC<ContactsViewProps> = ({
                     <p className="text-xs text-muted-foreground italic text-center py-4">Žádná historie aktivit.</p>
                   ) : (
                     contactActivities.map((act) => (
-                      <div key={act.id} className="border-b border-[#EAE9E2]/50 pb-2.5 last:border-0">
+                      <div key={act.id} className="border-b border-border/50 pb-2.5 last:border-0">
                         <div className="flex justify-between items-center text-[10px] text-muted-foreground mb-1">
                           <span className="font-semibold uppercase tracking-wider bg-stone-100 dark:bg-stone-850 px-1 rounded-sm">
                             {act.type}
@@ -932,7 +930,7 @@ export const ContactsView: React.FC<ContactsViewProps> = ({
 
       {/* CREATE DIALOG */}
       <Dialog open={isCreateOpen} onOpenChange={setIsCreateOpen}>
-        <DialogContent className="max-w-lg border-[#EAE9E2]">
+        <DialogContent className="max-w-lg border-border">
           <DialogHeader>
             <DialogTitle className="font-display text-xl font-normal">Nový kontakt</DialogTitle>
             <DialogDescription>

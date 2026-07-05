@@ -358,13 +358,13 @@ export const KanbanView: React.FC<KanbanViewProps> = ({
               key={col.id}
               onDragOver={handleDragOver}
               onDrop={(e) => handleDrop(e, col.id)}
-              className="bg-stone-50 dark:bg-stone-900/40 rounded-md border border-[#EAE9E2] dark:border-stone-800 p-3 min-h-[500px] flex flex-col gap-3 transition-colors duration-150"
+              className="bg-stone-50 dark:bg-stone-900/40 rounded-md border border-border dark:border-stone-800 p-3 min-h-[500px] flex flex-col gap-3 transition-colors duration-150"
             >
-              <div className="flex items-center justify-between border-b border-[#EAE9E2]/60 dark:border-stone-800/80 pb-2">
+              <div className="flex items-center justify-between border-b border-border/60 dark:border-stone-800/80 pb-2">
                 <span className="font-display text-[14px] text-[#141414] dark:text-stone-300 font-semibold">
                   {col.label}
                 </span>
-                <span className="bg-[#F3F2EC] dark:bg-stone-800 text-stone-600 dark:text-stone-400 text-xs px-2 py-0.5 rounded-full font-medium">
+                <span className="bg-secondary dark:bg-stone-800 text-stone-600 dark:text-stone-400 text-xs px-2 py-0.5 rounded-full font-medium">
                   {colDeals.length}
                 </span>
               </div>
@@ -379,7 +379,7 @@ export const KanbanView: React.FC<KanbanViewProps> = ({
                       draggable
                       onDragStart={(e) => handleDragStart(e, deal.id)}
                       onClick={() => openDealDetails(deal)}
-                      className="bg-white dark:bg-stone-900 rounded-sm border border-[#EAE9E2] dark:border-stone-800 p-3 hover:border-stone-400 dark:hover:border-stone-600 cursor-pointer shadow-sm active:cursor-grabbing transition-colors duration-150 space-y-2.5"
+                      className="bg-white dark:bg-stone-900 rounded-sm border border-border dark:border-stone-800 p-3 hover:border-stone-400 dark:hover:border-stone-600 cursor-pointer shadow-sm active:cursor-grabbing transition-colors duration-150 space-y-2.5"
                     >
                       <div className="space-y-1">
                         <div className="font-display text-[14px] leading-tight font-medium text-foreground dark:text-stone-100">
@@ -402,7 +402,7 @@ export const KanbanView: React.FC<KanbanViewProps> = ({
                       </div>
 
                       {deal.next_step && (
-                        <div className="border-t border-[#EAE9E2]/50 dark:border-stone-800/50 pt-2 space-y-1">
+                        <div className="border-t border-border/50 dark:border-stone-800/50 pt-2 space-y-1">
                           <div className="text-[11px] text-[#706F69] dark:text-stone-400 leading-snug truncate">
                             <strong>Krok:</strong> {deal.next_step}
                           </div>
@@ -425,7 +425,7 @@ export const KanbanView: React.FC<KanbanViewProps> = ({
 
       {/* CREATE DEAL DIALOG */}
       <Dialog open={isCreateOpen} onOpenChange={setIsCreateOpen}>
-        <DialogContent className="max-w-lg border-[#EAE9E2]">
+        <DialogContent className="max-w-lg border-border">
           <DialogHeader>
             <DialogTitle className="font-display text-xl font-normal">Nový obchod (Deal)</DialogTitle>
             <DialogDescription>Založte nový obchod spojením kupujícího s nemovitostí.</DialogDescription>
@@ -567,9 +567,9 @@ export const KanbanView: React.FC<KanbanViewProps> = ({
       {/* DETAIL AND LOGGING DIALOG */}
       {selectedDeal && (
         <Dialog open={isDetailOpen} onOpenChange={setIsDetailOpen}>
-          <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto border-[#EAE9E2]">
+          <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto border-border">
             <DialogHeader>
-              <DialogTitle className="font-display text-2xl font-normal border-b border-[#EAE9E2] pb-3 flex items-center justify-between">
+              <DialogTitle className="font-display text-2xl font-normal border-b border-border pb-3 flex items-center justify-between">
                 <span>{selectedDeal.deal_name}</span>
                 <span className="text-xs font-mono font-normal text-muted-foreground mr-6">
                   ID: {selectedDeal.id.slice(0, 8)}
@@ -585,7 +585,7 @@ export const KanbanView: React.FC<KanbanViewProps> = ({
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-1.5">
                     <Label>Kupující</Label>
-                    <div className="text-sm font-medium p-2 bg-[#F3F2EC]/40 rounded-sm flex items-center justify-between">
+                    <div className="text-sm font-medium p-2 bg-secondary/40 rounded-sm flex items-center justify-between">
                       <span>{selectedDeal.buyer?.full_name}</span>
                       <Button
                         type="button"
@@ -604,7 +604,7 @@ export const KanbanView: React.FC<KanbanViewProps> = ({
 
                   <div className="space-y-1.5">
                     <Label>Nemovitost</Label>
-                    <div className="text-sm font-medium p-2 bg-[#F3F2EC]/40 rounded-sm flex items-center justify-between">
+                    <div className="text-sm font-medium p-2 bg-secondary/40 rounded-sm flex items-center justify-between">
                       <span className="truncate max-w-[150px]">
                         {selectedDeal.property ? selectedDeal.property.address : 'Žádná'}
                       </span>
@@ -742,7 +742,7 @@ export const KanbanView: React.FC<KanbanViewProps> = ({
                       type="checkbox"
                       checked={editMustSellFirst}
                       onChange={(e) => setEditMustSellFirst(e.target.checked)}
-                      className="rounded border-[#EAE9E2] text-primary focus:ring-primary h-4 w-4"
+                      className="rounded border-border text-primary focus:ring-primary h-4 w-4"
                     />
                     Musí nejdřív prodat jinou nemovitost?
                   </label>
@@ -791,7 +791,7 @@ export const KanbanView: React.FC<KanbanViewProps> = ({
                   </div>
                 </div>
 
-                <div className="border-t border-[#EAE9E2] pt-4 flex justify-end gap-3">
+                <div className="border-t border-border pt-4 flex justify-end gap-3">
                   <Button type="button" variant="outline" onClick={() => setIsDetailOpen(false)}>
                     Zavřít
                   </Button>
@@ -802,18 +802,18 @@ export const KanbanView: React.FC<KanbanViewProps> = ({
               </div>
 
               {/* Right Column: Log Activity and History */}
-              <div className="lg:col-span-5 border-l border-[#EAE9E2] pl-6 space-y-6">
+              <div className="lg:col-span-5 border-l border-border pl-6 space-y-6">
                 {/* 1. Log Activity Form */}
                 <div className="space-y-3">
                   <h3 className="font-display text-lg font-normal">Zaznamenat aktivitu / připomínku</h3>
-                  <form onSubmit={handleAddActivity} className="space-y-3 bg-stone-50 dark:bg-stone-900/40 p-4 rounded-md border border-[#EAE9E2]/60">
+                  <form onSubmit={handleAddActivity} className="space-y-3 bg-stone-50 dark:bg-stone-900/40 p-4 rounded-md border border-border/60">
                     <div className="flex gap-4">
                       <label className="flex items-center gap-1.5 text-xs font-semibold cursor-pointer select-none">
                         <input
                           type="checkbox"
                           checked={actIsReminder}
                           onChange={(e) => setActIsReminder(e.target.checked)}
-                          className="rounded border-[#EAE9E2] text-primary focus:ring-primary h-3.5 w-3.5"
+                          className="rounded border-border text-primary focus:ring-primary h-3.5 w-3.5"
                         />
                         PŘIPOMÍNKA (do budoucna)
                       </label>
@@ -930,7 +930,7 @@ export const KanbanView: React.FC<KanbanViewProps> = ({
                       <p className="text-xs text-muted-foreground italic">Žádné zaznamenané aktivity.</p>
                     ) : (
                       selectedDealActivities.map((act) => (
-                        <div key={act.id} className="border-b border-[#EAE9E2]/60 pb-2.5 last:border-0">
+                        <div key={act.id} className="border-b border-border/60 pb-2.5 last:border-0">
                           <div className="flex justify-between items-center text-[10px] text-muted-foreground mb-1">
                             <span className="font-semibold uppercase tracking-wider bg-stone-100 dark:bg-stone-850 px-1 rounded-sm">
                               {act.type}

@@ -319,6 +319,14 @@ export const PropertiesView: React.FC<PropertiesViewProps> = ({
     }
   };
 
+  const formatCompactPrice = (val: number | null) => {
+    if (val === null) return '';
+    if (val >= 1000000) {
+      return (val / 1000000).toLocaleString('cs-CZ', { maximumFractionDigits: 2 }) + ' M';
+    }
+    return val.toLocaleString('cs-CZ') + ' Kč';
+  };
+
   const formatCurrency = (val: number | null) => {
     if (val === null) return '';
     return new Intl.NumberFormat('cs-CZ', { style: 'currency', currency: 'CZK', maximumFractionDigits: 0 }).format(val);
@@ -343,41 +351,46 @@ export const PropertiesView: React.FC<PropertiesViewProps> = ({
           />
         </div>
 
-        <Card className="border-[#EAE9E2] shadow-sm">
-          <div className="divide-y divide-[#EAE9E2]/60 max-h-[500px] overflow-y-auto">
-            {filteredProperties.length === 0 ? (
-              <div className="p-4 text-sm text-muted-foreground italic text-center">Žádné nemovitosti nenalezeny.</div>
-            ) : (
-              filteredProperties.map((prop) => {
-                const isSelected = selectedProperty?.id === prop.id;
-                return (
-                  <div
-                    key={prop.id}
-                    onClick={() => setSelectedProperty(prop)}
-                    className={`p-3.5 cursor-pointer transition-colors duration-150 text-left ${
-                      isSelected
-                        ? 'bg-stone-100 dark:bg-stone-800'
-                        : 'hover:bg-stone-50/50 dark:hover:bg-stone-900/30'
-                    }`}
-                  >
-                    <div className="font-display font-medium text-sm text-foreground dark:text-stone-100 truncate">
-                      {prop.address}
-                    </div>
-                    <div className="text-xs text-muted-foreground mt-0.5 truncate flex justify-between items-center">
-                      <span className="capitalize">{prop.transaction}: {prop.kind === 'byt' && prop.flat_layout ? `${prop.flat_layout} byt` : prop.kind}</span>
-                      <span className="font-semibold text-stone-700 dark:text-stone-300">{formatCurrency(prop.price)}</span>
-                    </div>
-                    <div className="flex flex-wrap gap-1 mt-1.5">
-                      <span className="bg-[#F3F2EC] dark:bg-stone-800 text-stone-600 dark:text-stone-400 text-[9px] font-medium px-1.5 py-0.5 rounded-sm uppercase">
-                        {prop.offer_status}
-                      </span>
-                    </div>
+        <div className="space-y-1.5 max-h-[520px] overflow-y-auto pr-1">
+          {filteredProperties.length === 0 ? (
+            <div className="p-4 text-sm text-muted-foreground italic text-center bg-white border border-border rounded-md">Žádné nemovitosti nenalezeny.</div>
+          ) : (
+            filteredProperties.map((prop) => {
+              const isSelected = selectedProperty?.id === prop.id;
+              
+              let displayTitle = '';
+              if (prop.kind === 'byt' && prop.flat_layout) {
+                displayTitle = `Byt ${prop.flat_layout}, ${prop.address.split(',')[0]}`;
+              } else if (prop.kind === 'dům' && prop.house_layout) {
+                displayTitle = `Dům ${prop.house_layout}, ${prop.address.split(',')[0]}`;
+              } else {
+                displayTitle = `${prop.kind}, ${prop.address.split(',')[0]}`;
+              }
+
+              return (
+                <div
+                  key={prop.id}
+                  onClick={() => setSelectedProperty(prop)}
+                  className={`p-3.5 cursor-pointer rounded-md border border-transparent transition-all duration-150 text-left ${
+                    isSelected
+                      ? 'bg-secondary border-secondary text-foreground'
+                      : 'bg-white border-border hover:bg-stone-50'
+                  }`}
+                >
+                  <div className="font-display font-semibold text-sm text-foreground truncate">
+                    {displayTitle}
                   </div>
-                );
-              })
-            )}
-          </div>
-        </Card>
+                  <div className="text-xs text-muted-foreground mt-1.5 font-mono flex justify-between items-center">
+                    <span>{formatCompactPrice(prop.price)}</span>
+                    <span className="bg-stone-100 text-stone-600 text-[9px] font-semibold px-2 py-0.5 rounded-full uppercase tracking-wider scale-90">
+                      {prop.offer_status}
+                    </span>
+                  </div>
+                </div>
+              );
+            })
+          )}
+        </div>
 
         <Button
           onClick={() => setIsCreateOpen(true)}
@@ -392,19 +405,100 @@ export const PropertiesView: React.FC<PropertiesViewProps> = ({
       <div className="md:col-span-8">
         {selectedProperty ? (
           <form onSubmit={handleSaveProperty} className="space-y-6">
-            <Card className="border-[#EAE9E2] shadow-sm">
+            <Card className="border-border shadow-sm bg-white">
               <CardContent className="p-6 space-y-6">
-                <div className="border-b border-[#EAE9E2] pb-4 flex justify-between items-start">
-                  <div>
-                    <h2 className="font-display text-2xl font-normal leading-tight">{editAddress}</h2>
-                    <p className="text-xs text-muted-foreground mt-0.5 capitalize">
-                      {editTransaction} · {editKind}
+                <div className="border-b border-border pb-6 flex justify-between items-start">
+                  <div className="space-y-2">
+                    <h2 className="font-display text-2xl font-bold tracking-tight text-foreground">
+                      {editKind === 'byt' && flatLayout ? `Byt ${flatLayout}, ${editAddress.split(',')[0]}` : editKind === 'dům' && houseLayout ? `Dům ${houseLayout}, ${editAddress.split(',')[0]}` : `${editKind}, ${editAddress.split(',')[0]}`}
+                    </h2>
+                    <p className="text-xs text-muted-foreground">
+                      {editAddress} · <span className="capitalize font-semibold">{editTransaction}</span>
                     </p>
+                    <div className="text-3xl font-mono font-bold tracking-tight text-foreground mt-3">
+                      {formatCurrency(editPrice ? parseFloat(editPrice) : null)}
+                    </div>
                   </div>
-                  <div className="flex gap-2">
+                  <div className="flex flex-col items-end gap-3">
+                    <span className="bg-emerald-500/10 text-emerald-600 text-xs font-semibold px-2.5 py-1 rounded-full uppercase tracking-wider">
+                      {editOfferStatus}
+                    </span>
                     <Button type="submit" size="sm">
                       Uložit změny
                     </Button>
+                  </div>
+                </div>
+
+                {/* Visual Timeline of Offer Phases */}
+                <div className="py-6 border-b border-border">
+                  <h4 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-6">
+                    Fáze nabídky
+                  </h4>
+                  <div className="relative flex justify-between items-center w-full max-w-2xl mx-auto px-4">
+                    {/* Background connecting line */}
+                    <div className="absolute left-8 right-8 top-1/2 -translate-y-1/2 h-0.5 bg-stone-200 -z-10" />
+                    
+                    {/* Active progress line */}
+                    {(() => {
+                      const stages = ['akvizice', 'příprava', 'v nabídce', 'rezervováno', 'uzavřeno'];
+                      const currentIndex = stages.indexOf(editOfferStatus);
+                      if (currentIndex > 0) {
+                        const percent = (currentIndex / (stages.length - 1)) * 100;
+                        return (
+                          <div 
+                            className="absolute left-8 top-1/2 -translate-y-1/2 h-0.5 bg-[#00D991] -z-10 transition-all duration-300"
+                            style={{ width: `calc(${percent}% - ${16 + (percent/100)*16}px)` }}
+                          />
+                        );
+                      }
+                      return null;
+                    })()}
+
+                    {/* Timeline Steps */}
+                    {[
+                      { id: 'akvizice', label: 'Akvizice' },
+                      { id: 'příprava', label: 'Příprava' },
+                      { id: 'v nabídce', label: 'V nabídce' },
+                      { id: 'rezervováno', label: 'Rezervace' },
+                      { id: 'uzavřeno', label: 'Podpis' }
+                    ].map((step, idx, arr) => {
+                      const stages = arr.map(s => s.id);
+                      const currentIdx = stages.indexOf(editOfferStatus);
+                      const isCompleted = currentIdx >= idx;
+                      const isActive = editOfferStatus === step.id;
+
+                      return (
+                        <div key={step.id} className="flex flex-col items-center gap-2">
+                          <div
+                            className={`h-5 w-5 rounded-full flex items-center justify-center border-2 transition-all duration-300 ${
+                              isActive
+                                ? 'bg-background border-[#00D991] ring-4 ring-[#00D991]/20'
+                                : isCompleted
+                                ? 'bg-[#00D991] border-[#00D991]'
+                                : 'bg-background border-stone-300'
+                            }`}
+                          >
+                            {isCompleted && !isActive && (
+                              <div className="h-1.5 w-1.5 rounded-full bg-white" />
+                            )}
+                            {isActive && (
+                              <div className="h-2 w-2 rounded-full bg-[#00D991]" />
+                            )}
+                          </div>
+                          <span
+                            className={`text-[10px] font-semibold tracking-wide uppercase ${
+                              isActive
+                                ? 'text-[#00D991]'
+                                : isCompleted
+                                ? 'text-foreground'
+                                : 'text-muted-foreground'
+                            }`}
+                          >
+                            {step.label}
+                          </span>
+                        </div>
+                      );
+                    })}
                   </div>
                 </div>
 
@@ -821,37 +915,56 @@ export const PropertiesView: React.FC<PropertiesViewProps> = ({
                 )}
 
                 {/* Block 3: Interested Deals list */}
-                <div className="border-t border-[#EAE9E2] pt-5 space-y-3">
-                  <h3 className="font-display text-base font-semibold text-[#141414] dark:text-stone-300">
-                    Zájemci o tuto nemovitost
-                  </h3>
+                <div className="border-t border-border pt-6 space-y-4">
+                  <div className="flex justify-between items-center">
+                    <h3 className="font-display text-sm font-semibold uppercase tracking-wider text-muted-foreground">
+                      Zájemci o tuto nemovitost
+                    </h3>
+                    <span className="text-xs font-semibold bg-stone-100 text-stone-600 px-2 py-0.5 rounded-full font-mono">
+                      {interestedDeals.length}
+                    </span>
+                  </div>
                   {interestedDeals.length === 0 ? (
-                    <p className="text-xs text-muted-foreground italic">Žádné aktivní obchody k této nemovitosti.</p>
+                    <p className="text-xs text-muted-foreground italic">Žádní aktivní zájemci o tuto nemovitost.</p>
                   ) : (
-                    <div className="grid gap-2 max-w-xl">
-                      {interestedDeals.map((deal) => (
-                        <div
-                          key={deal.id}
-                          onClick={() => onNavigateToDeal(deal.id)}
-                          className="p-3 border border-stone-200 hover:border-primary cursor-pointer rounded-sm bg-stone-50/50 flex justify-between items-center text-xs font-medium transition-colors"
-                        >
-                          <div className="flex items-center gap-1.5">
-                            <Briefcase className="h-4 w-4 text-stone-500" />
-                            <span>{deal.deal_name}</span>
-                            {deal.buyer && <span className="text-muted-foreground font-normal">({deal.buyer.full_name})</span>}
-                          </div>
-                          <div className="flex gap-2 items-center">
-                            {deal.temperature && (
-                              <span className="text-[10px] bg-stone-100 text-stone-600 px-1.5 py-0.5 rounded-sm">
-                                {deal.temperature}
+                    <div className="divide-y divide-border border border-border rounded-md overflow-hidden bg-white">
+                      {interestedDeals.map((deal) => {
+                        let tempColorClass = 'bg-stone-300';
+                        if (deal.temperature?.includes('horký')) tempColorClass = 'bg-rose-500';
+                        else if (deal.temperature?.includes('vlažný')) tempColorClass = 'bg-amber-500';
+                        else if (deal.temperature?.includes('studený')) tempColorClass = 'bg-blue-500';
+
+                        const nextStepText = deal.next_step 
+                          ? deal.next_step 
+                          : deal.stage;
+
+                        const isNextStepOverdue = deal.next_step_date && new Date(deal.next_step_date) < new Date() && deal.stage !== 'podpis' && deal.stage !== 'prohráno';
+
+                        return (
+                          <div
+                            key={deal.id}
+                            onClick={() => onNavigateToDeal(deal.id)}
+                            className="p-4 hover:bg-stone-50 cursor-pointer flex justify-between items-center text-xs font-semibold transition-colors"
+                          >
+                            <div className="flex items-center gap-3">
+                              <span className={`h-2.5 w-2.5 rounded-full ${tempColorClass}`} />
+                              <span className="text-foreground font-medium text-sm">
+                                {deal.buyer ? deal.buyer.full_name : deal.deal_name}
                               </span>
-                            )}
-                            <span className="text-[10px] text-primary bg-[#F3F2EC] px-1.5 py-0.5 rounded-sm uppercase tracking-wider font-semibold">
-                              {deal.stage}
-                            </span>
+                            </div>
+                            <div className="flex items-center gap-3">
+                              <span className={`text-[11px] font-semibold ${isNextStepOverdue ? 'text-rose-600 font-bold' : 'text-stone-500'}`}>
+                                {nextStepText}
+                              </span>
+                              {deal.next_step_date && (
+                                <span className="text-[10px] text-muted-foreground font-normal font-mono">
+                                  ({new Date(deal.next_step_date).toLocaleDateString('cs-CZ', { day: 'numeric', month: 'numeric' })})
+                                </span>
+                              )}
+                            </div>
                           </div>
-                        </div>
-                      ))}
+                        );
+                      })}
                     </div>
                   )}
                 </div>

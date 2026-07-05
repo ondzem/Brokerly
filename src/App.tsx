@@ -6,7 +6,7 @@ import { ContactsView } from '@/components/ContactsView';
 import { PropertiesView } from '@/components/PropertiesView';
 import { RemindersView } from '@/components/RemindersView';
 import { SettingsView } from '@/components/SettingsView';
-import { Briefcase, Users, Home, Clock, Settings as SettingsIcon } from 'lucide-react';
+import { Briefcase, Users, Home, Clock, Settings as SettingsIcon, Key } from 'lucide-react';
 import { toast } from 'sonner';
 
 type ActiveTab = 'kanban' | 'contacts' | 'properties' | 'reminders' | 'settings';
@@ -174,116 +174,111 @@ export default function App() {
   };
 
   return (
-    <div className="min-h-screen bg-background flex flex-col font-sans">
-      {/* Editorial Header */}
-      <header className="border-b border-[#00221F] bg-[#00221F] text-white sticky top-0 z-40">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center h-16">
-            <div className="flex items-center gap-8">
-              {/* Brand Logo */}
-              <div className="flex flex-col text-left">
-                <span className="font-display text-lg font-semibold tracking-tight text-white">
-                  Brokerly
-                </span>
-                <span className="text-[10px] text-[#00D991] tracking-wider uppercase font-semibold -mt-1">
-                  Denní jádro
-                </span>
-              </div>
-
-              {/* Navigation Menu */}
-              <nav className="hidden md:flex gap-1.5">
-                <button
-                  onClick={() => {
-                    setFocusDealId(undefined);
-                    setActiveTab('kanban');
-                  }}
-                  className={`flex items-center gap-1.5 px-3 py-1.5 rounded-sm text-xs font-semibold tracking-wide transition-colors ${
-                    activeTab === 'kanban'
-                      ? 'bg-white/10 text-white border border-white/15'
-                      : 'text-white/70 hover:text-white hover:bg-white/5'
-                  }`}
-                >
-                  <Briefcase className="h-3.5 w-3.5 stroke-[1.5]" />
-                  Nástěnka obchodů
-                </button>
-
-                <button
-                  onClick={() => {
-                    setFocusContactId(undefined);
-                    setActiveTab('contacts');
-                  }}
-                  className={`flex items-center gap-1.5 px-3 py-1.5 rounded-sm text-xs font-semibold tracking-wide transition-colors ${
-                    activeTab === 'contacts'
-                      ? 'bg-white/10 text-white border border-white/15'
-                      : 'text-white/70 hover:text-white hover:bg-white/5'
-                  }`}
-                >
-                  <Users className="h-3.5 w-3.5 stroke-[1.5]" />
-                  Kontakty
-                </button>
-
-                <button
-                  onClick={() => {
-                    setFocusPropertyId(undefined);
-                    setActiveTab('properties');
-                  }}
-                  className={`flex items-center gap-1.5 px-3 py-1.5 rounded-sm text-xs font-semibold tracking-wide transition-colors ${
-                    activeTab === 'properties'
-                      ? 'bg-white/10 text-white border border-white/15'
-                      : 'text-white/70 hover:text-white hover:bg-white/5'
-                  }`}
-                >
-                  <Home className="h-3.5 w-3.5 stroke-[1.5]" />
-                  Nemovitosti
-                </button>
-
-                <button
-                  onClick={() => setActiveTab('reminders')}
-                  className={`flex items-center gap-1.5 px-3 py-1.5 rounded-sm text-xs font-semibold tracking-wide transition-colors relative ${
-                    activeTab === 'reminders'
-                      ? 'bg-white/10 text-white border border-white/15'
-                      : 'text-white/70 hover:text-white hover:bg-white/5'
-                  }`}
-                >
-                  <Clock className="h-3.5 w-3.5 stroke-[1.5]" />
-                  Dnešní připomínky
-                  {pendingCount > 0 && (
-                    <span className="absolute -top-1 -right-1 flex h-4 w-4 items-center justify-center rounded-full bg-rose-600 text-[8px] font-bold text-white">
-                      {pendingCount}
-                    </span>
-                  )}
-                </button>
-              </nav>
-            </div>
-
-            <div className="flex items-center gap-3">
-              <button
-                onClick={() => setActiveTab('settings')}
-                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-sm text-xs font-semibold tracking-wide transition-colors ${
-                  activeTab === 'settings'
-                    ? 'bg-white/10 text-white border border-white/15'
-                    : 'text-white/70 hover:text-white hover:bg-white/5'
-                }`}
-              >
-                <SettingsIcon className="h-3.5 w-3.5 stroke-[1.5]" />
-                Nastavení
-              </button>
-            </div>
+    <div className="min-h-screen bg-background flex font-sans">
+      {/* Sidebar Navigation */}
+      <aside className="w-16 bg-[#00221F] border-r border-[#00221F] flex flex-col justify-between items-center py-6 fixed left-0 top-0 bottom-0 z-40">
+        <div className="flex flex-col items-center gap-8 w-full">
+          {/* Brand Logo */}
+          <div className="flex flex-col items-center justify-center p-2 rounded-md bg-white/5 border border-white/10">
+            <Key className="h-5 w-5 text-[#00D991]" />
           </div>
-        </div>
-      </header>
 
-      {/* Main Container */}
-      <main className="flex-grow max-w-7xl mx-auto w-full px-4 sm:px-6 lg:px-8 py-8">
-        {renderActiveView()}
-      </main>
+          {/* Navigation Menu */}
+          <nav className="flex flex-col gap-3 w-full px-2">
+            <button
+              onClick={() => {
+                setFocusDealId(undefined);
+                setActiveTab('kanban');
+              }}
+              title="Nástěnka obchodů"
+              className={`flex items-center justify-center p-3 rounded-md transition-all ${
+                activeTab === 'kanban'
+                  ? 'bg-white/10 text-[#00D991] border border-white/15'
+                  : 'text-white/60 hover:text-white hover:bg-white/5'
+              }`}
+            >
+              <Briefcase className="h-5 w-5 stroke-[1.5]" />
+            </button>
 
-      {/* Footer */}
-      <footer className="border-t border-[#EAE9E2] bg-white py-4 text-center text-[10px] text-muted-foreground">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          Brokerly Denní jádro · Stage 1 Core CRM
+            <button
+              onClick={() => {
+                setFocusContactId(undefined);
+                setActiveTab('contacts');
+              }}
+              title="Kontakty"
+              className={`flex items-center justify-center p-3 rounded-md transition-all ${
+                activeTab === 'contacts'
+                  ? 'bg-white/10 text-[#00D991] border border-white/15'
+                  : 'text-white/60 hover:text-white hover:bg-white/5'
+              }`}
+            >
+              <Users className="h-5 w-5 stroke-[1.5]" />
+            </button>
+
+            <button
+              onClick={() => {
+                setFocusPropertyId(undefined);
+                setActiveTab('properties');
+              }}
+              title="Nemovitosti"
+              className={`flex items-center justify-center p-3 rounded-md transition-all ${
+                activeTab === 'properties'
+                  ? 'bg-white/10 text-[#00D991] border border-white/15'
+                  : 'text-white/60 hover:text-white hover:bg-white/5'
+              }`}
+            >
+              <Home className="h-5 w-5 stroke-[1.5]" />
+            </button>
+
+            <button
+              onClick={() => setActiveTab('reminders')}
+              title="Dnešní připomínky"
+              className={`flex items-center justify-center p-3 rounded-md transition-all relative ${
+                activeTab === 'reminders'
+                  ? 'bg-white/10 text-[#00D991] border border-white/15'
+                  : 'text-white/60 hover:text-white hover:bg-white/5'
+              }`}
+            >
+              <Clock className="h-5 w-5 stroke-[1.5]" />
+              {pendingCount > 0 && (
+                <span className="absolute top-1 right-1 flex h-4 w-4 items-center justify-center rounded-full bg-rose-600 text-[8px] font-bold text-white">
+                  {pendingCount}
+                </span>
+              )}
+            </button>
+          </nav>
         </div>
-      </footer>
+
+        {/* Bottom Action */}
+        <div className="w-full px-2">
+          <button
+            onClick={() => setActiveTab('settings')}
+            title="Nastavení"
+            className={`flex items-center justify-center p-3 rounded-md w-full transition-all ${
+              activeTab === 'settings'
+                ? 'bg-white/10 text-[#00D991] border border-white/15'
+                : 'text-white/60 hover:text-white hover:bg-white/5'
+            }`}
+          >
+            <SettingsIcon className="h-5 w-5 stroke-[1.5]" />
+          </button>
+        </div>
+      </aside>
+
+      {/* Main Layout Area */}
+      <div className="flex-grow flex flex-col min-h-screen pl-16">
+        {/* Main Container */}
+        <main className="flex-grow max-w-7xl mx-auto w-full px-4 sm:px-6 lg:px-8 py-8">
+          {renderActiveView()}
+        </main>
+
+        {/* Footer */}
+        <footer className="border-t border-[#E8E8E8] bg-white py-4 text-center text-[10px] text-muted-foreground">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            Brokerly Denní jádro · Stage 1 Core CRM
+          </div>
+        </footer>
+      </div>
     </div>
   );
 }

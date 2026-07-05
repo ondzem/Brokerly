@@ -99,7 +99,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({ initialSettings, onR
 
       <form onSubmit={handleSave} className="space-y-6">
         {/* Profil makléře */}
-        <Card className="border-[#EAE9E2] shadow-sm">
+        <Card className="border-border shadow-sm bg-white">
           <CardHeader className="pb-3">
             <CardTitle className="text-lg font-display font-normal flex items-center gap-2">
               <User className="h-5 w-5 stroke-[1.5]" />
@@ -172,7 +172,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({ initialSettings, onR
         </Card>
 
         {/* Tón a komunikace */}
-        <Card className="border-[#EAE9E2] shadow-sm">
+        <Card className="border-border shadow-sm bg-white">
           <CardHeader className="pb-3">
             <CardTitle className="text-lg font-display font-normal flex items-center gap-2">
               <SettingsIcon className="h-5 w-5 stroke-[1.5]" />
@@ -284,7 +284,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({ initialSettings, onR
         </Card>
 
         {/* Sekce Kancelář - disabled / deferred */}
-        <Card className="border-[#EAE9E2] bg-stone-50/50 shadow-sm opacity-70">
+        <Card className="border-border bg-stone-50/50 shadow-sm opacity-70">
           <CardHeader className="pb-3">
             <CardTitle className="text-lg font-display font-normal text-muted-foreground">
               Týmové funkce (Kancelář)
