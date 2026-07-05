@@ -197,8 +197,8 @@ export default function App() {
               title="Nástěnka obchodů"
               className={`flex items-center justify-center p-3 rounded-md transition-all ${
                 activeTab === 'kanban'
-                  ? 'bg-white/10 text-[#00D991] border border-white/15'
-                  : 'text-white/60 hover:text-white hover:bg-white/5'
+                  ? 'text-[#00D991]'
+                  : 'text-white/60 hover:text-white'
               }`}
             >
               <Briefcase className="h-5 w-5 stroke-[1.5]" />
@@ -212,8 +212,8 @@ export default function App() {
               title="Kontakty"
               className={`flex items-center justify-center p-3 rounded-md transition-all ${
                 activeTab === 'contacts'
-                  ? 'bg-white/10 text-[#00D991] border border-white/15'
-                  : 'text-white/60 hover:text-white hover:bg-white/5'
+                  ? 'text-[#00D991]'
+                  : 'text-white/60 hover:text-white'
               }`}
             >
               <Users className="h-5 w-5 stroke-[1.5]" />
@@ -227,8 +227,8 @@ export default function App() {
               title="Nemovitosti"
               className={`flex items-center justify-center p-3 rounded-md transition-all ${
                 activeTab === 'properties'
-                  ? 'bg-white/10 text-[#00D991] border border-white/15'
-                  : 'text-white/60 hover:text-white hover:bg-white/5'
+                  ? 'text-[#00D991]'
+                  : 'text-white/60 hover:text-white'
               }`}
             >
               <Home className="h-5 w-5 stroke-[1.5]" />
@@ -239,8 +239,8 @@ export default function App() {
               title="Dnešní připomínky"
               className={`flex items-center justify-center p-3 rounded-md transition-all relative ${
                 activeTab === 'reminders'
-                  ? 'bg-white/10 text-[#00D991] border border-white/15'
-                  : 'text-white/60 hover:text-white hover:bg-white/5'
+                  ? 'text-[#00D991]'
+                  : 'text-white/60 hover:text-white'
               }`}
             >
               <Clock className="h-5 w-5 stroke-[1.5]" />
@@ -260,8 +260,8 @@ export default function App() {
             title="Nastavení"
             className={`flex items-center justify-center p-3 rounded-md w-full transition-all ${
               activeTab === 'settings'
-                ? 'bg-white/10 text-[#00D991] border border-white/15'
-                : 'text-white/60 hover:text-white hover:bg-white/5'
+                ? 'text-[#00D991]'
+                : 'text-white/60 hover:text-white'
             }`}
           >
             <SettingsIcon className="h-5 w-5 stroke-[1.5]" />
