@@ -13,7 +13,13 @@ import { toast } from 'sonner';
 type ActiveTab = 'dashboard' | 'kanban' | 'contacts' | 'properties' | 'reminders' | 'settings';
 
 export default function App() {
-  const [activeTab, setActiveTab] = useState<ActiveTab>('dashboard');
+  const [activeTab, setActiveTab] = useState<ActiveTab>(() => {
+    if (typeof window !== 'undefined') {
+      const saved = localStorage.getItem('brokerly_active_tab');
+      return (saved as ActiveTab) || 'dashboard';
+    }
+    return 'dashboard';
+  });
   
   // Data States
   const [settings, setSettings] = useState<Settings | null>(null);
@@ -25,8 +31,18 @@ export default function App() {
   const [loading, setLoading] = useState(true);
 
   // Link navigation focus states
-  const [focusContactId, setFocusContactId] = useState<string | undefined>(undefined);
-  const [focusPropertyId, setFocusPropertyId] = useState<string | undefined>(undefined);
+  const [focusContactId, setFocusContactId] = useState<string | undefined>(() => {
+    if (typeof window !== 'undefined') {
+      return localStorage.getItem('brokerly_focus_contact_id') || undefined;
+    }
+    return undefined;
+  });
+  const [focusPropertyId, setFocusPropertyId] = useState<string | undefined>(() => {
+    if (typeof window !== 'undefined') {
+      return localStorage.getItem('brokerly_focus_property_id') || undefined;
+    }
+    return undefined;
+  });
   const [focusDealId, setFocusDealId] = useState<string | undefined>(undefined);
 
   // Load all tables
@@ -76,6 +92,33 @@ export default function App() {
   useEffect(() => {
     loadData();
   }, []);
+
+  // Sync navigation states to localStorage
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('brokerly_active_tab', activeTab);
+    }
+  }, [activeTab]);
+
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      if (focusContactId) {
+        localStorage.setItem('brokerly_focus_contact_id', focusContactId);
+      } else {
+        localStorage.removeItem('brokerly_focus_contact_id');
+      }
+    }
+  }, [focusContactId]);
+
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      if (focusPropertyId) {
+        localStorage.setItem('brokerly_focus_property_id', focusPropertyId);
+      } else {
+        localStorage.removeItem('brokerly_focus_property_id');
+      }
+    }
+  }, [focusPropertyId]);
 
   // Compute number of pending reminders today or overdue
   const getPendingRemindersCount = () => {
@@ -151,6 +194,7 @@ export default function App() {
             properties={properties}
             activities={activities}
             initialSelectedContactId={focusContactId}
+            onClearFocusContact={() => setFocusContactId(undefined)}
             onRefresh={() => loadData(true)}
             onNavigateToDeal={handleNavigateToDeal}
             onNavigateToProperty={handleNavigateToProperty}
@@ -163,6 +207,7 @@ export default function App() {
             contacts={contacts}
             deals={deals}
             initialSelectedPropertyId={focusPropertyId}
+            onClearFocusProperty={() => setFocusPropertyId(undefined)}
             onRefresh={() => loadData(true)}
             onNavigateToContact={handleNavigateToContact}
             onNavigateToDeal={handleNavigateToDeal}

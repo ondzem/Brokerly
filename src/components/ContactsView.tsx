@@ -32,6 +32,7 @@ interface ContactsViewProps {
   properties: Property[];
   activities: Activity[];
   initialSelectedContactId?: string;
+  onClearFocusContact?: () => void;
   onRefresh: () => void;
   onNavigateToDeal: (dealId: string) => void;
   onNavigateToProperty: (propertyId: string) => void;
@@ -43,6 +44,7 @@ export const ContactsView: React.FC<ContactsViewProps> = ({
   properties,
   activities,
   initialSelectedContactId,
+  onClearFocusContact,
   onRefresh,
   onNavigateToDeal,
   onNavigateToProperty,
@@ -443,7 +445,10 @@ export const ContactsView: React.FC<ContactsViewProps> = ({
 
       {/* DETAIL DIALOG */}
       {selectedContact && (
-        <Dialog open={isDetailOpen} onOpenChange={setIsDetailOpen}>
+        <Dialog open={isDetailOpen} onOpenChange={(open) => {
+          setIsDetailOpen(open);
+          if (!open) onClearFocusContact?.();
+        }}>
           <DialogContent className="max-w-5xl lg:max-w-6xl w-[95vw] max-h-[90vh] overflow-y-auto border-border">
             <DialogHeader>
               <DialogTitle className="font-display text-2xl font-bold border-b border-border pb-3 flex items-center justify-between">

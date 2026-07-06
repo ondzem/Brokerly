@@ -47,6 +47,7 @@ interface PropertiesViewProps {
   contacts: Contact[];
   deals: Deal[];
   initialSelectedPropertyId?: string;
+  onClearFocusProperty?: () => void;
   onRefresh: () => void;
   onNavigateToContact: (contactId: string) => void;
   onNavigateToDeal: (dealId: string) => void;
@@ -57,6 +58,7 @@ export const PropertiesView: React.FC<PropertiesViewProps> = ({
   contacts,
   deals,
   initialSelectedPropertyId,
+  onClearFocusProperty,
   onRefresh,
   onNavigateToContact,
   onNavigateToDeal,
@@ -677,7 +679,10 @@ export const PropertiesView: React.FC<PropertiesViewProps> = ({
 
       {/* DETAIL DIALOG */}
       {selectedProperty && (
-        <Dialog open={isDetailOpen} onOpenChange={setIsDetailOpen}>
+        <Dialog open={isDetailOpen} onOpenChange={(open) => {
+          setIsDetailOpen(open);
+          if (!open) onClearFocusProperty?.();
+        }}>
           <DialogContent className="max-w-5xl lg:max-w-6xl w-[95vw] max-h-[90vh] overflow-y-auto border-border">
             <DialogHeader>
               <DialogTitle className="font-display text-2xl font-bold border-b border-border pb-3 flex items-center justify-between">
