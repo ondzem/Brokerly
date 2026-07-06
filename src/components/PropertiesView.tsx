@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Property, Contact, Deal } from '@/types';
-import { createProperty, updateProperty, createContact } from '@/lib/db';
+import { createProperty, updateProperty, createContact, deleteProperty } from '@/lib/db';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -300,7 +300,22 @@ export const PropertiesView: React.FC<PropertiesViewProps> = ({
     }
   };
 
-  // Create new property
+  const handleDeleteProperty = async () => {
+    if (!selectedProperty) return;
+    const confirmDelete = window.confirm('Opravdu chcete tuto nemovitost smazat? Tato akce je nevratná a odebere nemovitost ze všech přidružených obchodů.');
+    if (!confirmDelete) return;
+
+    try {
+      await deleteProperty(selectedProperty.id);
+      toast.success('Nemovitost byla úspěšně smazána.');
+      setIsDetailOpen(false);
+      setSelectedProperty(null);
+      onRefresh();
+    } catch (error: any) {
+      console.error(error);
+      toast.error(`Chyba při mazání nemovitosti: ${error?.message || error}`);
+    }
+  };
   const handleCreateProperty = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!newAddress || !newPrice) {
@@ -889,7 +904,7 @@ export const PropertiesView: React.FC<PropertiesViewProps> = ({
           setIsDetailOpen(open);
           if (!open) onClearFocusProperty?.();
         }}>
-          <DialogContent className="max-w-5xl lg:max-w-6xl w-[95vw] max-h-[90vh] overflow-y-auto border-border">
+          <DialogContent className="max-w-6xl lg:max-w-7xl w-[90vw] md:w-[92vw] lg:w-full max-h-[90vh] overflow-y-auto border-border">
             <DialogHeader>
               <DialogTitle className="font-display text-2xl font-bold border-b border-border pb-3 flex items-center justify-between">
                 <span>{editAddress}</span>
@@ -1398,13 +1413,23 @@ export const PropertiesView: React.FC<PropertiesViewProps> = ({
                 </div>
               </div>
 
-              <div className="border-t border-stone-200 pt-4 flex justify-end gap-3">
-                <Button type="button" variant="outline" onClick={() => setIsDetailOpen(false)}>
-                  Zavřít
+              <div className="border-t border-stone-200 pt-4 flex justify-between items-center">
+                <Button
+                  type="button"
+                  variant="destructive"
+                  onClick={handleDeleteProperty}
+                  className="bg-rose-50 hover:bg-rose-100 text-rose-600 border border-rose-200 hover:border-rose-300 font-medium"
+                >
+                  Odstranit nemovitost
                 </Button>
-                <Button type="submit">
-                  Uložit změny
-                </Button>
+                <div className="flex gap-3">
+                  <Button type="button" variant="outline" onClick={() => setIsDetailOpen(false)}>
+                    Zavřít
+                  </Button>
+                  <Button type="submit">
+                    Uložit změny
+                  </Button>
+                </div>
               </div>
             </form>
           </DialogContent>
@@ -1413,7 +1438,7 @@ export const PropertiesView: React.FC<PropertiesViewProps> = ({
 
       {/* CREATE DIALOG */}
       <Dialog open={isCreateOpen} onOpenChange={setIsCreateOpen}>
-        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto border-stone-200 p-6 md:p-8">
+        <DialogContent className="max-w-5xl lg:max-w-6xl w-[90vw] md:w-[92vw] lg:w-full max-h-[90vh] overflow-y-auto border-stone-200 p-6 md:p-8">
           <DialogHeader className="border-b border-stone-250 pb-4 mb-4">
             <DialogTitle className="font-display text-2xl font-normal text-left text-[#141414]">Přidat nemovitost</DialogTitle>
             <DialogDescription className="text-xs text-left text-muted-foreground mt-1">
@@ -1517,7 +1542,7 @@ export const PropertiesView: React.FC<PropertiesViewProps> = ({
                       />
                     </div>
 
-                    <div className="grid grid-cols-2 gap-4">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                       <div className="space-y-1.5">
                         <Label htmlFor="owner_source">Odkud přišel *</Label>
                         <Select value={newOwnerSource} onValueChange={setNewOwnerSource}>
@@ -1618,7 +1643,7 @@ export const PropertiesView: React.FC<PropertiesViewProps> = ({
                   />
                 </div>
 
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div className="space-y-1.5">
                     <Label htmlFor="new_kind">Druh nemovitosti *</Label>
                     <Select value={newKind} onValueChange={(val: Property['kind']) => setNewKind(val)} required>
@@ -1652,7 +1677,7 @@ export const PropertiesView: React.FC<PropertiesViewProps> = ({
                   </div>
                 </div>
 
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div className="space-y-1.5">
                     <Label htmlFor="new_price">Cena / Nájem (Kč) *</Label>
                     <Input
@@ -1687,7 +1712,7 @@ export const PropertiesView: React.FC<PropertiesViewProps> = ({
                 {newKind === 'byt' && (
                   <div className="border-t border-stone-200 pt-4 space-y-4 text-left">
                     <h4 className="font-display text-xs font-semibold text-stone-700 uppercase tracking-wider">Specifické parametry pro BYT</h4>
-                    <div className="grid grid-cols-3 gap-4">
+                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                       <div className="space-y-1.5">
                         <Label htmlFor="flat_layout">Dispozice *</Label>
                         <Select value={flatLayout} onValueChange={setFlatLayout}>
@@ -1728,7 +1753,7 @@ export const PropertiesView: React.FC<PropertiesViewProps> = ({
                       </div>
                     </div>
 
-                    <div className="grid grid-cols-4 gap-4">
+                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
                       <div className="space-y-1.5">
                         <Label htmlFor="flat_ownership">Vlastnictví</Label>
                         <Select value={flatOwnership} onValueChange={setFlatOwnership}>
@@ -1816,7 +1841,7 @@ export const PropertiesView: React.FC<PropertiesViewProps> = ({
                 {newKind === 'dům' && (
                   <div className="border-t border-stone-200 pt-4 space-y-4 text-left">
                     <h4 className="font-display text-xs font-semibold text-stone-700 uppercase tracking-wider">Specifické parametry pro DŮM</h4>
-                    <div className="grid grid-cols-3 gap-4">
+                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                       <div className="space-y-1.5">
                         <Label htmlFor="house_layout">Dispozice / místnosti *</Label>
                         <Select value={houseLayout} onValueChange={setHouseLayout}>
@@ -1858,7 +1883,7 @@ export const PropertiesView: React.FC<PropertiesViewProps> = ({
                       </div>
                     </div>
 
-                    <div className="grid grid-cols-4 gap-4">
+                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
                       <div className="space-y-1.5">
                         <Label htmlFor="house_type">Typ domu</Label>
                         <Select value={houseType} onValueChange={setHouseType}>
@@ -1941,7 +1966,7 @@ export const PropertiesView: React.FC<PropertiesViewProps> = ({
                 {newKind === 'pozemek' && (
                   <div className="border-t border-stone-200 pt-4 space-y-4 text-left">
                     <h4 className="font-display text-xs font-semibold text-stone-700 uppercase tracking-wider">Specifické parametry pro POZEMEK</h4>
-                    <div className="grid grid-cols-3 gap-4">
+                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                       <div className="space-y-1.5">
                         <Label htmlFor="land_size">Výměra (m²) *</Label>
                         <Input
@@ -1977,7 +2002,7 @@ export const PropertiesView: React.FC<PropertiesViewProps> = ({
                       </div>
                     </div>
 
-                    <div className="grid grid-cols-3 gap-4">
+                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                       <div className="space-y-1.5">
                         <Label htmlFor="zoning_plan">Územní plán</Label>
                         <Input

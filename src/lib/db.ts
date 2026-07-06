@@ -185,6 +185,18 @@ export async function updateProperty(id: string, property: Partial<Property>): P
   return data;
 }
 
+export async function deleteProperty(id: string): Promise<void> {
+  const { error } = await supabase
+    .from('properties')
+    .delete()
+    .eq('id', id);
+
+  if (error) {
+    console.error('Error deleting property:', error);
+    throw error;
+  }
+}
+
 // --- DEALS ---
 export async function fetchDeals(): Promise<Deal[]> {
   const { data, error } = await supabase
