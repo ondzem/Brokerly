@@ -42,6 +42,17 @@ const HOUSE_LAYOUT_OPTIONS = ['2+kk', '3+kk', '4+kk', '5+kk', '6 a více'] as co
 const HOUSE_TYPE_OPTIONS = ['samostatný', 'řadový', 'dvojdomek'] as const;
 const HOUSE_FEATURE_OPTIONS = ['garáž', 'zahrada', 'bazén'] as const;
 
+const parseSafeNumber = (val: string | number | null | undefined): number | null => {
+  if (val === null || val === undefined) return null;
+  if (typeof val === 'number') {
+    return isNaN(val) ? null : val;
+  }
+  const cleanStr = val.toString().replace(/[^0-9]/g, '');
+  if (!cleanStr) return null;
+  const num = Number(cleanStr);
+  return isNaN(num) ? null : num;
+};
+
 interface PropertiesViewProps {
   properties: Property[];
   contacts: Contact[];
@@ -233,20 +244,26 @@ export const PropertiesView: React.FC<PropertiesViewProps> = ({
     }
 
     try {
+      const parsedPrice = parseSafeNumber(editPrice);
+      if (parsedPrice === null) {
+        toast.error('Cena musí být platné číslo.');
+        return;
+      }
+
       const updateData: Partial<Property> = {
         owner_id: editOwnerId,
         kind: editKind,
         transaction: editTransaction,
         address: editAddress,
         offer_status: editOfferStatus,
-        price: Number(editPrice),
+        price: parsedPrice,
         facts_for_answers: editFacts || null,
         handover_term: editHandover || null,
         listing_id: editListingId || null,
         
         // Byt details
         flat_layout: editKind === 'byt' ? (flatLayout as Property['flat_layout']) : null,
-        flat_area: editKind === 'byt' && flatArea ? Number(flatArea) : null,
+        flat_area: editKind === 'byt' && flatArea ? parseSafeNumber(flatArea) : null,
         floor: editKind === 'byt' ? flatFloor || null : null,
         ownership: editKind === 'byt' ? (flatOwnership as Property['ownership']) || null : null,
         construction: editKind === 'byt' ? (flatConstruction as Property['construction']) || null : null,
@@ -256,16 +273,16 @@ export const PropertiesView: React.FC<PropertiesViewProps> = ({
 
         // Dům details
         house_layout: editKind === 'dům' ? (houseLayout as Property['house_layout']) : null,
-        house_area: editKind === 'dům' && houseArea ? Number(houseArea) : null,
-        land_area: editKind === 'dům' && landArea ? Number(landArea) : null,
+        house_area: editKind === 'dům' && houseArea ? parseSafeNumber(houseArea) : null,
+        land_area: editKind === 'dům' && landArea ? parseSafeNumber(landArea) : null,
         house_type: editKind === 'dům' ? (houseType as Property['house_type']) || null : null,
-        floors_count: editKind === 'dům' && houseFloors ? Number(houseFloors) : null,
+        floors_count: editKind === 'dům' && houseFloors ? parseSafeNumber(houseFloors) : null,
         house_features: editKind === 'dům' ? houseFeatures : null,
         house_condition: editKind === 'dům' ? (houseCondition as Property['house_condition']) || null : null,
         house_penb: editKind === 'dům' ? (housePenb as Property['house_penb']) || null : null,
 
         // Pozemek details
-        land_size: editKind === 'pozemek' && landSize ? Number(landSize) : null,
+        land_size: editKind === 'pozemek' && landSize ? parseSafeNumber(landSize) : null,
         land_type: editKind === 'pozemek' ? landType || null : null,
         land_utilities: editKind === 'pozemek' && landUtilities ? landUtilities.split(',').map((s) => s.trim()).filter(Boolean) : null,
         zoning_plan: editKind === 'pozemek' ? zoningPlan || null : null,
@@ -277,8 +294,9 @@ export const PropertiesView: React.FC<PropertiesViewProps> = ({
       toast.success('Nemovitost byla úspěšně uložena.');
       setSelectedProperty(updated);
       onRefresh();
-    } catch (error) {
-      toast.error('Chyba při ukládání nemovitosti.');
+    } catch (error: any) {
+      console.error(error);
+      toast.error(`Chyba při ukládání nemovitosti: ${error?.message || error}`);
     }
   };
 
@@ -337,13 +355,19 @@ export const PropertiesView: React.FC<PropertiesViewProps> = ({
         finalOwnerId = createdContact.id;
       }
 
+      const parsedPrice = parseSafeNumber(newPrice);
+      if (parsedPrice === null) {
+        toast.error('Cena musí být platné číslo.');
+        return;
+      }
+
       const created = await createProperty({
         owner_id: finalOwnerId,
         kind: newKind,
         transaction: newTransaction,
         address: newAddress,
         offer_status: newOfferStatus,
-        price: Number(newPrice),
+        price: parsedPrice,
         facts_for_answers: newFacts || null,
         handover_term: newHandover || null,
         listing_id: newListingId || null,
@@ -351,7 +375,7 @@ export const PropertiesView: React.FC<PropertiesViewProps> = ({
         
         // Byt details
         flat_layout: newKind === 'byt' ? (flatLayout as Property['flat_layout']) : null,
-        flat_area: newKind === 'byt' && flatArea ? Number(flatArea) : null,
+        flat_area: newKind === 'byt' && flatArea ? parseSafeNumber(flatArea) : null,
         floor: newKind === 'byt' ? flatFloor || null : null,
         ownership: newKind === 'byt' ? (flatOwnership as Property['ownership']) || null : null,
         construction: newKind === 'byt' ? (flatConstruction as Property['construction']) || null : null,
@@ -361,16 +385,16 @@ export const PropertiesView: React.FC<PropertiesViewProps> = ({
 
         // Dům details
         house_layout: newKind === 'dům' ? (houseLayout as Property['house_layout']) : null,
-        house_area: newKind === 'dům' && houseArea ? Number(houseArea) : null,
-        land_area: newKind === 'dům' && landArea ? Number(landArea) : null,
+        house_area: newKind === 'dům' && houseArea ? parseSafeNumber(houseArea) : null,
+        land_area: newKind === 'dům' && landArea ? parseSafeNumber(landArea) : null,
         house_type: newKind === 'dům' ? (houseType as Property['house_type']) || null : null,
-        floors_count: newKind === 'dům' && houseFloors ? Number(houseFloors) : null,
+        floors_count: newKind === 'dům' && houseFloors ? parseSafeNumber(houseFloors) : null,
         house_features: newKind === 'dům' ? houseFeatures : null,
         house_condition: newKind === 'dům' ? (houseCondition as Property['house_condition']) || null : null,
         house_penb: newKind === 'dům' ? (housePenb as Property['house_penb']) || null : null,
 
         // Pozemek details
-        land_size: newKind === 'pozemek' && landSize ? Number(landSize) : null,
+        land_size: newKind === 'pozemek' && landSize ? parseSafeNumber(landSize) : null,
         land_type: newKind === 'pozemek' ? landType || null : null,
         land_utilities: newKind === 'pozemek' && landUtilities ? landUtilities.split(',').map(s => s.trim()).filter(Boolean) : null,
         zoning_plan: newKind === 'pozemek' ? zoningPlan || null : null,
@@ -435,8 +459,9 @@ export const PropertiesView: React.FC<PropertiesViewProps> = ({
       setZoningPlan('');
       setLandAccess('');
       setLandDimensions('');
-    } catch (error) {
-      toast.error('Chyba při zakládání nemovitosti.');
+    } catch (error: any) {
+      console.error(error);
+      toast.error(`Chyba při zakládání nemovitosti: ${error?.message || error}`);
     }
   };
 
