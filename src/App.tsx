@@ -9,6 +9,7 @@ import { SettingsView } from '@/components/SettingsView';
 import { DashboardView } from '@/components/DashboardView';
 import { Briefcase, Users, Home, Clock, Settings as SettingsIcon, Key, LayoutGrid } from 'lucide-react';
 import { toast } from 'sonner';
+import { Toaster } from '@/components/ui/sonner';
 
 type ActiveTab = 'dashboard' | 'kanban' | 'contacts' | 'properties' | 'reminders' | 'settings';
 
@@ -365,6 +366,7 @@ export default function App() {
           {renderActiveView()}
         </main>
       </div>
+      <Toaster />
     </div>
   );
 }
