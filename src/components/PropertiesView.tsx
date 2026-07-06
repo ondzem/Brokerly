@@ -479,7 +479,7 @@ export const PropertiesView: React.FC<PropertiesViewProps> = ({
       }
 
       // 3. Call Gemini Structured Outputs API
-      const geminiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${geminiKey}`;
+      const geminiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${geminiKey}`;
       const geminiPayload = {
         contents: [
           {
