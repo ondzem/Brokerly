@@ -181,7 +181,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
       <div className="max-w-[1400px] mx-auto w-full flex flex-col gap-6">
         
         {/* HEADER SECTION */}
-        <div className="flex flex-col md:flex-row md:items-start justify-between gap-4">
+        <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
           <div>
             <h1 className="font-display font-light text-3xl md:text-4xl leading-tight" style={{ color: colors.textPrimary }}>
               {getGreeting()}, {getVocative('Filip')}.
@@ -189,11 +189,11 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
             <p className="text-sm mt-1" style={{ color: colors.textSecondary }}>
               {getPriorityText(realPriorities.length > 0 ? realPriorities.length : 3)}
             </p>
-            <div className="mt-2">
-              <span className="text-[11px] font-light uppercase tracking-wider" style={{ color: colors.textMuted }}>
-                {getCzechDate()}
-              </span>
-            </div>
+          </div>
+          <div className="flex items-center gap-4 self-end md:self-auto">
+            <span className="text-[11px] font-light uppercase tracking-wider" style={{ color: colors.textMuted }}>
+              {getCzechDate()}
+            </span>
           </div>
         </div>
 
