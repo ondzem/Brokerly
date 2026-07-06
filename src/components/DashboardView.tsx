@@ -190,7 +190,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
               {getPriorityText(realPriorities.length > 0 ? realPriorities.length : 3)}
             </p>
           </div>
-          <div className="flex items-center gap-4 self-end md:self-auto">
+          <div className="hidden md:flex items-center gap-4 self-end md:self-auto">
             <span className="text-[11px] font-light uppercase tracking-wider" style={{ color: colors.textMuted }}>
               {getCzechDate()}
             </span>
