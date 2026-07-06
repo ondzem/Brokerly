@@ -458,31 +458,13 @@ export const PropertiesView: React.FC<PropertiesViewProps> = ({
     const toastId = toast.loading('Stahuji obsah inzerátu přes proxy...');
 
     try {
-      // 1. Download via ScraperAPI wrapped in a CORS proxy to bypass browser restrictions
-      const scraperUrl = `https://api.scraperapi.com?api_key=${encodeURIComponent(scraperKey)}&url=${encodeURIComponent(importUrl)}`;
-      
-      let html = '';
-      
-      try {
-        // Primary CORS Proxy: corsproxy.io
-        const primaryUrl = `https://corsproxy.io/?${encodeURIComponent(scraperUrl)}`;
-        const response = await fetch(primaryUrl);
-        if (response.ok) {
-          html = await response.text();
-        } else {
-          throw new Error(`Primary proxy returned status ${response.status}`);
-        }
-      } catch (err) {
-        console.warn('Primary CORS proxy failed, trying backup...', err);
-        // Fallback CORS Proxy: allorigins.win
-        const backupUrl = `https://api.allorigins.win/raw?url=${encodeURIComponent(scraperUrl)}`;
-        const response = await fetch(backupUrl);
-        if (response.ok) {
-          html = await response.text();
-        } else {
-          throw new Error('Chyba při stahování stránky přes proxy (všechny proxy selhaly).');
-        }
+      // 1. Download via local Vite development proxy (bypasses CORS completely)
+      const scraperUrl = `/api-scraper?api_key=${encodeURIComponent(scraperKey)}&url=${encodeURIComponent(importUrl)}`;
+      const response = await fetch(scraperUrl);
+      if (!response.ok) {
+        throw new Error('Chyba při stahování stránky přes proxy. Zkontrolujte prosím Váš API klíč.');
       }
+      const html = await response.text();
 
       // 2. Parse HTML and clean up to plain text to save tokens
       toast.loading('Analyzuji text inzerátu pomocí AI...', { id: toastId });

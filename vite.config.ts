@@ -11,4 +11,13 @@ export default defineConfig({
       '@': path.resolve(__dirname, './src'),
     },
   },
+  server: {
+    proxy: {
+      '/api-scraper': {
+        target: 'https://api.scraperapi.com',
+        changeOrigin: true,
+        rewrite: (path) => path.replace(/^\/api-scraper/, ''),
+      },
+    },
+  },
 });
