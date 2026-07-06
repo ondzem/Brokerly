@@ -467,7 +467,7 @@ export const KanbanView: React.FC<KanbanViewProps> = ({
               </Select>
             </div>
 
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div className="space-y-1.5">
                 <Label htmlFor="stage_select">Fáze *</Label>
                 <Select value={newStage} onValueChange={(val: Deal['stage']) => setNewStage(val)} required>
@@ -499,7 +499,7 @@ export const KanbanView: React.FC<KanbanViewProps> = ({
               </div>
             </div>
 
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div className="space-y-1.5">
                 <Label htmlFor="fin_select">Financování</Label>
                 <Select value={newFinancing} onValueChange={setNewFinancing}>
@@ -567,7 +567,7 @@ export const KanbanView: React.FC<KanbanViewProps> = ({
       {/* DETAIL AND LOGGING DIALOG */}
       {selectedDeal && (
         <Dialog open={isDetailOpen} onOpenChange={setIsDetailOpen}>
-          <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto border-border">
+          <DialogContent className="max-w-5xl lg:max-w-6xl w-[95vw] max-h-[90vh] overflow-y-auto border-border">
             <DialogHeader>
               <DialogTitle className="font-display text-2xl font-normal border-b border-border pb-3 flex items-center justify-between">
                 <span>{selectedDeal.deal_name}</span>
@@ -577,12 +577,12 @@ export const KanbanView: React.FC<KanbanViewProps> = ({
               </DialogTitle>
             </DialogHeader>
 
-            <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 mt-4">
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 mt-4">
               {/* Left Column: Edit Deal Form */}
-              <div className="lg:col-span-7 space-y-4">
+              <div className="lg:col-span-7 space-y-6">
                 <h3 className="font-display text-lg font-normal">Detaily obchodu</h3>
 
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div className="space-y-1.5">
                     <Label>Kupující</Label>
                     <div className="text-sm font-medium p-2 bg-secondary/40 rounded-sm flex items-center justify-between">
@@ -626,7 +626,7 @@ export const KanbanView: React.FC<KanbanViewProps> = ({
                   </div>
                 </div>
 
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div className="space-y-1.5">
                     <Label htmlFor="edit_stage">Fáze obchodu</Label>
                     <Select value={editStage} onValueChange={(val: Deal['stage']) => setEditStage(val)}>
@@ -678,7 +678,7 @@ export const KanbanView: React.FC<KanbanViewProps> = ({
                   </div>
                 )}
 
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div className="space-y-1.5">
                     <Label htmlFor="edit_temp">Teplota (skóre)</Label>
                     <Select value={editTemperature} onValueChange={setEditTemperature}>
@@ -709,7 +709,7 @@ export const KanbanView: React.FC<KanbanViewProps> = ({
                   </div>
                 </div>
 
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div className="space-y-1.5">
                     <Label htmlFor="edit_value">Hodnota obchodu (Kč)</Label>
                     <Input
@@ -748,7 +748,7 @@ export const KanbanView: React.FC<KanbanViewProps> = ({
                   </label>
                 </div>
 
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div className="space-y-1.5">
                     <Label htmlFor="edit_next_step">Další krok</Label>
                     <Input
@@ -774,7 +774,7 @@ export const KanbanView: React.FC<KanbanViewProps> = ({
                   </div>
                 </div>
 
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div className="space-y-1.5">
                     <Label>Očekávané uzavření</Label>
                     <Popover>
@@ -802,7 +802,7 @@ export const KanbanView: React.FC<KanbanViewProps> = ({
               </div>
 
               {/* Right Column: Log Activity and History */}
-              <div className="lg:col-span-5 border-l border-border pl-6 space-y-6">
+              <div className="lg:col-span-5 border-t lg:border-t-0 lg:border-l border-border pt-6 lg:pt-0 lg:pl-8 space-y-6">
                 {/* 1. Log Activity Form */}
                 <div className="space-y-3">
                   <h3 className="font-display text-lg font-normal">Zaznamenat aktivitu / připomínku</h3>
@@ -820,7 +820,7 @@ export const KanbanView: React.FC<KanbanViewProps> = ({
                     </div>
 
                     {!actIsReminder ? (
-                      <div className="grid grid-cols-2 gap-2">
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                         <div className="space-y-1">
                           <Label htmlFor="act_type" className="text-xs">Typ</Label>
                           <Select value={actType} onValueChange={(val: Activity['type']) => setActType(val)}>
@@ -876,7 +876,7 @@ export const KanbanView: React.FC<KanbanViewProps> = ({
                     ) : null}
 
                     {/* DateTime selector for activity or reminder */}
-                    <div className="grid grid-cols-2 gap-2">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                       <div className="space-y-1">
                         <Label className="text-xs">Datum</Label>
                         <Popover>
