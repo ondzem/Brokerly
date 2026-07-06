@@ -128,6 +128,14 @@ export const PropertiesView: React.FC<PropertiesViewProps> = ({
   const [houseCondition, setHouseCondition] = useState<string>('');
   const [housePenb, setHousePenb] = useState<string>('');
 
+  // Pozemek specific states
+  const [landSize, setLandSize] = useState('');
+  const [landType, setLandType] = useState('');
+  const [landUtilities, setLandUtilities] = useState('');
+  const [zoningPlan, setZoningPlan] = useState('');
+  const [landAccess, setLandAccess] = useState('');
+  const [landDimensions, setLandDimensions] = useState('');
+
   // Sync edits when selectedProperty changes
   useEffect(() => {
     if (selectedProperty) {
@@ -160,6 +168,14 @@ export const PropertiesView: React.FC<PropertiesViewProps> = ({
       setHouseFeatures(selectedProperty.house_features || []);
       setHouseCondition(selectedProperty.house_condition || '');
       setHousePenb(selectedProperty.house_penb || '');
+
+      // Pozemek specific
+      setLandSize(selectedProperty.land_size ? selectedProperty.land_size.toString() : '');
+      setLandType(selectedProperty.land_type || '');
+      setLandUtilities(selectedProperty.land_utilities ? selectedProperty.land_utilities.join(', ') : '');
+      setZoningPlan(selectedProperty.zoning_plan || '');
+      setLandAccess(selectedProperty.land_access || '');
+      setLandDimensions(selectedProperty.land_dimensions || '');
     }
   }, [selectedProperty]);
 
@@ -241,6 +257,14 @@ export const PropertiesView: React.FC<PropertiesViewProps> = ({
         house_features: editKind === 'dům' ? houseFeatures : null,
         house_condition: editKind === 'dům' ? (houseCondition as Property['house_condition']) || null : null,
         house_penb: editKind === 'dům' ? (housePenb as Property['house_penb']) || null : null,
+
+        // Pozemek details
+        land_size: editKind === 'pozemek' && landSize ? Number(landSize) : null,
+        land_type: editKind === 'pozemek' ? landType || null : null,
+        land_utilities: editKind === 'pozemek' && landUtilities ? landUtilities.split(',').map((s) => s.trim()).filter(Boolean) : null,
+        zoning_plan: editKind === 'pozemek' ? zoningPlan || null : null,
+        land_access: editKind === 'pozemek' ? landAccess || null : null,
+        land_dimensions: editKind === 'pozemek' ? landDimensions || null : null,
       };
 
       const updated = await updateProperty(selectedProperty.id, updateData);
@@ -267,6 +291,15 @@ export const PropertiesView: React.FC<PropertiesViewProps> = ({
 
     if (ownerMode === 'new' && (!newOwnerFullName || (!newOwnerPhone && !newOwnerEmail))) {
       toast.error('U nového vlastníka musíte zadat Jméno a příjmení a alespoň jeden kontakt (Telefon nebo E-mail).');
+      return;
+    }
+
+    if (newKind === 'byt' && (!flatLayout || !flatArea)) {
+      toast.error('Pro druh "byt" jsou Dispozice a Užitná plocha povinné.');
+      return;
+    }
+    if (newKind === 'dům' && (!houseLayout || !houseArea || !landArea)) {
+      toast.error('Pro druh "dům" jsou Dispozice, Užitná plocha a Plocha pozemku povinné.');
       return;
     }
 
@@ -310,29 +343,34 @@ export const PropertiesView: React.FC<PropertiesViewProps> = ({
         listing_id: newListingId || null,
         attachments: null,
         
-        // Nuance fields default to null on creation, agent completes them on card
-        flat_layout: null,
-        flat_area: null,
-        floor: null,
-        ownership: null,
-        construction: null,
-        flat_condition: null,
-        flat_features: null,
-        flat_penb: null,
-        house_layout: null,
-        house_area: null,
-        land_area: null,
-        house_type: null,
-        floors_count: null,
-        house_features: null,
-        house_condition: null,
-        house_penb: null,
-        land_size: null,
-        land_type: null,
-        land_utilities: null,
-        zoning_plan: null,
-        land_access: null,
-        land_dimensions: null,
+        // Byt details
+        flat_layout: newKind === 'byt' ? (flatLayout as Property['flat_layout']) : null,
+        flat_area: newKind === 'byt' && flatArea ? Number(flatArea) : null,
+        floor: newKind === 'byt' ? flatFloor || null : null,
+        ownership: newKind === 'byt' ? (flatOwnership as Property['ownership']) || null : null,
+        construction: newKind === 'byt' ? (flatConstruction as Property['construction']) || null : null,
+        flat_condition: newKind === 'byt' ? (flatCondition as Property['flat_condition']) || null : null,
+        flat_features: newKind === 'byt' ? flatFeatures : null,
+        flat_penb: newKind === 'byt' ? (flatPenb as Property['flat_penb']) || null : null,
+
+        // Dům details
+        house_layout: newKind === 'dům' ? (houseLayout as Property['house_layout']) : null,
+        house_area: newKind === 'dům' && houseArea ? Number(houseArea) : null,
+        land_area: newKind === 'dům' && landArea ? Number(landArea) : null,
+        house_type: newKind === 'dům' ? (houseType as Property['house_type']) || null : null,
+        floors_count: newKind === 'dům' && houseFloors ? Number(houseFloors) : null,
+        house_features: newKind === 'dům' ? houseFeatures : null,
+        house_condition: newKind === 'dům' ? (houseCondition as Property['house_condition']) || null : null,
+        house_penb: newKind === 'dům' ? (housePenb as Property['house_penb']) || null : null,
+
+        // Pozemek details
+        land_size: newKind === 'pozemek' && landSize ? Number(landSize) : null,
+        land_type: newKind === 'pozemek' ? landType || null : null,
+        land_utilities: newKind === 'pozemek' && landUtilities ? landUtilities.split(',').map(s => s.trim()).filter(Boolean) : null,
+        zoning_plan: newKind === 'pozemek' ? zoningPlan || null : null,
+        land_access: newKind === 'pozemek' ? landAccess || null : null,
+        land_dimensions: newKind === 'pozemek' ? landDimensions || null : null,
+
         comm_subtype: null,
         comm_floor_area: null,
         comm_condition_equipment: null,
@@ -367,6 +405,30 @@ export const PropertiesView: React.FC<PropertiesViewProps> = ({
       setNewFacts('');
       setNewHandover('');
       setNewListingId('');
+
+      // Reset specific details
+      setFlatLayout('');
+      setFlatArea('');
+      setFlatFloor('');
+      setFlatOwnership('');
+      setFlatConstruction('');
+      setFlatCondition('');
+      setFlatFeatures([]);
+      setFlatPenb('');
+      setHouseLayout('');
+      setHouseArea('');
+      setLandArea('');
+      setHouseType('');
+      setHouseFloors('');
+      setHouseFeatures([]);
+      setHouseCondition('');
+      setHousePenb('');
+      setLandSize('');
+      setLandType('');
+      setLandUtilities('');
+      setZoningPlan('');
+      setLandAccess('');
+      setLandDimensions('');
     } catch (error) {
       toast.error('Chyba při zakládání nemovitosti.');
     }
@@ -385,6 +447,31 @@ export const PropertiesView: React.FC<PropertiesViewProps> = ({
     setNewPrice('');
     setNewFacts('');
     setNewHandover('');
+
+    // Reset layout details
+    setFlatLayout('');
+    setFlatArea('');
+    setFlatFloor('');
+    setFlatOwnership('');
+    setFlatConstruction('');
+    setFlatCondition('');
+    setFlatFeatures([]);
+    setFlatPenb('');
+    setHouseLayout('');
+    setHouseArea('');
+    setLandArea('');
+    setHouseType('');
+    setHouseFloors('');
+    setHouseFeatures([]);
+    setHouseCondition('');
+    setHousePenb('');
+    setLandSize('');
+    setLandType('');
+    setLandUtilities('');
+    setZoningPlan('');
+    setLandAccess('');
+    setLandDimensions('');
+    
     setIsCreateOpen(true);
   };
 
@@ -689,47 +776,27 @@ export const PropertiesView: React.FC<PropertiesViewProps> = ({
                       </div>
                     </div>
 
-                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                      <div className="space-y-1.5">
-                        <Label htmlFor="edit_price">Cena / nájem (Kč) *</Label>
-                        <Input
-                          id="edit_price"
-                          type="number"
-                          value={editPrice}
-                          onChange={(e) => setEditPrice(e.target.value)}
-                          required
-                        />
-                      </div>
-
-                      <div className="space-y-1.5">
-                        <Label htmlFor="edit_handover">Termín předání</Label>
-                        <Input
-                          id="edit_handover"
-                          value={editHandover}
-                          onChange={(e) => setEditHandover(e.target.value)}
-                          placeholder="Např. dohodou"
-                        />
-                      </div>
-
-                      <div className="space-y-1.5">
-                        <Label htmlFor="edit_listing">ID inzerátu</Label>
-                        <Input
-                          id="edit_listing"
-                          value={editListingId}
-                          onChange={(e) => setEditListingId(e.target.value)}
-                          placeholder="Kód"
-                        />
-                      </div>
+                    <div className="space-y-1.5">
+                      <Label htmlFor="edit_price">Cena / nájem (Kč) *</Label>
+                      <Input
+                        id="edit_price"
+                        type="number"
+                        value={editPrice}
+                        onChange={(e) => setEditPrice(e.target.value)}
+                        required
+                        className="text-xs"
+                      />
                     </div>
 
                     <div className="space-y-1.5">
-                      <Label htmlFor="edit_facts">Co je v ceně / fakta pro odpovědi</Label>
+                      <Label htmlFor="edit_facts">Poznámka</Label>
                       <Textarea
                         id="edit_facts"
                         rows={3}
                         value={editFacts}
                         onChange={(e) => setEditFacts(e.target.value)}
-                        placeholder="Zde uveďte podrobnosti o cenách služeb, energiích a další fakta, která může AI číst..."
+                        placeholder="Poznámka k nemovitosti..."
+                        className="text-xs"
                       />
                     </div>
                   </div>
@@ -979,6 +1046,84 @@ export const PropertiesView: React.FC<PropertiesViewProps> = ({
                               {opt}
                             </label>
                           ))}
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Block 3: Pozemek details */}
+                  {editKind === 'pozemek' && (
+                    <div className="border-t border-stone-200 pt-6 space-y-4 text-left">
+                      <h3 className="font-display text-base font-semibold text-foreground">Specifické parametry pro POZEMEK</h3>
+                      
+                      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                        <div className="space-y-1.5">
+                          <Label htmlFor="land_size">Výměra (m²) *</Label>
+                          <Input
+                            id="land_size"
+                            type="number"
+                            value={landSize}
+                            onChange={(e) => setLandSize(e.target.value)}
+                            placeholder="např. 800"
+                            className="text-xs"
+                          />
+                        </div>
+
+                        <div className="space-y-1.5">
+                          <Label htmlFor="land_type">Druh pozemku</Label>
+                          <Input
+                            id="land_type"
+                            value={landType}
+                            onChange={(e) => setLandType(e.target.value)}
+                            placeholder="např. stavební, zahrada"
+                            className="text-xs"
+                          />
+                        </div>
+
+                        <div className="space-y-1.5">
+                          <Label htmlFor="land_utilities">Zasíťování</Label>
+                          <Input
+                            id="land_utilities"
+                            value={landUtilities}
+                            onChange={(e) => setLandUtilities(e.target.value)}
+                            placeholder="např. elektřina, voda, plyn"
+                            className="text-xs"
+                          />
+                        </div>
+                      </div>
+
+                      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                        <div className="space-y-1.5">
+                          <Label htmlFor="zoning_plan">Územní plán</Label>
+                          <Input
+                            id="zoning_plan"
+                            value={zoningPlan}
+                            onChange={(e) => setZoningPlan(e.target.value)}
+                            placeholder="např. čisté obytné území"
+                            className="text-xs"
+                          />
+                        </div>
+
+                        <div className="space-y-1.5">
+                          <Label htmlFor="land_access">Přístup</Label>
+                          <Input
+                            id="land_access"
+                            value={landAccess}
+                            onChange={(e) => setLandAccess(e.target.value)}
+                            placeholder="např. z obecní asfaltové cesty"
+                            className="text-xs"
+                          />
+                        </div>
+
+                        <div className="space-y-1.5">
+                          <Label htmlFor="land_dimensions">Šířka / tvar / svažitost</Label>
+                          <Input
+                            id="land_dimensions"
+                            value={landDimensions}
+                            onChange={(e) => setLandDimensions(e.target.value)}
+                            placeholder="např. 20x40m, mírný svah"
+                            className="text-xs"
+                          />
                         </div>
                       </div>
                     </div>
@@ -1296,38 +1441,345 @@ export const PropertiesView: React.FC<PropertiesViewProps> = ({
                   </div>
                 </div>
 
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="space-y-1.5">
-                    <Label htmlFor="new_handover">Termín předání</Label>
-                    <Input
-                      id="new_handover"
-                      value={newHandover}
-                      onChange={(e) => setNewHandover(e.target.value)}
-                      placeholder="např. Ihned"
-                      className="border-stone-200 h-9 text-xs"
-                    />
-                  </div>
+                {/* Specific layouts based on kind selection */}
+                {newKind === 'byt' && (
+                  <div className="border-t border-stone-200 pt-4 space-y-4 text-left">
+                    <h4 className="font-display text-xs font-semibold text-stone-700 uppercase tracking-wider">Specifické parametry pro BYT</h4>
+                    <div className="grid grid-cols-3 gap-4">
+                      <div className="space-y-1.5">
+                        <Label htmlFor="flat_layout">Dispozice *</Label>
+                        <Select value={flatLayout} onValueChange={setFlatLayout}>
+                          <SelectTrigger id="flat_layout" className="border-stone-200 h-9 text-xs w-full">
+                            <SelectValue placeholder="Vyberte" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {FLAT_LAYOUT_OPTIONS.map((opt) => (
+                              <SelectItem key={opt} value={opt}>
+                                {opt}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
 
-                  <div className="space-y-1.5">
-                    <Label htmlFor="new_listing">ID inzerátu</Label>
-                    <Input
-                      id="new_listing"
-                      value={newListingId}
-                      onChange={(e) => setNewListingId(e.target.value)}
-                      placeholder="např. 102030"
-                      className="border-stone-200 h-9 text-xs"
-                    />
-                  </div>
-                </div>
+                      <div className="space-y-1.5">
+                        <Label htmlFor="flat_area">Užitná plocha (m²) *</Label>
+                        <Input
+                          id="flat_area"
+                          type="number"
+                          value={flatArea}
+                          onChange={(e) => setFlatArea(e.target.value)}
+                          className="border-stone-200 h-9 text-xs"
+                          placeholder="m²"
+                        />
+                      </div>
 
-                <div className="space-y-1.5">
-                  <Label htmlFor="new_facts">Fakta / Co je v ceně</Label>
+                      <div className="space-y-1.5">
+                        <Label htmlFor="flat_floor">Patro / z pater</Label>
+                        <Input
+                          id="flat_floor"
+                          value={flatFloor}
+                          onChange={(e) => setFlatFloor(e.target.value)}
+                          placeholder="Např. 3. ze 5"
+                          className="border-stone-200 h-9 text-xs"
+                        />
+                      </div>
+                    </div>
+
+                    <div className="grid grid-cols-4 gap-4">
+                      <div className="space-y-1.5">
+                        <Label htmlFor="flat_ownership">Vlastnictví</Label>
+                        <Select value={flatOwnership} onValueChange={setFlatOwnership}>
+                          <SelectTrigger id="flat_ownership" className="border-stone-200 h-9 text-xs w-full">
+                            <SelectValue placeholder="Vyberte" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {OWNERSHIP_OPTIONS.map((opt) => (
+                              <SelectItem key={opt} value={opt}>
+                                {opt}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
+
+                      <div className="space-y-1.5">
+                        <Label htmlFor="flat_const">Konstrukce</Label>
+                        <Select value={flatConstruction} onValueChange={setFlatConstruction}>
+                          <SelectTrigger id="flat_const" className="border-stone-200 h-9 text-xs w-full">
+                            <SelectValue placeholder="Vyberte" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {CONSTRUCTION_OPTIONS.map((opt) => (
+                              <SelectItem key={opt} value={opt}>
+                                {opt}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
+
+                      <div className="space-y-1.5">
+                        <Label htmlFor="flat_cond">Stav bytu</Label>
+                        <Select value={flatCondition} onValueChange={setFlatCondition}>
+                          <SelectTrigger id="flat_cond" className="border-stone-200 h-9 text-xs w-full">
+                            <SelectValue placeholder="Vyberte" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {FLAT_CONDITION_OPTIONS.map((opt) => (
+                              <SelectItem key={opt} value={opt}>
+                                {opt}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
+
+                      <div className="space-y-1.5">
+                        <Label htmlFor="flat_penb">PENB</Label>
+                        <Select value={flatPenb} onValueChange={setFlatPenb}>
+                          <SelectTrigger id="flat_penb" className="border-stone-200 h-9 text-xs w-full">
+                            <SelectValue placeholder="Třída" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {PENB_OPTIONS.map((opt) => (
+                              <SelectItem key={opt} value={opt}>
+                                {opt}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
+                    </div>
+
+                    <div className="space-y-1.5">
+                      <Label>Vybavení bytu</Label>
+                      <div className="flex flex-wrap gap-4 pt-1">
+                        {FLAT_FEATURE_OPTIONS.map((opt) => (
+                          <label key={opt} className="flex items-center gap-2 text-xs font-normal cursor-pointer select-none">
+                            <input
+                              type="checkbox"
+                              checked={flatFeatures?.includes(opt) || false}
+                              onChange={() => handleFlatFeatureToggle(opt)}
+                              className="rounded border-stone-300 text-primary focus:ring-primary h-3.5 w-3.5"
+                            />
+                            {opt}
+                          </label>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {newKind === 'dům' && (
+                  <div className="border-t border-stone-200 pt-4 space-y-4 text-left">
+                    <h4 className="font-display text-xs font-semibold text-stone-700 uppercase tracking-wider">Specifické parametry pro DŮM</h4>
+                    <div className="grid grid-cols-3 gap-4">
+                      <div className="space-y-1.5">
+                        <Label htmlFor="house_layout">Dispozice / místnosti *</Label>
+                        <Select value={houseLayout} onValueChange={setHouseLayout}>
+                          <SelectTrigger id="house_layout" className="border-stone-200 h-9 text-xs w-full">
+                            <SelectValue placeholder="Vyberte" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {HOUSE_LAYOUT_OPTIONS.map((opt) => (
+                              <SelectItem key={opt} value={opt}>
+                                {opt}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
+
+                      <div className="space-y-1.5">
+                        <Label htmlFor="house_area">Užitná plocha (m²) *</Label>
+                        <Input
+                          id="house_area"
+                          type="number"
+                          value={houseArea}
+                          onChange={(e) => setHouseArea(e.target.value)}
+                          className="border-stone-200 h-9 text-xs"
+                          placeholder="m²"
+                        />
+                      </div>
+
+                      <div className="space-y-1.5">
+                        <Label htmlFor="land_area">Plocha pozemku (m²) *</Label>
+                        <Input
+                          id="land_area"
+                          type="number"
+                          value={landArea}
+                          onChange={(e) => setLandArea(e.target.value)}
+                          className="border-stone-200 h-9 text-xs"
+                          placeholder="m²"
+                        />
+                      </div>
+                    </div>
+
+                    <div className="grid grid-cols-4 gap-4">
+                      <div className="space-y-1.5">
+                        <Label htmlFor="house_type">Typ domu</Label>
+                        <Select value={houseType} onValueChange={setHouseType}>
+                          <SelectTrigger id="house_type" className="border-stone-200 h-9 text-xs w-full">
+                            <SelectValue placeholder="Vyberte" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {HOUSE_TYPE_OPTIONS.map((opt) => (
+                              <SelectItem key={opt} value={opt}>
+                                {opt}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
+
+                      <div className="space-y-1.5">
+                        <Label htmlFor="house_floors">Počet podlaží</Label>
+                        <Input
+                          id="house_floors"
+                          type="number"
+                          value={houseFloors}
+                          onChange={(e) => setHouseFloors(e.target.value)}
+                          className="border-stone-200 h-9 text-xs"
+                        />
+                      </div>
+
+                      <div className="space-y-1.5">
+                        <Label htmlFor="house_cond">Stav domu</Label>
+                        <Select value={houseCondition} onValueChange={setHouseCondition}>
+                          <SelectTrigger id="house_cond" className="border-stone-200 h-9 text-xs w-full">
+                            <SelectValue placeholder="Vyberte" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {FLAT_CONDITION_OPTIONS.map((opt) => (
+                              <SelectItem key={opt} value={opt}>
+                                {opt}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
+
+                      <div className="space-y-1.5">
+                        <Label htmlFor="house_penb">PENB</Label>
+                        <Select value={housePenb} onValueChange={setHousePenb}>
+                          <SelectTrigger id="house_penb" className="border-stone-200 h-9 text-xs w-full">
+                            <SelectValue placeholder="Třída" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {PENB_OPTIONS.map((opt) => (
+                              <SelectItem key={opt} value={opt}>
+                                {opt}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
+                    </div>
+
+                    <div className="space-y-1.5">
+                      <Label>Vybavení a příslušenství</Label>
+                      <div className="flex flex-wrap gap-4 pt-1">
+                        {HOUSE_FEATURE_OPTIONS.map((opt) => (
+                          <label key={opt} className="flex items-center gap-2 text-xs font-normal cursor-pointer select-none">
+                            <input
+                              type="checkbox"
+                              checked={houseFeatures?.includes(opt) || false}
+                              onChange={() => handleHouseFeatureToggle(opt)}
+                              className="rounded border-stone-300 text-primary focus:ring-primary h-3.5 w-3.5"
+                            />
+                            {opt}
+                          </label>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {newKind === 'pozemek' && (
+                  <div className="border-t border-stone-200 pt-4 space-y-4 text-left">
+                    <h4 className="font-display text-xs font-semibold text-stone-700 uppercase tracking-wider">Specifické parametry pro POZEMEK</h4>
+                    <div className="grid grid-cols-3 gap-4">
+                      <div className="space-y-1.5">
+                        <Label htmlFor="land_size">Výměra (m²) *</Label>
+                        <Input
+                          id="land_size"
+                          type="number"
+                          value={landSize}
+                          onChange={(e) => setLandSize(e.target.value)}
+                          placeholder="např. 800"
+                          className="border-stone-200 h-9 text-xs"
+                        />
+                      </div>
+
+                      <div className="space-y-1.5">
+                        <Label htmlFor="land_type">Druh pozemku</Label>
+                        <Input
+                          id="land_type"
+                          value={landType}
+                          onChange={(e) => setLandType(e.target.value)}
+                          placeholder="např. stavební"
+                          className="border-stone-200 h-9 text-xs"
+                        />
+                      </div>
+
+                      <div className="space-y-1.5">
+                        <Label htmlFor="land_utilities">Zasíťování</Label>
+                        <Input
+                          id="land_utilities"
+                          value={landUtilities}
+                          onChange={(e) => setLandUtilities(e.target.value)}
+                          placeholder="např. voda, plyn"
+                          className="border-stone-200 h-9 text-xs"
+                        />
+                      </div>
+                    </div>
+
+                    <div className="grid grid-cols-3 gap-4">
+                      <div className="space-y-1.5">
+                        <Label htmlFor="zoning_plan">Územní plán</Label>
+                        <Input
+                          id="zoning_plan"
+                          value={zoningPlan}
+                          onChange={(e) => setZoningPlan(e.target.value)}
+                          placeholder="např. obytné území"
+                          className="border-stone-200 h-9 text-xs"
+                        />
+                      </div>
+
+                      <div className="space-y-1.5">
+                        <Label htmlFor="land_access">Přístup</Label>
+                        <Input
+                          id="land_access"
+                          value={landAccess}
+                          onChange={(e) => setLandAccess(e.target.value)}
+                          placeholder="např. asfaltová cesta"
+                          className="border-stone-200 h-9 text-xs"
+                        />
+                      </div>
+
+                      <div className="space-y-1.5">
+                        <Label htmlFor="land_dimensions">Šířka / tvar / svažitost</Label>
+                        <Input
+                          id="land_dimensions"
+                          value={landDimensions}
+                          onChange={(e) => setLandDimensions(e.target.value)}
+                          placeholder="např. 20x40m"
+                          className="border-stone-200 h-9 text-xs"
+                        />
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                <div className="space-y-1.5 pt-2">
+                  <Label htmlFor="new_facts">Poznámka</Label>
                   <Textarea
                     id="new_facts"
                     rows={3}
                     value={newFacts}
                     onChange={(e) => setNewFacts(e.target.value)}
-                    placeholder="Fakta sloužící pro budoucí AI odpovědi..."
+                    placeholder="Poznámka k nemovitosti..."
                     className="border-stone-200 text-xs"
                   />
                 </div>
