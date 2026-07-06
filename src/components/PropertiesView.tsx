@@ -1039,258 +1039,289 @@ export const PropertiesView: React.FC<PropertiesViewProps> = ({
 
       {/* CREATE DIALOG */}
       <Dialog open={isCreateOpen} onOpenChange={setIsCreateOpen}>
-        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto border-stone-200">
-          <DialogHeader>
-            <DialogTitle className="font-display text-xl font-normal text-left">Přidat nemovitost</DialogTitle>
-            <DialogDescription className="text-xs text-left">
-              Zadejte základní údaje a přiřaďte nebo rovnou vytvořte vlastníka.
+        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto border-stone-200 p-6 md:p-8">
+          <DialogHeader className="border-b border-stone-250 pb-4 mb-4">
+            <DialogTitle className="font-display text-2xl font-normal text-left text-[#141414]">Přidat nemovitost</DialogTitle>
+            <DialogDescription className="text-xs text-left text-muted-foreground mt-1">
+              Vyplňte základní údaje o nemovitosti a přiřaďte nebo rovnou vytvořte jejího vlastníka na jednom místě.
             </DialogDescription>
           </DialogHeader>
 
-          <form onSubmit={handleCreateProperty} className="space-y-4 text-left">
-            {/* Owner selection mode toggle */}
-            <div className="space-y-2">
-              <Label>Vlastník nemovitosti *</Label>
-              <div className="flex bg-stone-100 p-0.5 rounded-md w-full border border-stone-200">
-                <button
-                  type="button"
-                  onClick={() => setOwnerMode('select')}
-                  className={`flex-1 py-1.5 rounded-sm text-xs font-semibold tracking-wide transition-all ${
-                    ownerMode === 'select'
-                      ? 'bg-white text-[#141414] shadow-xs'
-                      : 'text-stone-500 hover:text-stone-800'
-                  }`}
-                >
-                  Vybrat existujícího z kontaktů
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setOwnerMode('new')}
-                  className={`flex-1 py-1.5 rounded-sm text-xs font-semibold tracking-wide transition-all ${
-                    ownerMode === 'new'
-                      ? 'bg-white text-[#141414] shadow-xs'
-                      : 'text-stone-500 hover:text-stone-800'
-                  }`}
-                >
-                  Vytvořit nového vlastníka
-                </button>
-              </div>
-            </div>
+          <form onSubmit={handleCreateProperty} className="space-y-6 text-left">
+            <div className="grid grid-cols-1 md:grid-cols-12 gap-8 items-start">
+              
+              {/* Left Column: Vlastník nemovitosti (col-span-5) */}
+              <div className="md:col-span-5 space-y-5">
+                <h3 className="font-display text-sm font-semibold text-stone-700 uppercase tracking-wider border-b border-stone-200 pb-2 flex items-center gap-2">
+                  <span className="flex h-5 w-5 items-center justify-center rounded-full bg-stone-100 text-[10px] font-bold text-stone-600">1</span>
+                  Vlastník nemovitosti
+                </h3>
 
-            {/* Selector mode form fields */}
-            {ownerMode === 'select' && (
-              <div className="space-y-1.5">
-                <Select value={newOwnerId} onValueChange={setNewOwnerId}>
-                  <SelectTrigger id="new_owner">
-                    <SelectValue placeholder="Vyberte vlastníka z kontaktů" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {contacts.map((c) => (
-                      <SelectItem key={c.id} value={c.id}>
-                        {c.full_name} ({c.roles.join(', ')})
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-            )}
-
-            {/* Create mode form fields */}
-            {ownerMode === 'new' && (
-              <div className="border border-stone-200 bg-stone-50/50 p-4 rounded-lg space-y-4">
-                <div className="text-xs font-bold text-stone-700 uppercase tracking-wide border-b border-stone-200 pb-1">
-                  Údaje nového vlastníka
-                </div>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  <div className="space-y-1.5">
-                    <Label htmlFor="owner_fullname">Jméno a příjmení *</Label>
-                    <Input
-                      id="owner_fullname"
-                      value={newOwnerFullName}
-                      onChange={(e) => setNewOwnerFullName(e.target.value)}
-                      placeholder="např. Jan Novák"
-                    />
-                  </div>
-                  <div className="space-y-1.5">
-                    <Label htmlFor="owner_phone">Telefon *</Label>
-                    <Input
-                      id="owner_phone"
-                      value={newOwnerPhone}
-                      onChange={(e) => setNewOwnerPhone(e.target.value)}
-                      placeholder="např. +420 777 888 999"
-                    />
+                {/* Owner selection mode toggle */}
+                <div className="space-y-2">
+                  <div className="flex bg-stone-100 p-0.5 rounded-md w-full border border-stone-200">
+                    <button
+                      type="button"
+                      onClick={() => setOwnerMode('select')}
+                      className={`flex-1 py-1.5 rounded-sm text-xs font-semibold tracking-wide transition-all ${
+                        ownerMode === 'select'
+                          ? 'bg-white text-[#141414] shadow-xs'
+                          : 'text-stone-500 hover:text-stone-800'
+                      }`}
+                    >
+                      Vybrat z kontaktů
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setOwnerMode('new')}
+                      className={`flex-1 py-1.5 rounded-sm text-xs font-semibold tracking-wide transition-all ${
+                        ownerMode === 'new'
+                          ? 'bg-white text-[#141414] shadow-xs'
+                          : 'text-stone-500 hover:text-stone-800'
+                      }`}
+                    >
+                      Nový vlastník
+                    </button>
                   </div>
                 </div>
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                  <div className="space-y-1.5">
-                    <Label htmlFor="owner_email">E-mail</Label>
-                    <Input
-                      id="owner_email"
-                      type="email"
-                      value={newOwnerEmail}
-                      onChange={(e) => setNewOwnerEmail(e.target.value)}
-                      placeholder="např. novak@seznam.cz"
-                    />
-                  </div>
-                  <div className="space-y-1.5">
-                    <Label htmlFor="owner_source">Odkud přišel *</Label>
-                    <Select value={newOwnerSource} onValueChange={setNewOwnerSource}>
-                      <SelectTrigger id="owner_source">
-                        <SelectValue />
+
+                {/* Selector mode form fields */}
+                {ownerMode === 'select' && (
+                  <div className="space-y-2 pt-2">
+                    <Label htmlFor="new_owner">Vyberte existující kontakt *</Label>
+                    <Select value={newOwnerId} onValueChange={setNewOwnerId}>
+                      <SelectTrigger id="new_owner" className="border-stone-200">
+                        <SelectValue placeholder="Vyberte vlastníka z kontaktů" />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="doporučení">doporučení</SelectItem>
-                        <SelectItem value="Sreality">Sreality</SelectItem>
-                        <SelectItem value="iDNES">iDNES</SelectItem>
-                        <SelectItem value="web">web</SelectItem>
-                        <SelectItem value="cold call">cold call</SelectItem>
-                        <SelectItem value="monitoring">monitoring</SelectItem>
-                        <SelectItem value="osobní">osobní</SelectItem>
+                        {contacts.map((c) => (
+                          <SelectItem key={c.id} value={c.id}>
+                            {c.full_name} ({c.roles.join(', ')})
+                          </SelectItem>
+                        ))}
                       </SelectContent>
                     </Select>
                   </div>
-                  <div className="space-y-1.5">
-                    <Label htmlFor="owner_status">Stav *</Label>
-                    <Select value={newOwnerStatus} onValueChange={setNewOwnerStatus}>
-                      <SelectTrigger id="owner_status">
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="nový">nový</SelectItem>
-                        <SelectItem value="kontaktovaný">kontaktovaný</SelectItem>
-                        <SelectItem value="kvalifikovaný">kvalifikovaný</SelectItem>
-                        <SelectItem value="klient">klient</SelectItem>
-                        <SelectItem value="ztracený">ztracený</SelectItem>
-                      </SelectContent>
-                    </Select>
+                )}
+
+                {/* Create mode form fields */}
+                {ownerMode === 'new' && (
+                  <div className="space-y-4 pt-1">
+                    <div className="space-y-1.5">
+                      <Label htmlFor="owner_fullname">Jméno a příjmení *</Label>
+                      <Input
+                        id="owner_fullname"
+                        value={newOwnerFullName}
+                        onChange={(e) => setNewOwnerFullName(e.target.value)}
+                        placeholder="např. Jan Novák"
+                        className="border-stone-200 h-9 text-xs"
+                      />
+                    </div>
+                    
+                    <div className="space-y-1.5">
+                      <Label htmlFor="owner_phone">Telefon *</Label>
+                      <Input
+                        id="owner_phone"
+                        value={newOwnerPhone}
+                        onChange={(e) => setNewOwnerPhone(e.target.value)}
+                        placeholder="např. +420 777 888 999"
+                        className="border-stone-200 h-9 text-xs"
+                      />
+                    </div>
+
+                    <div className="space-y-1.5">
+                      <Label htmlFor="owner_email">E-mail</Label>
+                      <Input
+                        id="owner_email"
+                        type="email"
+                        value={newOwnerEmail}
+                        onChange={(e) => setNewOwnerEmail(e.target.value)}
+                        placeholder="např. novak@seznam.cz"
+                        className="border-stone-200 h-9 text-xs"
+                      />
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-4">
+                      <div className="space-y-1.5">
+                        <Label htmlFor="owner_source">Odkud přišel *</Label>
+                        <Select value={newOwnerSource} onValueChange={setNewOwnerSource}>
+                          <SelectTrigger id="owner_source" className="border-stone-200 h-9 text-xs">
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="doporučení">doporučení</SelectItem>
+                            <SelectItem value="Sreality">Sreality</SelectItem>
+                            <SelectItem value="iDNES">iDNES</SelectItem>
+                            <SelectItem value="web">web</SelectItem>
+                            <SelectItem value="cold call">cold call</SelectItem>
+                            <SelectItem value="monitoring">monitoring</SelectItem>
+                            <SelectItem value="osobní">osobní</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+
+                      <div className="space-y-1.5">
+                        <Label htmlFor="owner_status">Stav *</Label>
+                        <Select value={newOwnerStatus} onValueChange={setNewOwnerStatus}>
+                          <SelectTrigger id="owner_status" className="border-stone-200 h-9 text-xs">
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="nový">nový</SelectItem>
+                            <SelectItem value="kontaktovaný">kontaktovaný</SelectItem>
+                            <SelectItem value="kvalifikovaný">kvalifikovaný</SelectItem>
+                            <SelectItem value="klient">klient</SelectItem>
+                            <SelectItem value="ztracený">ztracený</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+                    </div>
+
+                    <div className="space-y-1.5">
+                      <Label htmlFor="owner_note">Poznámka k vlastníku</Label>
+                      <Textarea
+                        id="owner_note"
+                        rows={3}
+                        value={newOwnerNote}
+                        onChange={(e) => setNewOwnerNote(e.target.value)}
+                        placeholder="např. Chce prodat rychle..."
+                        className="border-stone-200 text-xs"
+                      />
+                    </div>
                   </div>
-                </div>
+                )}
+              </div>
+
+              {/* Right Column: Údaje nemovitosti (col-span-7) */}
+              <div className="md:col-span-7 space-y-5 md:border-l md:border-stone-200 md:pl-8">
+                <h3 className="font-display text-sm font-semibold text-stone-700 uppercase tracking-wider border-b border-stone-200 pb-2 flex items-center gap-2">
+                  <span className="flex h-5 w-5 items-center justify-center rounded-full bg-stone-100 text-[10px] font-bold text-stone-600">2</span>
+                  Údaje nemovitosti
+                </h3>
+
                 <div className="space-y-1.5">
-                  <Label htmlFor="owner_note">Poznámka k vlastníku</Label>
+                  <Label htmlFor="new_address">Přesná adresa nemovitosti *</Label>
+                  <Input
+                    id="new_address"
+                    value={newAddress}
+                    onChange={(e) => setNewAddress(e.target.value)}
+                    placeholder="např. Bory, Plzeň"
+                    required
+                    className="border-stone-200 h-9 text-xs"
+                  />
+                </div>
+
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-1.5">
+                    <Label htmlFor="new_kind">Druh nemovitosti *</Label>
+                    <Select value={newKind} onValueChange={(val: Property['kind']) => setNewKind(val)} required>
+                      <SelectTrigger id="new_kind" className="border-stone-200 h-9 text-xs">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {KIND_OPTIONS.map((opt) => (
+                          <SelectItem key={opt.id} value={opt.id}>
+                            {opt.label}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  <div className="space-y-1.5">
+                    <Label htmlFor="new_trans">Transakce *</Label>
+                    <Select value={newTransaction} onValueChange={(val: Property['transaction']) => setNewTransaction(val)} required>
+                      <SelectTrigger id="new_trans" className="border-stone-200 h-9 text-xs">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {TRANSACTION_OPTIONS.map((opt) => (
+                          <SelectItem key={opt} value={opt}>
+                            {opt}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-1.5">
+                    <Label htmlFor="new_price">Cena / Nájem (Kč) *</Label>
+                    <Input
+                      id="new_price"
+                      type="number"
+                      value={newPrice}
+                      onChange={(e) => setNewPrice(e.target.value)}
+                      placeholder="Kč"
+                      required
+                      className="border-stone-200 h-9 text-xs"
+                    />
+                  </div>
+
+                  <div className="space-y-1.5">
+                    <Label htmlFor="new_status">Stav nabídky *</Label>
+                    <Select value={newOfferStatus} onValueChange={(val: Property['offer_status']) => setNewOfferStatus(val)} required>
+                      <SelectTrigger id="new_status" className="border-stone-200 h-9 text-xs">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {OFFER_STATUS_OPTIONS.map((opt) => (
+                          <SelectItem key={opt} value={opt}>
+                            {opt}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-1.5">
+                    <Label htmlFor="new_handover">Termín předání</Label>
+                    <Input
+                      id="new_handover"
+                      value={newHandover}
+                      onChange={(e) => setNewHandover(e.target.value)}
+                      placeholder="např. Ihned"
+                      className="border-stone-200 h-9 text-xs"
+                    />
+                  </div>
+
+                  <div className="space-y-1.5">
+                    <Label htmlFor="new_listing">ID inzerátu</Label>
+                    <Input
+                      id="new_listing"
+                      value={newListingId}
+                      onChange={(e) => setNewListingId(e.target.value)}
+                      placeholder="např. 102030"
+                      className="border-stone-200 h-9 text-xs"
+                    />
+                  </div>
+                </div>
+
+                <div className="space-y-1.5">
+                  <Label htmlFor="new_facts">Fakta / Co je v ceně</Label>
                   <Textarea
-                    id="owner_note"
-                    rows={2}
-                    value={newOwnerNote}
-                    onChange={(e) => setNewOwnerNote(e.target.value)}
-                    placeholder="např. Chce prodat rychle..."
+                    id="new_facts"
+                    rows={3}
+                    value={newFacts}
+                    onChange={(e) => setNewFacts(e.target.value)}
+                    placeholder="Fakta sloužící pro budoucí AI odpovědi..."
+                    className="border-stone-200 text-xs"
                   />
                 </div>
               </div>
-            )}
 
-            <div className="space-y-1.5">
-              <Label htmlFor="new_address">Přesná adresa nemovitosti *</Label>
-              <Input
-                id="new_address"
-                value={newAddress}
-                onChange={(e) => setNewAddress(e.target.value)}
-                placeholder="např. Bory, Plzeň"
-                required
-              />
             </div>
 
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-1.5">
-                <Label htmlFor="new_kind">Druh nemovitosti *</Label>
-                <Select value={newKind} onValueChange={(val: Property['kind']) => setNewKind(val)} required>
-                  <SelectTrigger id="new_kind">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {KIND_OPTIONS.map((opt) => (
-                      <SelectItem key={opt.id} value={opt.id}>
-                        {opt.label}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-
-              <div className="space-y-1.5">
-                <Label htmlFor="new_trans">Transakce *</Label>
-                <Select value={newTransaction} onValueChange={(val: Property['transaction']) => setNewTransaction(val)} required>
-                  <SelectTrigger id="new_trans">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {TRANSACTION_OPTIONS.map((opt) => (
-                      <SelectItem key={opt} value={opt}>
-                        {opt}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-            </div>
-
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-1.5">
-                <Label htmlFor="new_price">Cena / Nájem (Kč) *</Label>
-                <Input
-                  id="new_price"
-                  type="number"
-                  value={newPrice}
-                  onChange={(e) => setNewPrice(e.target.value)}
-                  placeholder="Kč"
-                  required
-                />
-              </div>
-
-              <div className="space-y-1.5">
-                <Label htmlFor="new_status">Stav nabídky *</Label>
-                <Select value={newOfferStatus} onValueChange={(val: Property['offer_status']) => setNewOfferStatus(val)} required>
-                  <SelectTrigger id="new_status">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {OFFER_STATUS_OPTIONS.map((opt) => (
-                      <SelectItem key={opt} value={opt}>
-                        {opt}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-            </div>
-
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-1.5">
-                <Label htmlFor="new_handover">Termín předání</Label>
-                <Input
-                  id="new_handover"
-                  value={newHandover}
-                  onChange={(e) => setNewHandover(e.target.value)}
-                  placeholder="např. Ihned"
-                />
-              </div>
-
-              <div className="space-y-1.5">
-                <Label htmlFor="new_listing">ID inzerátu</Label>
-                <Input
-                  id="new_listing"
-                  value={newListingId}
-                  onChange={(e) => setNewListingId(e.target.value)}
-                  placeholder="např. 102030"
-                />
-              </div>
-            </div>
-
-            <div className="space-y-1.5">
-              <Label htmlFor="new_facts">Fakta / Co je v ceně</Label>
-              <Textarea
-                id="new_facts"
-                rows={2}
-                value={newFacts}
-                onChange={(e) => setNewFacts(e.target.value)}
-                placeholder="Fakta sloužící pro AI odpovědi..."
-              />
-            </div>
-
-            <DialogFooter className="pt-2">
+            <DialogFooter className="pt-4 border-t border-stone-200 mt-6 flex justify-end gap-3">
               <Button type="button" variant="outline" onClick={() => setIsCreateOpen(false)}>
                 Zrušit
               </Button>
-              <Button type="submit">Vytvořit</Button>
+              <Button type="submit">
+                Vytvořit nemovitost
+              </Button>
             </DialogFooter>
           </form>
         </DialogContent>
