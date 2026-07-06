@@ -79,6 +79,7 @@ export const PropertiesView: React.FC<PropertiesViewProps> = ({
   const [isCreateOpen, setIsCreateOpen] = useState(false);
   const [isDetailOpen, setIsDetailOpen] = useState(false);
   const [viewMode, setViewMode] = useState<'cards' | 'list'>('cards');
+  const [isConfirmDeleteOpen, setIsConfirmDeleteOpen] = useState(false);
 
   // Focus property if navigated from outside
   useEffect(() => {
@@ -358,10 +359,13 @@ export const PropertiesView: React.FC<PropertiesViewProps> = ({
     }
   };
 
-  const handleDeleteProperty = async () => {
+  const handleDeletePropertyClick = () => {
+    setIsConfirmDeleteOpen(true);
+  };
+
+  const executeDeleteProperty = async () => {
     if (!selectedProperty) return;
-    const confirmDelete = window.confirm('Opravdu chcete tuto nemovitost smazat? Tato akce je nevratná a odebere nemovitost ze všech přidružených obchodů.');
-    if (!confirmDelete) return;
+    setIsConfirmDeleteOpen(false);
 
     try {
       await deleteProperty(selectedProperty.id);
@@ -1688,7 +1692,7 @@ export const PropertiesView: React.FC<PropertiesViewProps> = ({
                 <Button
                   type="button"
                   variant="destructive"
-                  onClick={handleDeleteProperty}
+                  onClick={handleDeletePropertyClick}
                   className="bg-rose-50 hover:bg-rose-100 text-rose-600 border border-rose-200 hover:border-rose-300 font-medium"
                 >
                   Odstranit nemovitost
@@ -1706,6 +1710,39 @@ export const PropertiesView: React.FC<PropertiesViewProps> = ({
           </DialogContent>
         </Dialog>
       )}
+
+      {/* CONFIRM DELETE DIALOG */}
+      <Dialog open={isConfirmDeleteOpen} onOpenChange={setIsConfirmDeleteOpen}>
+        <DialogContent className="max-w-md w-[90vw] border-stone-200 text-left p-6">
+          <DialogHeader>
+            <DialogTitle className="font-display text-lg font-bold text-[#141414]">
+              Opravdu smazat nemovitost?
+            </DialogTitle>
+            <DialogDescription className="text-xs text-stone-500 pt-1">
+              Tato akce je nevratná a odebere nemovitost ze všech přidružených obchodů.
+            </DialogDescription>
+          </DialogHeader>
+
+          <DialogFooter className="pt-4 flex justify-end gap-3">
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => setIsConfirmDeleteOpen(false)}
+              className="text-xs border-stone-200 hover:bg-stone-50 text-stone-600"
+            >
+              Zrušit
+            </Button>
+            <Button
+              type="button"
+              variant="destructive"
+              onClick={executeDeleteProperty}
+              className="bg-rose-600 hover:bg-rose-700 text-white text-xs font-semibold px-4 h-9"
+            >
+              Ano, smazat
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       {/* CREATE DIALOG */}
       <Dialog open={isCreateOpen} onOpenChange={setIsCreateOpen}>
