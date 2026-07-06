@@ -99,6 +99,10 @@ export const PropertiesView: React.FC<PropertiesViewProps> = ({
   const [newHandover, setNewHandover] = useState('');
   const [newListingId, setNewListingId] = useState('');
 
+  // AI Import states
+  const [importUrl, setImportUrl] = useState('');
+  const [isImporting, setIsImporting] = useState(false);
+
   // Edit details common states
   const [editOwnerId, setEditOwnerId] = useState('');
   const [editKind, setEditKind] = useState<Property['kind']>('byt');
@@ -433,6 +437,168 @@ export const PropertiesView: React.FC<PropertiesViewProps> = ({
       setLandDimensions('');
     } catch (error) {
       toast.error('Chyba při zakládání nemovitosti.');
+    }
+  };
+
+  const handleImportFromUrl = async () => {
+    if (!importUrl) {
+      toast.error('Zadejte prosím platný odkaz na inzerát.');
+      return;
+    }
+
+    const geminiKey = import.meta.env.NEXT_PUBLIC_GEMINI_API_KEY || '';
+    const scraperKey = import.meta.env.NEXT_PUBLIC_SCRAPER_API_KEY || '';
+
+    if (!geminiKey || !scraperKey) {
+      toast.error('Chybí API klíče. Nastavte NEXT_PUBLIC_GEMINI_API_KEY a NEXT_PUBLIC_SCRAPER_API_KEY v .env.local a restartujte aplikaci.');
+      return;
+    }
+
+    setIsImporting(true);
+    const toastId = toast.loading('Stahuji obsah inzerátu přes proxy...');
+
+    try {
+      // 1. Download via ScraperAPI
+      const scraperUrl = `https://api.scraperapi.com?api_key=${encodeURIComponent(scraperKey)}&url=${encodeURIComponent(importUrl)}`;
+      const response = await fetch(scraperUrl);
+      if (!response.ok) {
+        throw new Error('Chyba při stahování stránky přes proxy.');
+      }
+      const html = await response.text();
+
+      // 2. Parse HTML and clean up to plain text to save tokens
+      toast.loading('Analyzuji text inzerátu pomocí AI...', { id: toastId });
+      const parser = new DOMParser();
+      const doc = parser.parseFromString(html, 'text/html');
+      doc.querySelectorAll('script, style, header, footer, nav, noscript, iframe, svg').forEach((el) => el.remove());
+      const text = doc.body.innerText || doc.body.textContent || '';
+      const cleanText = text.replace(/\s+/g, ' ').substring(0, 15000).trim();
+
+      if (cleanText.length < 100) {
+        throw new Error('Inzerát neobsahuje dostatek čitelného textu.');
+      }
+
+      // 3. Call Gemini Structured Outputs API
+      const geminiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${geminiKey}`;
+      const geminiPayload = {
+        contents: [
+          {
+            parts: [
+              {
+                text: `Analyzuj následující text inzerátu realitní nemovitosti a vytáhni z něj parametry pro databázi. \nText inzerátu:\n"""\n${cleanText}\n"""`
+              }
+            ]
+          }
+        ],
+        generationConfig: {
+          responseMimeType: "application/json",
+          responseSchema: {
+            type: "OBJECT",
+            properties: {
+              address: { type: "STRING", description: "Přesná adresa nemovitosti nebo lokalita, např. Bory, Plzeň" },
+              kind: { type: "STRING", enum: ["byt", "dům", "pozemek", "komerční", "garáž/ostatní"] },
+              transaction: { type: "STRING", enum: ["prodej", "pronájem"] },
+              price: { type: "NUMBER", description: "Cena nebo nájemné jako číslo v Kč" },
+              flat_layout: { type: "STRING", enum: ["1+kk", "2+kk", "2+1", "3+kk", "3+1", "4+kk", "4+1", "5 a více"] },
+              flat_area: { type: "NUMBER", description: "Užitná plocha bytu v m2" },
+              floor: { type: "STRING", description: "Patro z pater, např. '3. ze 5'" },
+              ownership: { type: "STRING", enum: ["osobní", "družstevní", "SVJ"] },
+              construction: { type: "STRING", enum: ["cihla", "panel", "jiné"] },
+              flat_condition: { type: "STRING", enum: ["novostavba", "po rekonstrukci", "dobrý", "před rekonstrukcí"] },
+              flat_penb: { type: "STRING", enum: ["A", "B", "C", "D", "E", "F", "G"] },
+              flat_features: {
+                type: "ARRAY",
+                items: { type: "STRING", enum: ["výtah", "balkon/lodžie", "terasa", "sklep"] }
+              },
+              house_layout: { type: "STRING", enum: ["2+kk", "3+kk", "4+kk", "5+kk", "6 a více"] },
+              house_area: { type: "NUMBER", description: "Užitná plocha domu v m2" },
+              land_area: { type: "NUMBER", description: "Plocha pozemku v m2" },
+              house_type: { type: "STRING", enum: ["samostatný", "řadový", "dvojdomek"] },
+              floors_count: { type: "NUMBER", description: "Počet podlaží domu" },
+              house_features: {
+                type: "ARRAY",
+                items: { type: "STRING", enum: ["garáž", "zahrada", "bazén"] }
+              },
+              house_condition: { type: "STRING", enum: ["novostavba", "po rekonstrukci", "dobrý", "před rekonstrukcí"] },
+              house_penb: { type: "STRING", enum: ["A", "B", "C", "D", "E", "F", "G"] },
+              land_size: { type: "NUMBER", description: "Výměra pozemku v m2" },
+              land_type: { type: "STRING", description: "Druh pozemku, např. stavební, les, orná půda" },
+              land_utilities: {
+                type: "ARRAY",
+                items: { type: "STRING" },
+                description: "Seznam inženýrských sítí, např. ['voda', 'elektřina']"
+              },
+              zoning_plan: { type: "STRING", description: "Info z územního plánu" },
+              land_access: { type: "STRING", description: "Přístup k pozemku" },
+              land_dimensions: { type: "STRING", description: "Rozměry pozemku" },
+              facts_for_answers: { type: "STRING", description: "Jakékoli další důležité poznámky k nemovitosti" }
+            }
+          }
+        }
+      };
+
+      const geminiRes = await fetch(geminiUrl, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(geminiPayload)
+      });
+
+      if (!geminiRes.ok) {
+        throw new Error('Chyba při komunikaci s Gemini API.');
+      }
+
+      const geminiData = await geminiRes.json();
+      const rawText = geminiData.candidates?.[0]?.content?.parts?.[0]?.text;
+      if (!rawText) {
+        throw new Error('Z Gemini API nepřišla žádná strukturovaná data.');
+      }
+
+      const parsed = JSON.parse(rawText);
+
+      // 4. Fill form states
+      if (parsed.address) setNewAddress(parsed.address);
+      if (parsed.kind) setNewKind(parsed.kind);
+      if (parsed.transaction) setNewTransaction(parsed.transaction);
+      if (parsed.price) setNewPrice(parsed.price.toString());
+      if (parsed.facts_for_answers) setNewFacts(parsed.facts_for_answers);
+
+      // Byt specific
+      if (parsed.flat_layout) setFlatLayout(parsed.flat_layout);
+      if (parsed.flat_area) setFlatArea(parsed.flat_area.toString());
+      if (parsed.floor) setFlatFloor(parsed.floor);
+      if (parsed.ownership) setFlatOwnership(parsed.ownership);
+      if (parsed.construction) setFlatConstruction(parsed.construction);
+      if (parsed.flat_condition) setFlatCondition(parsed.flat_condition);
+      if (parsed.flat_features) setFlatFeatures(parsed.flat_features);
+      if (parsed.flat_penb) setFlatPenb(parsed.flat_penb);
+
+      // Dům specific
+      if (parsed.house_layout) setHouseLayout(parsed.house_layout);
+      if (parsed.house_area) setHouseArea(parsed.house_area.toString());
+      if (parsed.land_area) setLandArea(parsed.land_area.toString());
+      if (parsed.house_type) setHouseType(parsed.house_type);
+      if (parsed.floors_count) setHouseFloors(parsed.floors_count.toString());
+      if (parsed.house_features) setHouseFeatures(parsed.house_features);
+      if (parsed.house_condition) setHouseCondition(parsed.house_condition);
+      if (parsed.house_penb) setHousePenb(parsed.house_penb);
+
+      // Pozemek specific
+      if (parsed.land_size) setLandSize(parsed.land_size.toString());
+      if (parsed.land_type) setLandType(parsed.land_type);
+      if (parsed.land_utilities) setLandUtilities(parsed.land_utilities.join(', '));
+      if (parsed.zoning_plan) setZoningPlan(parsed.zoning_plan);
+      if (parsed.land_access) setLandAccess(parsed.land_access);
+      if (parsed.land_dimensions) setLandDimensions(parsed.land_dimensions);
+
+      toast.success('Inzerát byl úspěšně načten a data byla doplněna!', { id: toastId });
+      setImportUrl('');
+    } catch (err: any) {
+      console.error(err);
+      toast.error(err.message || 'Nepodařilo se importovat data.', { id: toastId });
+    } finally {
+      setIsImporting(false);
     }
   };
 
@@ -1368,6 +1534,37 @@ export const PropertiesView: React.FC<PropertiesViewProps> = ({
                   <span className="flex h-5 w-5 items-center justify-center rounded-full bg-stone-100 text-[10px] font-bold text-stone-600">2</span>
                   Údaje nemovitosti
                 </h3>
+
+                {/* AI Import Bar */}
+                <div className="bg-stone-50 border border-stone-200 p-3.5 rounded-lg space-y-2 text-left">
+                  <Label htmlFor="import_url" className="text-xs font-semibold text-stone-700 flex items-center gap-1.5">
+                    <span className="h-1.5 w-1.5 rounded-full bg-[#16a34a] animate-pulse" />
+                    Bleskový import inzerátu pomocí AI
+                  </Label>
+                  <div className="flex gap-2">
+                    <Input
+                      id="import_url"
+                      type="url"
+                      placeholder="Vložte odkaz (Sreality, Bezrealitky...)"
+                      value={importUrl}
+                      onChange={(e) => setImportUrl(e.target.value)}
+                      disabled={isImporting}
+                      className="border-stone-200 h-9 text-xs bg-white flex-1"
+                    />
+                    <Button
+                      type="button"
+                      onClick={handleImportFromUrl}
+                      disabled={isImporting || !importUrl}
+                      size="sm"
+                      className="h-9 text-xs shrink-0 font-medium"
+                    >
+                      {isImporting ? 'Načítám...' : 'Importovat'}
+                    </Button>
+                  </div>
+                  <p className="text-[10px] text-stone-400">
+                    Stáhne data ze zadaného webu a automaticky předvyplní všechna pole níže.
+                  </p>
+                </div>
 
                 <div className="space-y-1.5">
                   <Label htmlFor="new_address">Přesná adresa nemovitosti *</Label>
