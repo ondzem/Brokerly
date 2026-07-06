@@ -9,7 +9,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Card, CardContent, CardTitle, CardDescription } from '@/components/ui/card';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { toast } from 'sonner';
-import { Search, Plus, Home, User, Briefcase, PlusCircle, DollarSign, MapPin } from 'lucide-react';
+import { Search, Plus, Home, User, Briefcase, DollarSign, MapPin, LayoutGrid, List } from 'lucide-react';
 
 const KIND_OPTIONS = [
   { id: 'byt', label: 'byt' },
@@ -64,6 +64,8 @@ export const PropertiesView: React.FC<PropertiesViewProps> = ({
   const [selectedProperty, setSelectedProperty] = useState<Property | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [isCreateOpen, setIsCreateOpen] = useState(false);
+  const [isDetailOpen, setIsDetailOpen] = useState(false);
+  const [viewMode, setViewMode] = useState<'cards' | 'list'>('cards');
 
   // Focus property if navigated from outside
   useEffect(() => {
@@ -71,11 +73,10 @@ export const PropertiesView: React.FC<PropertiesViewProps> = ({
       const match = properties.find((p) => p.id === initialSelectedPropertyId);
       if (match) {
         setSelectedProperty(match);
+        setIsDetailOpen(true);
       }
-    } else if (properties.length > 0 && !selectedProperty) {
-      setSelectedProperty(properties[0]);
     }
-  }, [initialSelectedPropertyId, properties, selectedProperty]);
+  }, [initialSelectedPropertyId, properties]);
 
   // Create form states
   const [newOwnerId, setNewOwnerId] = useState('');
@@ -322,7 +323,7 @@ export const PropertiesView: React.FC<PropertiesViewProps> = ({
   const formatCompactPrice = (val: number | null) => {
     if (val === null) return '';
     if (val >= 1000000) {
-      return (val / 1000000).toLocaleString('cs-CZ', { maximumFractionDigits: 2 }) + ' M';
+      return (val / 1000000).toLocaleString('cs-CZ', { maximumFractionDigits: 2 }) + ' mil. Kč';
     }
     return val.toLocaleString('cs-CZ') + ' Kč';
   };
@@ -338,423 +339,442 @@ export const PropertiesView: React.FC<PropertiesViewProps> = ({
     : [];
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-12 gap-6 items-start">
-      {/* Left Column: List */}
-      <div className="md:col-span-4 space-y-4">
-        <div className="relative">
+    <div className="space-y-6">
+      {/* Header section */}
+      <div className="flex justify-between items-center">
+        <div>
+          <h1 className="text-3xl font-display font-normal tracking-tight text-[#141414]">Nemovitosti</h1>
+          <p className="text-muted-foreground text-sm mt-1">
+            Přehled portfolia nemovitostí k prodeji a pronájmu.
+          </p>
+        </div>
+        <Button
+          onClick={() => setIsCreateOpen(true)}
+          className="gap-1.5 h-10 font-medium"
+        >
+          <Plus className="h-4.5 w-4.5" />
+          Nová nemovitost
+        </Button>
+      </div>
+
+      {/* Search & View Mode Toggles bar */}
+      <div className="flex flex-col sm:flex-row gap-4 items-center justify-between bg-white border border-stone-200 p-3.5 rounded-lg shadow-xs">
+        {/* Search */}
+        <div className="relative w-full sm:w-80">
           <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
           <Input
-            placeholder="Hledat adresu, druh..."
-            className="pl-9 border-stone-300"
+            placeholder="Hledat adresu, druh nemovitosti..."
+            className="pl-9 border-stone-200 focus-visible:ring-1 h-9 text-xs"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
           />
         </div>
 
-        <div className="space-y-1.5 max-h-[520px] overflow-y-auto pr-1">
-          {filteredProperties.length === 0 ? (
-            <div className="p-4 text-sm text-muted-foreground italic text-center bg-white border border-border rounded-md">Žádné nemovitosti nenalezeny.</div>
-          ) : (
-            filteredProperties.map((prop) => {
-              const isSelected = selectedProperty?.id === prop.id;
-              
-              let displayTitle = '';
-              if (prop.kind === 'byt' && prop.flat_layout) {
-                displayTitle = `Byt ${prop.flat_layout}, ${prop.address.split(',')[0]}`;
-              } else if (prop.kind === 'dům' && prop.house_layout) {
-                displayTitle = `Dům ${prop.house_layout}, ${prop.address.split(',')[0]}`;
-              } else {
-                displayTitle = `${prop.kind}, ${prop.address.split(',')[0]}`;
-              }
+        {/* View Mode controls / toggles */}
+        <div className="flex bg-stone-100 p-0.5 rounded-md w-full sm:w-auto self-stretch sm:self-auto border border-stone-200">
+          <button
+            onClick={() => setViewMode('cards')}
+            className={`flex-1 sm:flex-initial px-3.5 py-1.5 rounded-sm text-xs font-semibold tracking-wide transition-all flex items-center justify-center gap-1.5 ${
+              viewMode === 'cards'
+                ? 'bg-white text-[#141414] shadow-xs'
+                : 'text-stone-500 hover:text-stone-800'
+            }`}
+          >
+            <LayoutGrid className="h-3.5 w-3.5" />
+            Karty
+          </button>
+          <button
+            onClick={() => setViewMode('list')}
+            className={`flex-1 sm:flex-initial px-3.5 py-1.5 rounded-sm text-xs font-semibold tracking-wide transition-all flex items-center justify-center gap-1.5 ${
+              viewMode === 'list'
+                ? 'bg-white text-[#141414] shadow-xs'
+                : 'text-stone-500 hover:text-stone-800'
+            }`}
+          >
+            <List className="h-3.5 w-3.5" />
+            Seznam
+          </button>
+        </div>
+      </div>
 
-              return (
-                <div
-                  key={prop.id}
-                  onClick={() => setSelectedProperty(prop)}
-                  className={`p-3.5 cursor-pointer rounded-md border border-transparent transition-all duration-150 text-left ${
-                    isSelected
-                      ? 'bg-secondary border-secondary text-foreground'
-                      : 'bg-white border-border hover:bg-stone-50'
-                  }`}
-                >
-                  <div className="font-display font-semibold text-sm text-foreground truncate">
-                    {displayTitle}
-                  </div>
-                  <div className="text-xs text-muted-foreground mt-1.5 font-mono flex justify-between items-center">
-                    <span>{formatCompactPrice(prop.price)}</span>
-                    <span className="bg-stone-100 text-stone-600 text-[9px] font-semibold px-2 py-0.5 rounded-full uppercase tracking-wider scale-90">
+      {/* RENDER LIST OR CARDS */}
+      {filteredProperties.length === 0 ? (
+        <div className="p-12 text-sm text-muted-foreground italic text-center bg-white border border-stone-200 rounded-lg shadow-xs">
+          Nebyly nalezeny žádné nemovitosti.
+        </div>
+      ) : viewMode === 'cards' ? (
+        /* CARDS GRID VIEW */
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 mt-4">
+          {filteredProperties.map((prop) => {
+            let displayTitle = '';
+            if (prop.kind === 'byt' && prop.flat_layout) {
+              displayTitle = `Byt ${prop.flat_layout}`;
+            } else if (prop.kind === 'dům' && prop.house_layout) {
+              displayTitle = `Dům ${prop.house_layout}`;
+            } else {
+              displayTitle = prop.kind.toUpperCase();
+            }
+
+            return (
+              <div
+                key={prop.id}
+                onClick={() => {
+                  setSelectedProperty(prop);
+                  setIsDetailOpen(true);
+                }}
+                className="bg-white border border-stone-200 rounded-lg p-4 cursor-pointer hover:border-[#00D991] hover:shadow-xs transition-all duration-150 flex flex-col justify-between h-[165px] text-left"
+              >
+                <div className="space-y-1">
+                  <div className="flex justify-between items-start gap-2">
+                    <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground bg-stone-150 px-2 py-0.5 rounded-sm">
+                      {prop.transaction}
+                    </span>
+                    <span className={`text-[9px] font-semibold px-2 py-0.5 rounded-full uppercase tracking-wider shrink-0 ${
+                      prop.offer_status === 'v nabídce' ? 'bg-emerald-500/10 text-emerald-600' :
+                      prop.offer_status === 'rezervováno' ? 'bg-amber-500/10 text-amber-600' :
+                      prop.offer_status === 'uzavřeno' ? 'bg-indigo-500/10 text-indigo-600' :
+                      'bg-stone-500/10 text-stone-600'
+                    }`}>
                       {prop.offer_status}
                     </span>
                   </div>
+                  <h3 className="font-display font-semibold text-[14px] text-foreground pt-1 truncate">
+                    {displayTitle}
+                  </h3>
+                  <p className="text-[11.5px] text-muted-foreground truncate flex items-center gap-1 pt-0.5">
+                    <MapPin className="h-3 w-3 shrink-0" />
+                    <span>{prop.address}</span>
+                  </p>
                 </div>
-              );
-            })
-          )}
+
+                <div className="border-t border-stone-100 pt-3 mt-3 flex justify-between items-center">
+                  <span className="text-xs font-mono font-bold text-foreground">
+                    {formatCompactPrice(prop.price)}
+                  </span>
+                  {prop.kind === 'byt' && prop.flat_area && (
+                    <span className="text-[10px] text-muted-foreground font-mono">{prop.flat_area} m²</span>
+                  )}
+                  {prop.kind === 'dům' && prop.house_area && (
+                    <span className="text-[10px] text-muted-foreground font-mono">{prop.house_area} m²</span>
+                  )}
+                </div>
+              </div>
+            );
+          })}
         </div>
-
-        <Button
-          onClick={() => setIsCreateOpen(true)}
-          className="w-full gap-1.5 font-medium h-10"
-        >
-          <Plus className="h-4.5 w-4.5" />
-          Přidat novou nemovitost
-        </Button>
-      </div>
-
-      {/* Right Column: Details */}
-      <div className="md:col-span-8">
-        {selectedProperty ? (
-          <form onSubmit={handleSaveProperty} className="space-y-6">
-            <Card className="border-border shadow-sm bg-white">
-              <CardContent className="p-6 space-y-6">
-                <div className="border-b border-border pb-6 flex justify-between items-start">
-                  <div className="space-y-2">
-                    <h2 className="font-display text-2xl font-bold tracking-tight text-foreground">
-                      {editKind === 'byt' && flatLayout ? `Byt ${flatLayout}, ${editAddress.split(',')[0]}` : editKind === 'dům' && houseLayout ? `Dům ${houseLayout}, ${editAddress.split(',')[0]}` : `${editKind}, ${editAddress.split(',')[0]}`}
-                    </h2>
-                    <p className="text-xs text-muted-foreground">
-                      {editAddress} · <span className="capitalize font-semibold">{editTransaction}</span>
-                    </p>
-                    <div className="text-3xl font-mono font-bold tracking-tight text-foreground mt-3">
-                      {formatCurrency(editPrice ? parseFloat(editPrice) : null)}
-                    </div>
-                  </div>
-                  <div className="flex flex-col items-end gap-3">
-                    <span className="bg-emerald-500/10 text-emerald-600 text-xs font-semibold px-2.5 py-1 rounded-full uppercase tracking-wider">
-                      {editOfferStatus}
+      ) : (
+        /* TABLE LIST VIEW */
+        <div className="overflow-x-auto bg-white border border-stone-200 rounded-lg shadow-xs mt-4">
+          <table className="w-full text-left border-collapse">
+            <thead>
+              <tr className="border-b border-stone-250 bg-stone-50 text-[10px] uppercase font-bold tracking-wider text-muted-foreground">
+                <th className="py-3 px-4">Adresa</th>
+                <th className="py-3 px-4">Druh</th>
+                <th className="py-3 px-4">Transakce</th>
+                <th className="py-3 px-4 text-right">Cena</th>
+                <th className="py-3 px-4 text-center">Stav</th>
+                <th className="py-3 px-4"></th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-stone-150 text-xs">
+              {filteredProperties.map((prop) => (
+                <tr
+                  key={prop.id}
+                  onClick={() => {
+                    setSelectedProperty(prop);
+                    setIsDetailOpen(true);
+                  }}
+                  className="hover:bg-stone-50/70 cursor-pointer transition-colors"
+                >
+                  <td className="py-3.5 px-4 font-medium text-foreground truncate max-w-[240px]">
+                    {prop.address}
+                  </td>
+                  <td className="py-3.5 px-4 font-mono capitalize">
+                    {prop.kind} {prop.flat_layout || prop.house_layout || ''}
+                  </td>
+                  <td className="py-3.5 px-4">
+                    <span className="uppercase text-[9px] font-bold bg-stone-100 text-stone-600 px-1.5 py-0.5 rounded-sm">
+                      {prop.transaction}
                     </span>
-                    <Button type="submit" size="sm">
-                      Uložit změny
-                    </Button>
-                  </div>
-                </div>
+                  </td>
+                  <td className="py-3.5 px-4 text-right font-mono font-bold">
+                    {formatCompactPrice(prop.price)}
+                  </td>
+                  <td className="py-3.5 px-4 text-center">
+                    <span className={`text-[9px] font-semibold px-2 py-0.5 rounded-full uppercase tracking-wider ${
+                      prop.offer_status === 'v nabídce' ? 'bg-emerald-500/10 text-emerald-600' :
+                      prop.offer_status === 'rezervováno' ? 'bg-amber-500/10 text-amber-600' :
+                      prop.offer_status === 'uzavřeno' ? 'bg-indigo-500/10 text-indigo-600' :
+                      'bg-stone-500/10 text-stone-600'
+                    }`}>
+                      {prop.offer_status}
+                    </span>
+                  </td>
+                  <td className="py-3.5 px-4 text-right">
+                    <span className="text-[10px] text-primary hover:underline font-bold">Detail</span>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
 
-                {/* Visual Timeline of Offer Phases */}
-                <div className="py-6 border-b border-border">
-                  <h4 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-6">
-                    Fáze nabídky
-                  </h4>
-                  <div className="relative flex justify-between items-center w-full max-w-2xl mx-auto px-4">
-                    {/* Background connecting line */}
-                    <div className="absolute left-8 right-8 top-1/2 -translate-y-1/2 h-0.5 bg-stone-200 -z-10" />
+      {/* DETAIL DIALOG */}
+      {selectedProperty && (
+        <Dialog open={isDetailOpen} onOpenChange={setIsDetailOpen}>
+          <DialogContent className="max-w-5xl lg:max-w-6xl w-[95vw] max-h-[90vh] overflow-y-auto border-border">
+            <DialogHeader>
+              <DialogTitle className="font-display text-2xl font-bold border-b border-border pb-3 flex items-center justify-between">
+                <span>{editAddress}</span>
+                <span className="text-xs font-mono font-normal text-muted-foreground mr-6">
+                  Druh: <span className="font-semibold uppercase">{editKind}</span>
+                </span>
+              </DialogTitle>
+            </DialogHeader>
+
+            <form onSubmit={handleSaveProperty} className="space-y-6 mt-4">
+              <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
+                {/* Left Column: Form Details */}
+                <div className="lg:col-span-7 space-y-6">
+                  {/* Block 1: Společná pole */}
+                  <div className="space-y-4 text-left">
+                    <h3 className="font-display text-base font-semibold text-foreground">Obecné parametry</h3>
                     
-                    {/* Active progress line */}
-                    {(() => {
-                      const stages = ['akvizice', 'příprava', 'v nabídce', 'rezervováno', 'uzavřeno'];
-                      const currentIndex = stages.indexOf(editOfferStatus);
-                      if (currentIndex > 0) {
-                        const percent = (currentIndex / (stages.length - 1)) * 100;
-                        return (
-                          <div 
-                            className="absolute left-8 top-1/2 -translate-y-1/2 h-0.5 bg-[#00D991] -z-10 transition-all duration-300"
-                            style={{ width: `calc(${percent}% - ${16 + (percent/100)*16}px)` }}
-                          />
-                        );
-                      }
-                      return null;
-                    })()}
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                      <div className="space-y-1.5">
+                        <Label htmlFor="edit_owner">Vlastník *</Label>
+                        <Select value={editOwnerId} onValueChange={setEditOwnerId} required>
+                          <SelectTrigger id="edit_owner">
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {contacts.map((c) => (
+                              <SelectItem key={c.id} value={c.id}>
+                                {c.full_name} ({c.roles.join(', ')})
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
 
-                    {/* Timeline Steps */}
-                    {[
-                      { id: 'akvizice', label: 'Akvizice' },
-                      { id: 'příprava', label: 'Příprava' },
-                      { id: 'v nabídce', label: 'V nabídce' },
-                      { id: 'rezervováno', label: 'Rezervace' },
-                      { id: 'uzavřeno', label: 'Podpis' }
-                    ].map((step, idx, arr) => {
-                      const stages = arr.map(s => s.id);
-                      const currentIdx = stages.indexOf(editOfferStatus);
-                      const isCompleted = currentIdx >= idx;
-                      const isActive = editOfferStatus === step.id;
-
-                      return (
-                        <div key={step.id} className="flex flex-col items-center gap-2">
-                          <div
-                            className={`h-5 w-5 rounded-full flex items-center justify-center border-2 transition-all duration-300 ${
-                              isActive
-                                ? 'bg-background border-[#00D991] ring-4 ring-[#00D991]/20'
-                                : isCompleted
-                                ? 'bg-[#00D991] border-[#00D991]'
-                                : 'bg-background border-stone-300'
-                            }`}
-                          >
-                            {isCompleted && !isActive && (
-                              <div className="h-1.5 w-1.5 rounded-full bg-white" />
-                            )}
-                            {isActive && (
-                              <div className="h-2 w-2 rounded-full bg-[#00D991]" />
-                            )}
-                          </div>
-                          <span
-                            className={`text-[10px] font-semibold tracking-wide uppercase ${
-                              isActive
-                                ? 'text-[#00D991]'
-                                : isCompleted
-                                ? 'text-foreground'
-                                : 'text-muted-foreground'
-                            }`}
-                          >
-                            {step.label}
-                          </span>
-                        </div>
-                      );
-                    })}
-                  </div>
-                </div>
-
-                {/* Block 1: Společná pole */}
-                <div className="space-y-4">
-                  <h3 className="font-display text-base font-semibold text-[#141414] dark:text-stone-300">Společná pole</h3>
-
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div className="space-y-1.5">
-                      <Label htmlFor="edit_owner">Vlastník *</Label>
-                      <div className="flex gap-2">
-                        <div className="flex-1">
-                          <Select value={editOwnerId} onValueChange={setEditOwnerId} required>
-                            <SelectTrigger id="edit_owner">
-                              <SelectValue placeholder="Vyberte vlastníka" />
-                            </SelectTrigger>
-                            <SelectContent>
-                              {contacts.map((c) => (
-                                <SelectItem key={c.id} value={c.id}>
-                                  {c.full_name}
-                                </SelectItem>
-                              ))}
-                            </SelectContent>
-                          </Select>
-                        </div>
-                        {selectedProperty.owner && (
-                          <Button
-                            type="button"
-                            variant="outline"
-                            size="icon"
-                            onClick={() => onNavigateToContact(selectedProperty.owner_id)}
-                            title="Otevřít kartu vlastníka"
-                            className="border-stone-300"
-                          >
-                            <User className="h-4 w-4" />
-                          </Button>
-                        )}
+                      <div className="space-y-1.5">
+                        <Label htmlFor="edit_address">Adresa nemovitosti *</Label>
+                        <Input
+                          id="edit_address"
+                          value={editAddress}
+                          onChange={(e) => setEditAddress(e.target.value)}
+                          required
+                        />
                       </div>
                     </div>
 
-                    <div className="space-y-1.5">
-                      <Label htmlFor="edit_address">Přesná adresa *</Label>
-                      <Input
-                        id="edit_address"
-                        value={editAddress}
-                        onChange={(e) => setEditAddress(e.target.value)}
-                        required
-                      />
-                    </div>
-                  </div>
+                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                      <div className="space-y-1.5">
+                        <Label htmlFor="edit_kind">Druh *</Label>
+                        <Select value={editKind} onValueChange={(val: Property['kind']) => setEditKind(val)} required>
+                          <SelectTrigger id="edit_kind">
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {KIND_OPTIONS.map((opt) => (
+                              <SelectItem key={opt.id} value={opt.id}>
+                                {opt.label}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
 
-                  <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-                    <div className="space-y-1.5 col-span-2">
-                      <Label htmlFor="edit_price">Cena / Měsíční nájem *</Label>
-                      <div className="relative">
+                      <div className="space-y-1.5">
+                        <Label htmlFor="edit_trans">Transakce *</Label>
+                        <Select value={editTransaction} onValueChange={(val: Property['transaction']) => setEditTransaction(val)} required>
+                          <SelectTrigger id="edit_trans">
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {TRANSACTION_OPTIONS.map((opt) => (
+                              <SelectItem key={opt} value={opt}>
+                                {opt}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
+
+                      <div className="space-y-1.5">
+                        <Label htmlFor="edit_status">Stav nabídky *</Label>
+                        <Select value={editOfferStatus} onValueChange={(val: Property['offer_status']) => setEditOfferStatus(val)} required>
+                          <SelectTrigger id="edit_status">
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {OFFER_STATUS_OPTIONS.map((opt) => (
+                              <SelectItem key={opt} value={opt}>
+                                {opt}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
+                    </div>
+
+                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                      <div className="space-y-1.5">
+                        <Label htmlFor="edit_price">Cena / nájem (Kč) *</Label>
                         <Input
                           id="edit_price"
                           type="number"
                           value={editPrice}
                           onChange={(e) => setEditPrice(e.target.value)}
                           required
-                          className="pr-10"
                         />
-                        <span className="absolute right-3 top-2.5 text-xs text-muted-foreground font-semibold">Kč</span>
+                      </div>
+
+                      <div className="space-y-1.5">
+                        <Label htmlFor="edit_handover">Termín předání</Label>
+                        <Input
+                          id="edit_handover"
+                          value={editHandover}
+                          onChange={(e) => setEditHandover(e.target.value)}
+                          placeholder="Např. dohodou"
+                        />
+                      </div>
+
+                      <div className="space-y-1.5">
+                        <Label htmlFor="edit_listing">ID inzerátu</Label>
+                        <Input
+                          id="edit_listing"
+                          value={editListingId}
+                          onChange={(e) => setEditListingId(e.target.value)}
+                          placeholder="Kód"
+                        />
                       </div>
                     </div>
 
                     <div className="space-y-1.5">
-                      <Label htmlFor="edit_kind">Druh nemovitosti *</Label>
-                      <Select value={editKind} onValueChange={(val: Property['kind']) => setEditKind(val)} required>
-                        <SelectTrigger id="edit_kind">
-                          <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {KIND_OPTIONS.map((opt) => (
-                            <SelectItem key={opt.id} value={opt.id}>
-                              {opt.label}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                    </div>
-
-                    <div className="space-y-1.5">
-                      <Label htmlFor="edit_transaction">Transakce *</Label>
-                      <Select
-                        value={editTransaction}
-                        onValueChange={(val: Property['transaction']) => setEditTransaction(val)}
-                        required
-                      >
-                        <SelectTrigger id="edit_transaction">
-                          <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {TRANSACTION_OPTIONS.map((opt) => (
-                            <SelectItem key={opt} value={opt}>
-                              {opt}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                    </div>
-                  </div>
-
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                    <div className="space-y-1.5">
-                      <Label htmlFor="edit_status">Stav nabídky *</Label>
-                      <Select
-                        value={editOfferStatus}
-                        onValueChange={(val: Property['offer_status']) => setEditOfferStatus(val)}
-                        required
-                      >
-                        <SelectTrigger id="edit_status">
-                          <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {OFFER_STATUS_OPTIONS.map((opt) => (
-                            <SelectItem key={opt} value={opt}>
-                              {opt}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                    </div>
-
-                    <div className="space-y-1.5">
-                      <Label htmlFor="edit_handover">Možný termín předání</Label>
-                      <Input
-                        id="edit_handover"
-                        value={editHandover}
-                        onChange={(e) => setEditHandover(e.target.value)}
-                        placeholder="např. Ihned, dohodou"
-                      />
-                    </div>
-
-                    <div className="space-y-1.5">
-                      <Label htmlFor="edit_listing">ID inzerátu</Label>
-                      <Input
-                        id="edit_listing"
-                        value={editListingId}
-                        onChange={(e) => setEditListingId(e.target.value)}
-                        placeholder="např. 123456"
+                      <Label htmlFor="edit_facts">Co je v ceně / fakta pro odpovědi</Label>
+                      <Textarea
+                        id="edit_facts"
+                        rows={3}
+                        value={editFacts}
+                        onChange={(e) => setEditFacts(e.target.value)}
+                        placeholder="Zde uveďte podrobnosti o cenách služeb, energiích a další fakta, která může AI číst..."
                       />
                     </div>
                   </div>
 
-                  <div className="space-y-1.5">
-                    <Label htmlFor="edit_facts">Co je v ceně / fakta pro odpovědi AI</Label>
-                    <Textarea
-                      id="edit_facts"
-                      rows={3}
-                      value={editFacts}
-                      onChange={(e) => setEditFacts(e.target.value)}
-                      placeholder="např. Kuchyňská linka včetně myčky a lednice, parkovací stání č. 14..."
-                    />
-                  </div>
-                </div>
+                  {/* Block 2: Byt details */}
+                  {editKind === 'byt' && (
+                    <div className="border-t border-stone-200 pt-6 space-y-4 text-left">
+                      <h3 className="font-display text-base font-semibold text-foreground">Specifické parametry pro BYT</h3>
+                      
+                      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                        <div className="space-y-1.5">
+                          <Label htmlFor="flat_layout">Dispozice *</Label>
+                          <Select value={flatLayout} onValueChange={setFlatLayout}>
+                            <SelectTrigger id="flat_layout">
+                              <SelectValue placeholder="Vyberte" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              {FLAT_LAYOUT_OPTIONS.map((opt) => (
+                                <SelectItem key={opt} value={opt}>
+                                  {opt}
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                        </div>
 
-                {/* Block 2: Conditional blocks */}
-                {/* 2.1 BYT SPECIFIC */}
-                {editKind === 'byt' && (
-                  <div className="border-t border-[#EAE9E2] pt-5 space-y-4">
-                    <h3 className="font-display text-base font-semibold text-[#141414] dark:text-stone-300">Specifická pole pro BYT</h3>
-                    
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <div className="space-y-1.5">
+                          <Label htmlFor="flat_area">Užitná plocha (m²) *</Label>
+                          <Input
+                            id="flat_area"
+                            type="number"
+                            value={flatArea}
+                            onChange={(e) => setFlatArea(e.target.value)}
+                          />
+                        </div>
+
+                        <div className="space-y-1.5">
+                          <Label htmlFor="flat_floor">Patro / z pater</Label>
+                          <Input
+                            id="flat_floor"
+                            value={flatFloor}
+                            onChange={(e) => setFlatFloor(e.target.value)}
+                            placeholder="Např. 3. ze 5"
+                          />
+                        </div>
+                      </div>
+
+                      <div className="grid grid-cols-1 sm:grid-cols-4 gap-4">
+                        <div className="space-y-1.5">
+                          <Label htmlFor="flat_ownership">Vlastnictví</Label>
+                          <Select value={flatOwnership} onValueChange={setFlatOwnership}>
+                            <SelectTrigger id="flat_ownership">
+                              <SelectValue placeholder="Vyberte" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              {OWNERSHIP_OPTIONS.map((opt) => (
+                                <SelectItem key={opt} value={opt}>
+                                  {opt}
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                        </div>
+
+                        <div className="space-y-1.5">
+                          <Label htmlFor="flat_const">Konstrukce</Label>
+                          <Select value={flatConstruction} onValueChange={setFlatConstruction}>
+                            <SelectTrigger id="flat_const">
+                              <SelectValue placeholder="Vyberte" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              {CONSTRUCTION_OPTIONS.map((opt) => (
+                                <SelectItem key={opt} value={opt}>
+                                  {opt}
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                        </div>
+
+                        <div className="space-y-1.5">
+                          <Label htmlFor="flat_cond">Stav bytu</Label>
+                          <Select value={flatCondition} onValueChange={setFlatCondition}>
+                            <SelectTrigger id="flat_cond">
+                              <SelectValue placeholder="Vyberte" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              {FLAT_CONDITION_OPTIONS.map((opt) => (
+                                <SelectItem key={opt} value={opt}>
+                                  {opt}
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                        </div>
+
+                        <div className="space-y-1.5">
+                          <Label htmlFor="flat_penb">PENB</Label>
+                          <Select value={flatPenb} onValueChange={setFlatPenb}>
+                            <SelectTrigger id="flat_penb">
+                              <SelectValue placeholder="Třída" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              {PENB_OPTIONS.map((opt) => (
+                                <SelectItem key={opt} value={opt}>
+                                  {opt}
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                        </div>
+                      </div>
+
                       <div className="space-y-1.5">
-                        <Label htmlFor="flat_layout">Dispozice *</Label>
-                        <Select value={flatLayout} onValueChange={setFlatLayout}>
-                          <SelectTrigger id="flat_layout">
-                            <SelectValue placeholder="Vyberte dispozici" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            {FLAT_LAYOUT_OPTIONS.map((opt) => (
-                              <SelectItem key={opt} value={opt}>
-                                {opt}
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                      </div>
-
-                      <div className="space-y-1.5 col-span-2">
-                        <Label htmlFor="flat_area">Užitná plocha (m²) *</Label>
-                        <Input
-                          id="flat_area"
-                          type="number"
-                          value={flatArea}
-                          onChange={(e) => setFlatArea(e.target.value)}
-                          placeholder="výměra"
-                        />
-                      </div>
-                    </div>
-
-                    <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-                      <div className="space-y-1.5">
-                        <Label htmlFor="flat_floor">Patro / z pater</Label>
-                        <Input
-                          id="flat_floor"
-                          value={flatFloor}
-                          onChange={(e) => setFlatFloor(e.target.value)}
-                          placeholder="např. 3/5"
-                        />
-                      </div>
-
-                      <div className="space-y-1.5">
-                        <Label htmlFor="flat_ownership">Vlastnictví</Label>
-                        <Select value={flatOwnership} onValueChange={setFlatOwnership}>
-                          <SelectTrigger id="flat_ownership">
-                            <SelectValue placeholder="Vyberte" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            {OWNERSHIP_OPTIONS.map((opt) => (
-                              <SelectItem key={opt} value={opt}>
-                                {opt}
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                      </div>
-
-                      <div className="space-y-1.5">
-                        <Label htmlFor="flat_const">Konstrukce</Label>
-                        <Select value={flatConstruction} onValueChange={setFlatConstruction}>
-                          <SelectTrigger id="flat_const">
-                            <SelectValue placeholder="Vyberte" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            {CONSTRUCTION_OPTIONS.map((opt) => (
-                              <SelectItem key={opt} value={opt}>
-                                {opt}
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                      </div>
-
-                      <div className="space-y-1.5">
-                        <Label htmlFor="flat_cond">Stav bytu</Label>
-                        <Select value={flatCondition} onValueChange={setFlatCondition}>
-                          <SelectTrigger id="flat_cond">
-                            <SelectValue placeholder="Vyberte" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            {FLAT_CONDITION_OPTIONS.map((opt) => (
-                              <SelectItem key={opt} value={opt}>
-                                {opt}
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                      </div>
-                    </div>
-
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                      <div className="space-y-1.5 col-span-2">
-                        <Label>Vybavení / vlastnosti bytu</Label>
+                        <Label>Vybavení bytu</Label>
                         <div className="flex flex-wrap gap-4 pt-1">
                           {FLAT_FEATURE_OPTIONS.map((opt) => (
                             <label key={opt} className="flex items-center gap-2 text-xs font-normal cursor-pointer select-none">
@@ -762,237 +782,220 @@ export const PropertiesView: React.FC<PropertiesViewProps> = ({
                                 type="checkbox"
                                 checked={flatFeatures?.includes(opt) || false}
                                 onChange={() => handleFlatFeatureToggle(opt)}
-                                className="rounded border-[#EAE9E2] text-primary focus:ring-primary h-3.5 w-3.5"
+                                className="rounded border-stone-300 text-primary focus:ring-primary h-3.5 w-3.5"
                               />
                               {opt}
                             </label>
                           ))}
                         </div>
                       </div>
-
-                      <div className="space-y-1.5">
-                        <Label htmlFor="flat_penb">Energetický štítek (PENB)</Label>
-                        <Select value={flatPenb} onValueChange={setFlatPenb}>
-                          <SelectTrigger id="flat_penb">
-                            <SelectValue placeholder="Vyberte třídu" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            {PENB_OPTIONS.map((opt) => (
-                              <SelectItem key={opt} value={opt}>
-                                {opt}
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                      </div>
                     </div>
-                  </div>
-                )}
+                  )}
 
-                {/* 2.2 DŮM SPECIFIC */}
-                {editKind === 'dům' && (
-                  <div className="border-t border-[#EAE9E2] pt-5 space-y-4">
-                    <h3 className="font-display text-base font-semibold text-[#141414] dark:text-stone-300">Specifická pole pro DŮM</h3>
-                    
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                      <div className="space-y-1.5">
-                        <Label htmlFor="house_layout">Dispozice / místnosti *</Label>
-                        <Select value={houseLayout} onValueChange={setHouseLayout}>
-                          <SelectTrigger id="house_layout">
-                            <SelectValue placeholder="Vyberte dispozici" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            {HOUSE_LAYOUT_OPTIONS.map((opt) => (
-                              <SelectItem key={opt} value={opt}>
-                                {opt}
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
+                  {/* Block 2: Dům details */}
+                  {editKind === 'dům' && (
+                    <div className="border-t border-stone-200 pt-6 space-y-4 text-left">
+                      <h3 className="font-display text-base font-semibold text-foreground">Specifické parametry pro DŮM</h3>
+                      
+                      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                        <div className="space-y-1.5">
+                          <Label htmlFor="house_layout">Dispozice / místnosti *</Label>
+                          <Select value={houseLayout} onValueChange={setHouseLayout}>
+                            <SelectTrigger id="house_layout">
+                              <SelectValue placeholder="Vyberte" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              {HOUSE_LAYOUT_OPTIONS.map((opt) => (
+                                <SelectItem key={opt} value={opt}>
+                                  {opt}
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                        </div>
+
+                        <div className="space-y-1.5">
+                          <Label htmlFor="house_area">Užitná plocha (m²) *</Label>
+                          <Input
+                            id="house_area"
+                            type="number"
+                            value={houseArea}
+                            onChange={(e) => setHouseArea(e.target.value)}
+                          />
+                        </div>
+
+                        <div className="space-y-1.5">
+                          <Label htmlFor="land_area">Plocha pozemku (m²) *</Label>
+                          <Input
+                            id="land_area"
+                            type="number"
+                            value={landArea}
+                            onChange={(e) => setLandArea(e.target.value)}
+                          />
+                        </div>
+                      </div>
+
+                      <div className="grid grid-cols-1 sm:grid-cols-4 gap-4">
+                        <div className="space-y-1.5">
+                          <Label htmlFor="house_type">Typ domu</Label>
+                          <Select value={houseType} onValueChange={setHouseType}>
+                            <SelectTrigger id="house_type">
+                              <SelectValue placeholder="Vyberte" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              {HOUSE_TYPE_OPTIONS.map((opt) => (
+                                <SelectItem key={opt} value={opt}>
+                                  {opt}
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                        </div>
+
+                        <div className="space-y-1.5">
+                          <Label htmlFor="house_floors">Počet podlaží</Label>
+                          <Input
+                            id="house_floors"
+                            type="number"
+                            value={houseFloors}
+                            onChange={(e) => setHouseFloors(e.target.value)}
+                          />
+                        </div>
+
+                        <div className="space-y-1.5">
+                          <Label htmlFor="house_cond">Stav domu</Label>
+                          <Select value={houseCondition} onValueChange={setHouseCondition}>
+                            <SelectTrigger id="house_cond">
+                              <SelectValue placeholder="Vyberte" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              {FLAT_CONDITION_OPTIONS.map((opt) => (
+                                <SelectItem key={opt} value={opt}>
+                                  {opt}
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                        </div>
+
+                        <div className="space-y-1.5">
+                          <Label htmlFor="house_penb">PENB</Label>
+                          <Select value={housePenb} onValueChange={setHousePenb}>
+                            <SelectTrigger id="house_penb">
+                              <SelectValue placeholder="Třída" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              {PENB_OPTIONS.map((opt) => (
+                                <SelectItem key={opt} value={opt}>
+                                  {opt}
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                        </div>
                       </div>
 
                       <div className="space-y-1.5">
-                        <Label htmlFor="house_area">Užitná plocha (m²) *</Label>
-                        <Input
-                          id="house_area"
-                          type="number"
-                          value={houseArea}
-                          onChange={(e) => setHouseArea(e.target.value)}
-                          placeholder="výměra domu"
-                        />
+                        <Label>Vybavení a příslušenství</Label>
+                        <div className="flex flex-wrap gap-4 pt-1">
+                          {HOUSE_FEATURE_OPTIONS.map((opt) => (
+                            <label key={opt} className="flex items-center gap-2 text-xs font-normal cursor-pointer select-none">
+                              <input
+                                type="checkbox"
+                                checked={houseFeatures?.includes(opt) || false}
+                                onChange={() => handleHouseFeatureToggle(opt)}
+                                className="rounded border-stone-300 text-primary focus:ring-primary h-3.5 w-3.5"
+                              />
+                              {opt}
+                            </label>
+                          ))}
+                        </div>
                       </div>
-
-                      <div className="space-y-1.5">
-                        <Label htmlFor="land_area">Plocha pozemku (m²) *</Label>
-                        <Input
-                          id="land_area"
-                          type="number"
-                          value={landArea}
-                          onChange={(e) => setLandArea(e.target.value)}
-                          placeholder="výměra pozemku"
-                        />
-                      </div>
-                    </div>
-
-                    <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-                      <div className="space-y-1.5">
-                        <Label htmlFor="house_type">Typ domu</Label>
-                        <Select value={houseType} onValueChange={setHouseType}>
-                          <SelectTrigger id="house_type">
-                            <SelectValue placeholder="Vyberte" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            {HOUSE_TYPE_OPTIONS.map((opt) => (
-                              <SelectItem key={opt} value={opt}>
-                                {opt}
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                      </div>
-
-                      <div className="space-y-1.5">
-                        <Label htmlFor="house_floors">Počet podlaží</Label>
-                        <Input
-                          id="house_floors"
-                          type="number"
-                          value={houseFloors}
-                          onChange={(e) => setHouseFloors(e.target.value)}
-                          placeholder="podlaží"
-                        />
-                      </div>
-
-                      <div className="space-y-1.5">
-                        <Label htmlFor="house_cond">Stav domu</Label>
-                        <Select value={houseCondition} onValueChange={setHouseCondition}>
-                          <SelectTrigger id="house_cond">
-                            <SelectValue placeholder="Vyberte" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            {FLAT_CONDITION_OPTIONS.map((opt) => (
-                              <SelectItem key={opt} value={opt}>
-                                {opt}
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                      </div>
-
-                      <div className="space-y-1.5">
-                        <Label htmlFor="house_penb">Energetická náročnost (PENB)</Label>
-                        <Select value={housePenb} onValueChange={setHousePenb}>
-                          <SelectTrigger id="house_penb">
-                            <SelectValue placeholder="Vyberte" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            {PENB_OPTIONS.map((opt) => (
-                              <SelectItem key={opt} value={opt}>
-                                {opt}
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                      </div>
-                    </div>
-
-                    <div className="space-y-1.5">
-                      <Label>Vybavení / vlastnosti domu</Label>
-                      <div className="flex flex-wrap gap-4 pt-1">
-                        {HOUSE_FEATURE_OPTIONS.map((opt) => (
-                          <label key={opt} className="flex items-center gap-2 text-xs font-normal cursor-pointer select-none">
-                            <input
-                              type="checkbox"
-                              checked={houseFeatures?.includes(opt) || false}
-                              onChange={() => handleHouseFeatureToggle(opt)}
-                              className="rounded border-[#EAE9E2] text-primary focus:ring-primary h-3.5 w-3.5"
-                            />
-                            {opt}
-                          </label>
-                        ))}
-                      </div>
-                    </div>
-                  </div>
-                )}
-
-                {/* Block 3: Interested Deals list */}
-                <div className="border-t border-border pt-6 space-y-4">
-                  <div className="flex justify-between items-center">
-                    <h3 className="font-display text-sm font-semibold uppercase tracking-wider text-muted-foreground">
-                      Zájemci o tuto nemovitost
-                    </h3>
-                    <span className="text-xs font-semibold bg-stone-100 text-stone-600 px-2 py-0.5 rounded-full font-mono">
-                      {interestedDeals.length}
-                    </span>
-                  </div>
-                  {interestedDeals.length === 0 ? (
-                    <p className="text-xs text-muted-foreground italic">Žádní aktivní zájemci o tuto nemovitost.</p>
-                  ) : (
-                    <div className="divide-y divide-border border border-border rounded-md overflow-hidden bg-white">
-                      {interestedDeals.map((deal) => {
-                        let tempColorClass = 'bg-stone-300';
-                        if (deal.temperature?.includes('horký')) tempColorClass = 'bg-rose-500';
-                        else if (deal.temperature?.includes('vlažný')) tempColorClass = 'bg-amber-500';
-                        else if (deal.temperature?.includes('studený')) tempColorClass = 'bg-blue-500';
-
-                        const nextStepText = deal.next_step 
-                          ? deal.next_step 
-                          : deal.stage;
-
-                        const isNextStepOverdue = deal.next_step_date && new Date(deal.next_step_date) < new Date() && deal.stage !== 'podpis' && deal.stage !== 'prohráno';
-
-                        return (
-                          <div
-                            key={deal.id}
-                            onClick={() => onNavigateToDeal(deal.id)}
-                            className="p-4 hover:bg-stone-50 cursor-pointer flex justify-between items-center text-xs font-semibold transition-colors"
-                          >
-                            <div className="flex items-center gap-3">
-                              <span className={`h-2.5 w-2.5 rounded-full ${tempColorClass}`} />
-                              <span className="text-foreground font-medium text-sm">
-                                {deal.buyer ? deal.buyer.full_name : deal.deal_name}
-                              </span>
-                            </div>
-                            <div className="flex items-center gap-3">
-                              <span className={`text-[11px] font-semibold ${isNextStepOverdue ? 'text-rose-600 font-bold' : 'text-stone-500'}`}>
-                                {nextStepText}
-                              </span>
-                              {deal.next_step_date && (
-                                <span className="text-[10px] text-muted-foreground font-normal font-mono">
-                                  ({new Date(deal.next_step_date).toLocaleDateString('cs-CZ', { day: 'numeric', month: 'numeric' })})
-                                </span>
-                              )}
-                            </div>
-                          </div>
-                        );
-                      })}
                     </div>
                   )}
                 </div>
-              </CardContent>
-            </Card>
-          </form>
-        ) : (
-          <Card className="border-dashed py-12 flex flex-col items-center justify-center text-center">
-            <Home className="h-10 w-10 text-muted-foreground/60 stroke-[1.25] mb-3" />
-            <CardTitle className="text-lg font-display font-normal">Vyberte nemovitost</CardTitle>
-            <CardDescription className="text-sm text-muted-foreground mt-1">
-              Vyberte nemovitost z levého panelu nebo přidejte novou.
-            </CardDescription>
-          </Card>
-        )}
-      </div>
+
+                {/* Right Column: Interested Deals */}
+                <div className="lg:col-span-5 border-t lg:border-t-0 lg:border-l border-stone-200 pt-6 lg:pt-0 lg:pl-8 space-y-6 text-left">
+                  <div className="space-y-4">
+                    <div className="flex justify-between items-center">
+                      <h3 className="font-display text-base font-semibold text-foreground">
+                        Zájemci o nemovitost
+                      </h3>
+                      <span className="text-xs font-semibold bg-stone-100 text-stone-600 px-2 py-0.5 rounded-full font-mono">
+                        {interestedDeals.length}
+                      </span>
+                    </div>
+
+                    {interestedDeals.length === 0 ? (
+                      <p className="text-xs text-muted-foreground italic">Žádní aktivní zájemci o tuto nemovitost.</p>
+                    ) : (
+                      <div className="divide-y divide-stone-150 border border-stone-200 rounded-md overflow-hidden bg-white">
+                        {interestedDeals.map((deal) => {
+                          const nextStepText = deal.next_step 
+                            ? deal.next_step 
+                            : deal.stage;
+
+                          const isNextStepOverdue = deal.next_step_date && new Date(deal.next_step_date) < new Date() && deal.stage !== 'podpis' && deal.stage !== 'prohráno';
+
+                          return (
+                            <div
+                              key={deal.id}
+                              onClick={() => {
+                                setIsDetailOpen(false);
+                                onNavigateToDeal(deal.id);
+                              }}
+                              className="p-3.5 hover:bg-stone-50 cursor-pointer flex justify-between items-center text-xs font-semibold transition-colors"
+                            >
+                              <div className="flex items-center gap-2">
+                                <Briefcase className="h-3.5 w-3.5 text-stone-400" />
+                                <span className="text-foreground font-medium truncate max-w-[150px]">
+                                  {deal.buyer ? deal.buyer.full_name : deal.deal_name}
+                                </span>
+                              </div>
+                              <div className="flex items-center gap-2">
+                                <span className={`text-[10px] font-semibold bg-[#F3F2EC] px-1.5 py-0.5 rounded-sm uppercase tracking-wide ${isNextStepOverdue ? 'text-rose-600 font-bold' : 'text-stone-600'}`}>
+                                  {nextStepText}
+                                </span>
+                                {deal.next_step_date && (
+                                  <span className="text-[9px] text-muted-foreground font-normal font-mono">
+                                    ({new Date(deal.next_step_date).toLocaleDateString('cs-CZ', { day: 'numeric', month: 'numeric' })})
+                                  </span>
+                                )}
+                              </div>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </div>
+
+              <div className="border-t border-stone-200 pt-4 flex justify-end gap-3">
+                <Button type="button" variant="outline" onClick={() => setIsDetailOpen(false)}>
+                  Zavřít
+                </Button>
+                <Button type="submit">
+                  Uložit změny
+                </Button>
+              </div>
+            </form>
+          </DialogContent>
+        </Dialog>
+      )}
 
       {/* CREATE DIALOG */}
       <Dialog open={isCreateOpen} onOpenChange={setIsCreateOpen}>
-        <DialogContent className="max-w-lg border-[#EAE9E2]">
+        <DialogContent className="max-w-lg border-stone-200">
           <DialogHeader>
-            <DialogTitle className="font-display text-xl font-normal">Přidat nemovitost</DialogTitle>
-            <DialogDescription>
-              Zadejte základní údaje. Specifické dispozice (flat/house) vyplníte na kartě po vytvoření.
+            <DialogTitle className="font-display text-xl font-normal text-left">Přidat nemovitost</DialogTitle>
+            <DialogDescription className="text-xs text-left">
+              Zadejte základní údaje. Specifické dispozice (byt/dům) vyplníte na kartě po vytvoření.
             </DialogDescription>
           </DialogHeader>
 
-          <form onSubmit={handleCreateProperty} className="space-y-4">
+          <form onSubmit={handleCreateProperty} className="space-y-4 text-left">
             <div className="space-y-1.5">
               <Label htmlFor="new_owner">Vlastník (Vyberte z kontaktů) *</Label>
               <Select value={newOwnerId} onValueChange={setNewOwnerId} required>
@@ -1113,7 +1116,7 @@ export const PropertiesView: React.FC<PropertiesViewProps> = ({
                 rows={2}
                 value={newFacts}
                 onChange={(e) => setNewFacts(e.target.value)}
-                placeholder="Fakta sloužící pro budoucí AI odpovědi..."
+                placeholder="Fakta sloužící pro AI odpovědi..."
               />
             </div>
 

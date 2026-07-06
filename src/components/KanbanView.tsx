@@ -52,7 +52,6 @@ export const KanbanView: React.FC<KanbanViewProps> = ({
   const [newBuyerId, setNewBuyerId] = useState('');
   const [newPropertyId, setNewPropertyId] = useState('');
   const [newStage, setNewStage] = useState<Deal['stage']>('lead');
-  const [newTemperature, setNewTemperature] = useState<string>('');
   const [newFinancing, setNewFinancing] = useState<string>('');
   const [newValue, setNewValue] = useState('');
   const [newNextStep, setNewNextStep] = useState('');
@@ -61,7 +60,6 @@ export const KanbanView: React.FC<KanbanViewProps> = ({
   // Edit Deal detail states
   const [editStage, setEditStage] = useState<Deal['stage']>('lead');
   const [editResult, setEditResult] = useState<Deal['result']>('otevřený');
-  const [editTemperature, setEditTemperature] = useState<string>('');
   const [editFinancing, setEditFinancing] = useState<string>('');
   const [editMustSellFirst, setEditMustSellFirst] = useState(false);
   const [editMovingTerm, setEditMovingTerm] = useState<string>('');
@@ -80,6 +78,8 @@ export const KanbanView: React.FC<KanbanViewProps> = ({
   const [actDirection, setActDirection] = useState<string>('odchozí');
   const [actFollowupResult, setActFollowupResult] = useState<string>('');
 
+  const [draggedOverCol, setDraggedOverCol] = useState<string | null>(null);
+
   // Drag and Drop
   const handleDragStart = (e: React.DragEvent, dealId: string) => {
     e.dataTransfer.setData('text/plain', dealId);
@@ -87,6 +87,20 @@ export const KanbanView: React.FC<KanbanViewProps> = ({
 
   const handleDragOver = (e: React.DragEvent) => {
     e.preventDefault();
+  };
+
+  const handleDragOverCol = (e: React.DragEvent, colId: string) => {
+    e.preventDefault();
+    setDraggedOverCol(colId);
+  };
+
+  const handleDragLeaveCol = () => {
+    setDraggedOverCol(null);
+  };
+
+  const handleDropCol = async (e: React.DragEvent, targetStage: Deal['stage']) => {
+    setDraggedOverCol(null);
+    await handleDrop(e, targetStage);
   };
 
   const handleDrop = async (e: React.DragEvent, targetStage: Deal['stage']) => {
@@ -144,7 +158,6 @@ export const KanbanView: React.FC<KanbanViewProps> = ({
     setSelectedDeal(deal);
     setEditStage(deal.stage);
     setEditResult(deal.result);
-    setEditTemperature(deal.temperature || '');
     setEditFinancing(deal.financing || '');
     setEditMustSellFirst(deal.must_sell_first || false);
     setEditMovingTerm(deal.moving_term || '');
@@ -171,7 +184,7 @@ export const KanbanView: React.FC<KanbanViewProps> = ({
       const updateData: Partial<Deal> = {
         stage: editStage,
         result: editResult,
-        temperature: (editTemperature as Deal['temperature']) || null,
+        temperature: null,
         financing: (editFinancing as Deal['financing']) || null,
         must_sell_first: editMustSellFirst,
         moving_term: (editMovingTerm as Deal['moving_term']) || null,
@@ -261,7 +274,7 @@ export const KanbanView: React.FC<KanbanViewProps> = ({
         property_id: newPropertyId || null,
         stage: newStage,
         result: 'otevřený',
-        temperature: (newTemperature as Deal['temperature']) || null,
+        temperature: null,
         financing: (newFinancing as Deal['financing']) || null,
         must_sell_first: false,
         moving_term: null,
@@ -295,7 +308,6 @@ export const KanbanView: React.FC<KanbanViewProps> = ({
       setNewBuyerId('');
       setNewPropertyId('');
       setNewStage('lead');
-      setNewTemperature('');
       setNewFinancing('');
       setNewValue('');
       setNewNextStep('');
@@ -307,18 +319,7 @@ export const KanbanView: React.FC<KanbanViewProps> = ({
     }
   };
 
-  const getTemperatureBadge = (temp: Deal['temperature']) => {
-    if (temp === 'horký (A)') {
-      return <span className="bg-rose-50 text-rose-800 dark:bg-rose-950/40 dark:text-rose-300 text-[10px] font-medium px-2 py-0.5 rounded-sm">Horký (A)</span>;
-    }
-    if (temp === 'vlažný (B)') {
-      return <span className="bg-amber-50 text-amber-800 dark:bg-amber-950/40 dark:text-amber-300 text-[10px] font-medium px-2 py-0.5 rounded-sm">Vlažný (B)</span>;
-    }
-    if (temp === 'studený (C)') {
-      return <span className="bg-stone-100 text-stone-700 dark:bg-stone-900 dark:text-stone-300 text-[10px] font-medium px-2 py-0.5 rounded-sm">Studený (C)</span>;
-    }
-    return null;
-  };
+
 
   const formatCurrency = (val: number | null) => {
     if (val === null) return '';
@@ -356,15 +357,20 @@ export const KanbanView: React.FC<KanbanViewProps> = ({
           return (
             <div
               key={col.id}
-              onDragOver={handleDragOver}
-              onDrop={(e) => handleDrop(e, col.id)}
-              className="bg-stone-50 dark:bg-stone-900/40 rounded-md border border-border dark:border-stone-800 p-3 min-h-[500px] flex flex-col gap-3 transition-colors duration-150"
+              onDragOver={(e) => handleDragOverCol(e, col.id)}
+              onDragLeave={handleDragLeaveCol}
+              onDrop={(e) => handleDropCol(e, col.id)}
+              className={`rounded-lg border-2 p-3.5 min-h-[520px] flex flex-col gap-3 transition-all duration-200 ${
+                draggedOverCol === col.id
+                  ? 'bg-[#00D991]/5 border-dashed border-[#00D991]'
+                  : 'bg-stone-50/50 border-transparent'
+              }`}
             >
-              <div className="flex items-center justify-between border-b border-border/60 dark:border-stone-800/80 pb-2">
-                <span className="font-display text-[14px] text-[#141414] dark:text-stone-300 font-semibold">
+              <div className="flex items-center justify-between border-b border-border/60 pb-2">
+                <span className="font-display text-[13px] text-[#141414] font-semibold">
                   {col.label}
                 </span>
-                <span className="bg-secondary dark:bg-stone-800 text-stone-600 dark:text-stone-400 text-xs px-2 py-0.5 rounded-full font-medium">
+                <span className="bg-secondary text-stone-600 text-xs px-2 py-0.5 rounded-full font-medium">
                   {colDeals.length}
                 </span>
               </div>
@@ -379,23 +385,22 @@ export const KanbanView: React.FC<KanbanViewProps> = ({
                       draggable
                       onDragStart={(e) => handleDragStart(e, deal.id)}
                       onClick={() => openDealDetails(deal)}
-                      className="bg-white dark:bg-stone-900 rounded-sm border border-border dark:border-stone-800 p-3 hover:border-stone-400 dark:hover:border-stone-600 cursor-pointer shadow-sm active:cursor-grabbing transition-colors duration-150 space-y-2.5"
+                      className="bg-white rounded-md border border-border/85 p-3.5 hover:border-[#00D991] hover:shadow-sm cursor-grab active:cursor-grabbing transition-all duration-150 space-y-3"
                     >
                       <div className="space-y-1">
-                        <div className="font-display text-[14px] leading-tight font-medium text-foreground dark:text-stone-100">
+                        <div className="font-display text-[13px] leading-snug font-semibold text-foreground truncate">
                           {deal.deal_name}
                         </div>
                         {deal.value && (
-                          <div className="text-xs text-muted-foreground font-medium">
+                          <div className="text-[11.5px] text-muted-foreground font-mono">
                             {formatCurrency(deal.value)}
                           </div>
                         )}
                       </div>
 
                       <div className="flex flex-wrap gap-1">
-                        {getTemperatureBadge(deal.temperature)}
                         {deal.financing && (
-                          <span className="bg-stone-50 text-stone-600 dark:bg-stone-800 dark:text-stone-400 text-[10px] px-1.5 py-0.5 rounded-sm">
+                          <span className="bg-stone-100 text-stone-600 text-[9px] font-semibold px-2 py-0.5 rounded-full uppercase tracking-wider">
                             {deal.financing}
                           </span>
                         )}
@@ -485,22 +490,6 @@ export const KanbanView: React.FC<KanbanViewProps> = ({
               </div>
 
               <div className="space-y-1.5">
-                <Label htmlFor="temp_select">Teplota (skóre)</Label>
-                <Select value={newTemperature} onValueChange={setNewTemperature}>
-                  <SelectTrigger id="temp_select">
-                    <SelectValue placeholder="Vyberte" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="horký (A)">Horký (A)</SelectItem>
-                    <SelectItem value="vlažný (B)">Vlažný (B)</SelectItem>
-                    <SelectItem value="studený (C)">Studený (C)</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-            </div>
-
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <div className="space-y-1.5">
                 <Label htmlFor="fin_select">Financování</Label>
                 <Select value={newFinancing} onValueChange={setNewFinancing}>
                   <SelectTrigger id="fin_select">
@@ -514,7 +503,9 @@ export const KanbanView: React.FC<KanbanViewProps> = ({
                   </SelectContent>
                 </Select>
               </div>
+            </div>
 
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div className="space-y-1.5">
                 <Label htmlFor="value_input">Předpokládaná hodnota (Kč)</Label>
                 <Input
@@ -679,20 +670,6 @@ export const KanbanView: React.FC<KanbanViewProps> = ({
                 )}
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  <div className="space-y-1.5">
-                    <Label htmlFor="edit_temp">Teplota (skóre)</Label>
-                    <Select value={editTemperature} onValueChange={setEditTemperature}>
-                      <SelectTrigger id="edit_temp">
-                        <SelectValue placeholder="Vyberte" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="horký (A)">Horký (A)</SelectItem>
-                        <SelectItem value="vlažný (B)">Vlažný (B)</SelectItem>
-                        <SelectItem value="studený (C)">Studený (C)</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-
                   <div className="space-y-1.5">
                     <Label htmlFor="edit_fin">Financování</Label>
                     <Select value={editFinancing} onValueChange={setEditFinancing}>
