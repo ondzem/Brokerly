@@ -17,6 +17,9 @@ export default defineConfig({
         target: 'https://api.scraperapi.com',
         changeOrigin: true,
         rewrite: (path) => path.replace(/^\/api-scraper/, ''),
+        headers: {
+          'Cookie': 'sznconsent=1'
+        }
       },
     },
   },

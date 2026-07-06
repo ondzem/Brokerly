@@ -458,8 +458,8 @@ export const PropertiesView: React.FC<PropertiesViewProps> = ({
     const toastId = toast.loading('Stahuji obsah inzerátu přes proxy...');
 
     try {
-      // 1. Download via local Vite development proxy (bypasses CORS completely)
-      const scraperUrl = `/api-scraper?api_key=${encodeURIComponent(scraperKey)}&url=${encodeURIComponent(importUrl)}`;
+      // 1. Download via local Vite development proxy (bypasses CORS completely and forwards consent cookies)
+      const scraperUrl = `/api-scraper?api_key=${encodeURIComponent(scraperKey)}&url=${encodeURIComponent(importUrl)}&keep_headers=true`;
       const response = await fetch(scraperUrl);
       if (!response.ok) {
         throw new Error('Chyba při stahování stránky přes proxy. Zkontrolujte prosím Váš API klíč.');
