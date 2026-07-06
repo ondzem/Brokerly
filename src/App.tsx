@@ -7,7 +7,7 @@ import { PropertiesView } from '@/components/PropertiesView';
 import { RemindersView } from '@/components/RemindersView';
 import { SettingsView } from '@/components/SettingsView';
 import { DashboardView } from '@/components/DashboardView';
-import { Briefcase, Users, Home, Clock, Settings as SettingsIcon, Key, LayoutGrid } from 'lucide-react';
+import { Briefcase, Users, Home, Clock, Settings as SettingsIcon, Key, LayoutGrid, Sun, Moon } from 'lucide-react';
 import { toast } from 'sonner';
 import { Toaster } from '@/components/ui/sonner';
 
@@ -21,6 +21,20 @@ export default function App() {
     }
     return 'dashboard';
   });
+
+  const [theme, setTheme] = useState<'light' | 'dark'>(() => {
+    if (typeof window !== 'undefined') {
+      const saved = localStorage.getItem('brokerly_theme');
+      return (saved as 'light' | 'dark') || 'dark';
+    }
+    return 'dark';
+  });
+
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('brokerly_theme', theme);
+    }
+  }, [theme]);
   
   // Data States
   const [settings, setSettings] = useState<Settings | null>(null);
@@ -167,12 +181,16 @@ export default function App() {
             contacts={contacts}
             properties={properties}
             activities={activities}
+            theme={theme}
             onNavigate={(tab) => {
               setFocusContactId(undefined);
               setFocusPropertyId(undefined);
               setFocusDealId(undefined);
               setActiveTab(tab);
             }}
+            onNavigateToContact={handleNavigateToContact}
+            onNavigateToProperty={handleNavigateToProperty}
+            onNavigateToDeal={handleNavigateToDeal}
           />
         );
       case 'kanban':
@@ -238,7 +256,10 @@ export default function App() {
   const isDashboard = activeTab === 'dashboard';
 
   return (
-    <div className={`min-h-screen ${isDashboard ? 'bg-[#00221F]' : 'bg-background'} flex font-sans transition-colors duration-150`}>
+    <div 
+      className={`min-h-screen ${isDashboard ? '' : 'bg-background'} flex font-sans transition-colors duration-150`}
+      style={isDashboard ? { backgroundColor: theme === 'light' ? '#F2F1EC' : '#00221F' } : undefined}
+    >
       {/* Sidebar Navigation */}
       <aside className="w-16 bg-[#00221F] border-r border-[#00221F] flex flex-col justify-between items-center py-6 fixed left-0 top-0 bottom-0 z-40">
         <div className="flex flex-col items-center gap-8 w-full">
@@ -344,7 +365,19 @@ export default function App() {
         </div>
 
         {/* Bottom Action */}
-        <div className="w-full px-2">
+        <div className="w-full px-2 flex flex-col gap-2">
+          <button
+            onClick={() => setTheme(prev => prev === 'light' ? 'dark' : 'light')}
+            title={theme === 'light' ? 'Přepnout na tmavý režim' : 'Přepnout na světlý režim'}
+            className="flex items-center justify-center p-3 rounded-md w-full text-white/60 hover:text-white transition-all cursor-pointer"
+          >
+            {theme === 'light' ? (
+              <Moon className="h-5 w-5 stroke-[1.5]" />
+            ) : (
+              <Sun className="h-5 w-5 stroke-[1.5]" />
+            )}
+          </button>
+          
           <button
             onClick={() => setActiveTab('settings')}
             title="Nastavení"
@@ -360,7 +393,10 @@ export default function App() {
       </aside>
 
       {/* Main Layout Area */}
-      <div className={`flex-grow flex flex-col min-h-screen pl-16 ${isDashboard ? 'bg-[#00221F]' : ''}`}>
+      <div 
+        className="flex-grow flex flex-col min-h-screen pl-16"
+        style={isDashboard ? { backgroundColor: theme === 'light' ? '#F2F1EC' : '#00221F' } : undefined}
+      >
         {/* Main Container */}
         <main className={`flex-grow w-full ${isDashboard ? 'max-w-none p-0' : 'max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8'}`}>
           {renderActiveView()}

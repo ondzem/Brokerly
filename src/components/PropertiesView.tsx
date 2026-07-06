@@ -1723,7 +1723,7 @@ export const PropertiesView: React.FC<PropertiesViewProps> = ({
             </DialogDescription>
           </DialogHeader>
 
-          <DialogFooter className="pt-4 flex justify-end gap-3">
+          <div className="pt-6 flex justify-end gap-3">
             <Button
               type="button"
               variant="outline"
@@ -1740,7 +1740,7 @@ export const PropertiesView: React.FC<PropertiesViewProps> = ({
             >
               Ano, smazat
             </Button>
-          </DialogFooter>
+          </div>
         </DialogContent>
       </Dialog>
 
