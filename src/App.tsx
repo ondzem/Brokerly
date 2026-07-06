@@ -6,13 +6,14 @@ import { ContactsView } from '@/components/ContactsView';
 import { PropertiesView } from '@/components/PropertiesView';
 import { RemindersView } from '@/components/RemindersView';
 import { SettingsView } from '@/components/SettingsView';
-import { Briefcase, Users, Home, Clock, Settings as SettingsIcon, Key } from 'lucide-react';
+import { DashboardView } from '@/components/DashboardView';
+import { Briefcase, Users, Home, Clock, Settings as SettingsIcon, Key, LayoutGrid } from 'lucide-react';
 import { toast } from 'sonner';
 
-type ActiveTab = 'kanban' | 'contacts' | 'properties' | 'reminders' | 'settings';
+type ActiveTab = 'dashboard' | 'kanban' | 'contacts' | 'properties' | 'reminders' | 'settings';
 
 export default function App() {
-  const [activeTab, setActiveTab] = useState<ActiveTab>('kanban');
+  const [activeTab, setActiveTab] = useState<ActiveTab>('dashboard');
   
   // Data States
   const [settings, setSettings] = useState<Settings | null>(null);
@@ -115,6 +116,21 @@ export default function App() {
     }
 
     switch (activeTab) {
+      case 'dashboard':
+        return (
+          <DashboardView
+            deals={deals}
+            contacts={contacts}
+            properties={properties}
+            activities={activities}
+            onNavigate={(tab) => {
+              setFocusContactId(undefined);
+              setFocusPropertyId(undefined);
+              setFocusDealId(undefined);
+              setActiveTab(tab);
+            }}
+          />
+        );
       case 'kanban':
         return (
           <KanbanView
@@ -173,8 +189,10 @@ export default function App() {
     }
   };
 
+  const isDashboard = activeTab === 'dashboard';
+
   return (
-    <div className="min-h-screen bg-background flex font-sans">
+    <div className={`min-h-screen ${isDashboard ? 'bg-[#00221F]' : 'bg-background'} flex font-sans transition-colors duration-150`}>
       {/* Sidebar Navigation */}
       <aside className="w-16 bg-[#00221F] border-r border-[#00221F] flex flex-col justify-between items-center py-6 fixed left-0 top-0 bottom-0 z-40">
         <div className="flex flex-col items-center gap-8 w-full">
@@ -189,6 +207,23 @@ export default function App() {
 
           {/* Navigation Menu */}
           <nav className="flex flex-col gap-3 w-full px-2">
+            <button
+              onClick={() => {
+                setFocusContactId(undefined);
+                setFocusPropertyId(undefined);
+                setFocusDealId(undefined);
+                setActiveTab('dashboard');
+              }}
+              title="Nástěnka (Dashboard)"
+              className={`flex items-center justify-center p-3 rounded-md transition-all ${
+                activeTab === 'dashboard'
+                  ? 'text-[#00D991]'
+                  : 'text-white/60 hover:text-white'
+              }`}
+            >
+              <LayoutGrid className="h-5 w-5 stroke-[1.5]" />
+            </button>
+
             <button
               onClick={() => {
                 setFocusDealId(undefined);
@@ -270,9 +305,9 @@ export default function App() {
       </aside>
 
       {/* Main Layout Area */}
-      <div className="flex-grow flex flex-col min-h-screen pl-16">
+      <div className={`flex-grow flex flex-col min-h-screen pl-16 ${isDashboard ? 'bg-[#00221F]' : ''}`}>
         {/* Main Container */}
-        <main className="flex-grow max-w-7xl mx-auto w-full px-4 sm:px-6 lg:px-8 py-8">
+        <main className={`flex-grow w-full ${isDashboard ? 'max-w-none p-0' : 'max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8'}`}>
           {renderActiveView()}
         </main>
       </div>
