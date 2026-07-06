@@ -509,10 +509,13 @@ export const PropertiesView: React.FC<PropertiesViewProps> = ({
       // 1. Download via local Vite development proxy (bypasses CORS completely and forwards consent cookies)
       const scraperUrl = `/api-scraper?api_key=${encodeURIComponent(scraperKey)}&url=${encodeURIComponent(normalizedUrl)}&keep_headers=true`;
       const response = await fetch(scraperUrl);
-      if (!response.ok) {
-        throw new Error('Chyba při stahování stránky. Zkontrolujte API klíč nebo zda Vám neběželo více instancí serveru.');
-      }
       const html = await response.text();
+
+      // Check if HTML content exists and is valid. We check html.length instead of response.ok
+      // because already sold or archived properties return a 410 or 404 status code but still contain the full HTML page.
+      if (!html || html.length < 500) {
+        throw new Error('Chyba při stahování stránky. Ověřte Váš API klíč pro ScraperAPI nebo platnost URL.');
+      }
 
       // Dismiss first toast and start second stage toast
       toast.dismiss(toastId);
