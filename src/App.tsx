@@ -197,13 +197,22 @@ export default function App() {
       <aside className="w-16 bg-[#00221F] border-r border-[#00221F] flex flex-col justify-between items-center py-6 fixed left-0 top-0 bottom-0 z-40">
         <div className="flex flex-col items-center gap-8 w-full">
           {/* Brand Logo */}
-          <div className="flex flex-col items-center justify-center w-12 h-12">
+          <button
+            onClick={() => {
+              setFocusContactId(undefined);
+              setFocusPropertyId(undefined);
+              setFocusDealId(undefined);
+              setActiveTab('dashboard');
+            }}
+            title="Domovská stránka"
+            className="flex flex-col items-center justify-center w-12 h-12 focus:outline-none cursor-pointer"
+          >
             <img 
               src="/White Logo - Brokerly.webp" 
               alt="Brokerly" 
-              className="w-11 h-11 object-contain" 
+              className="w-11 h-11 object-contain hover:opacity-80 transition-opacity" 
             />
-          </div>
+          </button>
 
           {/* Navigation Menu */}
           <nav className="flex flex-col gap-3 w-full px-2">
