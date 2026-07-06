@@ -372,6 +372,22 @@ export const PropertiesView: React.FC<PropertiesViewProps> = ({
     }
   };
 
+  const handleOpenCreate = () => {
+    const randomId = Math.floor(100000 + Math.random() * 900000).toString();
+    setNewListingId(randomId);
+    setOwnerMode('select');
+    setNewOwnerFullName('');
+    setNewOwnerPhone('');
+    setNewOwnerEmail('');
+    setNewOwnerNote('');
+    setNewOwnerId('');
+    setNewAddress('');
+    setNewPrice('');
+    setNewFacts('');
+    setNewHandover('');
+    setIsCreateOpen(true);
+  };
+
   const formatCompactPrice = (val: number | null) => {
     if (val === null) return '';
     if (val >= 1000000) {
@@ -401,7 +417,7 @@ export const PropertiesView: React.FC<PropertiesViewProps> = ({
           </p>
         </div>
         <Button
-          onClick={() => setIsCreateOpen(true)}
+          onClick={handleOpenCreate}
           className="gap-1.5 h-10 font-medium"
         >
           <Plus className="h-4.5 w-4.5" />
@@ -597,8 +613,10 @@ export const PropertiesView: React.FC<PropertiesViewProps> = ({
                       <div className="space-y-1.5">
                         <Label htmlFor="edit_owner">Vlastník *</Label>
                         <Select value={editOwnerId} onValueChange={setEditOwnerId} required>
-                          <SelectTrigger id="edit_owner">
-                            <SelectValue />
+                          <SelectTrigger id="edit_owner" className="w-full">
+                            <span className="text-foreground text-xs">
+                              {contacts.find((c) => c.id === editOwnerId)?.full_name || "Vyberte vlastníka"}
+                            </span>
                           </SelectTrigger>
                           <SelectContent>
                             {contacts.map((c) => (
@@ -661,7 +679,7 @@ export const PropertiesView: React.FC<PropertiesViewProps> = ({
                             <SelectValue />
                           </SelectTrigger>
                           <SelectContent>
-                            {OFFER_STATUS_OPTIONS.map((opt) => (
+                            {OFFER_STATUS_OPTIONS.filter((opt) => opt !== 'prodá později').map((opt) => (
                               <SelectItem key={opt} value={opt}>
                                 {opt}
                               </SelectItem>
@@ -1090,8 +1108,10 @@ export const PropertiesView: React.FC<PropertiesViewProps> = ({
                   <div className="space-y-2 pt-2">
                     <Label htmlFor="new_owner">Vyberte existující kontakt *</Label>
                     <Select value={newOwnerId} onValueChange={setNewOwnerId}>
-                      <SelectTrigger id="new_owner" className="border-stone-200">
-                        <SelectValue placeholder="Vyberte vlastníka z kontaktů" />
+                      <SelectTrigger id="new_owner" className="w-full border-stone-200">
+                        <span className={`text-xs ${newOwnerId ? "text-foreground font-medium" : "text-muted-foreground"}`}>
+                          {contacts.find((c) => c.id === newOwnerId)?.full_name || "Vyberte vlastníka z kontaktů"}
+                        </span>
                       </SelectTrigger>
                       <SelectContent>
                         {contacts.map((c) => (
@@ -1266,7 +1286,7 @@ export const PropertiesView: React.FC<PropertiesViewProps> = ({
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent>
-                        {OFFER_STATUS_OPTIONS.map((opt) => (
+                        {OFFER_STATUS_OPTIONS.filter((opt) => opt !== 'prodá později').map((opt) => (
                           <SelectItem key={opt} value={opt}>
                             {opt}
                           </SelectItem>

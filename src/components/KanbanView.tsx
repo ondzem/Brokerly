@@ -440,8 +440,10 @@ export const KanbanView: React.FC<KanbanViewProps> = ({
             <div className="space-y-1.5">
               <Label htmlFor="buyer_select">Kupující / zájemce *</Label>
               <Select value={newBuyerId} onValueChange={setNewBuyerId} required>
-                <SelectTrigger id="buyer_select">
-                  <SelectValue placeholder="Vyberte kupujícího" />
+                <SelectTrigger id="buyer_select" className="w-full">
+                  <span className={`text-xs ${newBuyerId ? "text-foreground font-medium" : "text-muted-foreground"}`}>
+                    {contacts.find((c) => c.id === newBuyerId)?.full_name || "Vyberte kupujícího"}
+                  </span>
                 </SelectTrigger>
                 <SelectContent>
                   {contacts
@@ -458,8 +460,12 @@ export const KanbanView: React.FC<KanbanViewProps> = ({
             <div className="space-y-1.5">
               <Label htmlFor="property_select">Přiřazená nemovitost</Label>
               <Select value={newPropertyId} onValueChange={setNewPropertyId}>
-                <SelectTrigger id="property_select">
-                  <SelectValue placeholder="Žádná / Poptávka naslepo" />
+                <SelectTrigger id="property_select" className="w-full">
+                  <span className={`text-xs ${newPropertyId && newPropertyId !== 'none_property' ? "text-foreground font-medium" : "text-muted-foreground"}`}>
+                    {newPropertyId === 'none_property' || !newPropertyId
+                      ? "Žádná / Poptávka naslepo"
+                      : properties.find((p) => p.id === newPropertyId)?.address || "Žádná / Poptávka naslepo"}
+                  </span>
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="none_property">-- Žádná nemovitost --</SelectItem>
