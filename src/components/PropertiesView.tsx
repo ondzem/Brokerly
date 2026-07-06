@@ -153,6 +153,13 @@ export const PropertiesView: React.FC<PropertiesViewProps> = ({
   const [landAccess, setLandAccess] = useState('');
   const [landDimensions, setLandDimensions] = useState('');
 
+  // Pronájem, Provize and Photo states
+  const [rentDeposit, setRentDeposit] = useState('');
+  const [rentFeesUtilities, setRentFeesUtilities] = useState('');
+  const [commissionPct, setCommissionPct] = useState('');
+  const [commissionVal, setCommissionVal] = useState('');
+  const [photoUrl, setPhotoUrl] = useState('');
+
   // Sync edits when selectedProperty changes
   useEffect(() => {
     if (selectedProperty) {
@@ -193,8 +200,52 @@ export const PropertiesView: React.FC<PropertiesViewProps> = ({
       setZoningPlan(selectedProperty.zoning_plan || '');
       setLandAccess(selectedProperty.land_access || '');
       setLandDimensions(selectedProperty.land_dimensions || '');
+
+      // Rent, Commission, and Photo
+      setRentDeposit(selectedProperty.rent_deposit ? selectedProperty.rent_deposit.toString() : '');
+      setRentFeesUtilities(selectedProperty.rent_fees_utilities ? selectedProperty.rent_fees_utilities.toString() : '');
+      setCommissionPct(selectedProperty.commission_pct ? selectedProperty.commission_pct.toString() : '');
+      setCommissionVal(selectedProperty.commission_val ? selectedProperty.commission_val.toString() : '');
+      setPhotoUrl(selectedProperty.attachments?.[0] || '');
     }
   }, [selectedProperty]);
+
+  // Helper to find matching buyers for a property
+  const getMatchingBuyersForProperty = (p: Property) => {
+    return contacts.filter((c) => {
+      // 1. Role must include kupující
+      if (!c.roles || !c.roles.includes('kupující')) return false;
+
+      // 2. Transaction must match
+      if (c.seeking_transaction && c.seeking_transaction !== p.transaction) return false;
+
+      // 3. Kind must match if specified
+      if (c.seeking_kind && c.seeking_kind.length > 0 && !c.seeking_kind.includes(p.kind as any)) return false;
+
+      // 4. Layout must match if specified
+      const checkLayoutMatch = (seeking: string[], propLayout: string) => {
+        return seeking.some((s) => {
+          if (s === propLayout) return true;
+          if (s === '4+ a více') {
+            return propLayout === '4+kk' || propLayout === '4+1' || propLayout === '5 a více' || propLayout === '6 a více';
+          }
+          return false;
+        });
+      };
+
+      if (p.kind === 'byt' && p.flat_layout && c.seeking_layout && c.seeking_layout.length > 0) {
+        if (!checkLayoutMatch(c.seeking_layout, p.flat_layout)) return false;
+      }
+      if (p.kind === 'dům' && p.house_layout && c.seeking_layout && c.seeking_layout.length > 0) {
+        if (!checkLayoutMatch(c.seeking_layout, p.house_layout)) return false;
+      }
+
+      // 5. Budget must match (price <= budget_to)
+      if (c.budget_to && p.price > c.budget_to) return false;
+
+      return true;
+    });
+  };
 
   // Search filter
   const filteredProperties = properties.filter((p) => {
@@ -288,6 +339,13 @@ export const PropertiesView: React.FC<PropertiesViewProps> = ({
         zoning_plan: editKind === 'pozemek' ? zoningPlan || null : null,
         land_access: editKind === 'pozemek' ? landAccess || null : null,
         land_dimensions: editKind === 'pozemek' ? landDimensions || null : null,
+
+        // Rent, Commission, and Photo
+        rent_deposit: editTransaction === 'pronájem' ? parseSafeNumber(rentDeposit) : null,
+        rent_fees_utilities: editTransaction === 'pronájem' ? parseSafeNumber(rentFeesUtilities) : null,
+        commission_pct: parseSafeNumber(commissionPct),
+        commission_val: parseSafeNumber(commissionVal),
+        attachments: photoUrl ? [photoUrl] : null,
       };
 
       const updated = await updateProperty(selectedProperty.id, updateData);
@@ -386,7 +444,7 @@ export const PropertiesView: React.FC<PropertiesViewProps> = ({
         facts_for_answers: newFacts || null,
         handover_term: newHandover || null,
         listing_id: newListingId || null,
-        attachments: null,
+        attachments: photoUrl ? [photoUrl] : null,
         
         // Byt details
         flat_layout: newKind === 'byt' ? (flatLayout as Property['flat_layout']) : null,
@@ -421,11 +479,13 @@ export const PropertiesView: React.FC<PropertiesViewProps> = ({
         comm_condition_equipment: null,
         comm_parking_entrance: null,
         comm_penb: null,
-        rent_deposit: null,
-        rent_fees_utilities: null,
+        rent_deposit: newTransaction === 'pronájem' ? parseSafeNumber(rentDeposit) : null,
+        rent_fees_utilities: newTransaction === 'pronájem' ? parseSafeNumber(rentFeesUtilities) : null,
         rent_duration: null,
         rent_available_from: null,
         rent_equipment: null,
+        commission_pct: parseSafeNumber(commissionPct),
+        commission_val: parseSafeNumber(commissionVal),
       });
 
       toast.success('Nemovitost a vlastník byli úspěšně uloženi.');
@@ -474,6 +534,13 @@ export const PropertiesView: React.FC<PropertiesViewProps> = ({
       setZoningPlan('');
       setLandAccess('');
       setLandDimensions('');
+
+      // Reset Pronájem, Provize and Photo states
+      setRentDeposit('');
+      setRentFeesUtilities('');
+      setCommissionPct('');
+      setCommissionVal('');
+      setPhotoUrl('');
     } catch (error: any) {
       console.error(error);
       toast.error(`Chyba při zakládání nemovitosti: ${error?.message || error}`);
@@ -521,9 +588,34 @@ export const PropertiesView: React.FC<PropertiesViewProps> = ({
       toast.dismiss(toastId);
       const toastId2 = toast.loading('2/2: Analyzuji text inzerátu pomocí AI...');
 
-      // 2. Parse HTML and clean up to plain text to save tokens
+      // 2. Parse HTML, extract image, and clean up text
       const parser = new DOMParser();
       const doc = parser.parseFromString(html, 'text/html');
+
+      // Extract first suitable listing image from HTML DOM
+      let foundPhotoUrl = '';
+      const imgElements = Array.from(doc.querySelectorAll('img'));
+      for (const img of imgElements) {
+        const src = img.getAttribute('src') || '';
+        // Skip tiny icons, tracking pixels, or base64
+        if (src.startsWith('data:') || src.includes('icon') || src.includes('logo') || src.includes('pixel') || src.includes('spinner')) {
+          continue;
+        }
+        if (src.includes('img.sreality.cz') || src.includes('remax') || src.includes('bezrealitky') || src.includes('http')) {
+          foundPhotoUrl = src;
+          // Prepend protocol or domain if relative
+          if (foundPhotoUrl.startsWith('//')) {
+            foundPhotoUrl = 'https:' + foundPhotoUrl;
+          } else if (foundPhotoUrl.startsWith('/')) {
+            try {
+              const urlObj = new URL(normalizedUrl);
+              foundPhotoUrl = urlObj.origin + foundPhotoUrl;
+            } catch (e) {}
+          }
+          break;
+        }
+      }
+
       doc.querySelectorAll('script, style, header, footer, nav, noscript, iframe, svg').forEach((el) => el.remove());
       const text = doc.body.innerText || doc.body.textContent || '';
       const cleanText = text.replace(/\s+/g, ' ').substring(0, 15000).trim();
@@ -586,11 +678,20 @@ export const PropertiesView: React.FC<PropertiesViewProps> = ({
               zoning_plan: { type: "STRING", description: "Info z územního plánu" },
               land_access: { type: "STRING", description: "Přístup k pozemku" },
               land_dimensions: { type: "STRING", description: "Rozměry pozemku" },
+              rent_deposit: { type: "NUMBER", description: "Vratná kauce (jistota) v Kč, pokud jde o pronájem" },
+              rent_fees_utilities: { type: "NUMBER", description: "Měsíční poplatky za služby a energie v Kč, pokud jde o pronájem" },
+              commission_pct: { type: "NUMBER", description: "Provize makléře / RK v procentech (např. 3)" },
+              commission_val: { type: "NUMBER", description: "Provize makléře / RK v Kč (např. 150000)" },
               facts_for_answers: { type: "STRING", description: "Jakékoli další důležité poznámky k nemovitosti" }
             }
           }
         }
       };
+
+      // Set DOM photo URL state immediately
+      if (foundPhotoUrl) {
+        setPhotoUrl(foundPhotoUrl);
+      }
 
       const geminiRes = await fetch(geminiUrl, {
         method: 'POST',
@@ -620,6 +721,12 @@ export const PropertiesView: React.FC<PropertiesViewProps> = ({
       if (parsed.transaction) setNewTransaction(parsed.transaction);
       if (parsed.price) setNewPrice(parsed.price.toString());
       if (parsed.facts_for_answers) setNewFacts(parsed.facts_for_answers);
+
+      // Rent and Commission
+      if (parsed.rent_deposit) setRentDeposit(parsed.rent_deposit.toString());
+      if (parsed.rent_fees_utilities) setRentFeesUtilities(parsed.rent_fees_utilities.toString());
+      if (parsed.commission_pct) setCommissionPct(parsed.commission_pct.toString());
+      if (parsed.commission_val) setCommissionVal(parsed.commission_val.toString());
 
       // Byt specific
       if (parsed.flat_layout) setFlatLayout(parsed.flat_layout);
@@ -788,13 +895,8 @@ export const PropertiesView: React.FC<PropertiesViewProps> = ({
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 mt-4">
           {filteredProperties.map((prop) => {
             let displayTitle = '';
-            if (prop.kind === 'byt' && prop.flat_layout) {
-              displayTitle = `Byt ${prop.flat_layout}`;
-            } else if (prop.kind === 'dům' && prop.house_layout) {
-              displayTitle = `Dům ${prop.house_layout}`;
-            } else {
-              displayTitle = prop.kind.toUpperCase();
-            }
+                      const matchingBuyersCount = getMatchingBuyersForProperty(prop).length;
+            const hasPhoto = prop.attachments && prop.attachments.length > 0 && prop.attachments[0];
 
             return (
               <div
@@ -803,41 +905,78 @@ export const PropertiesView: React.FC<PropertiesViewProps> = ({
                   setSelectedProperty(prop);
                   setIsDetailOpen(true);
                 }}
-                className="bg-white border border-stone-200 rounded-lg p-4 cursor-pointer hover:border-[#00D991] hover:shadow-xs transition-all duration-150 flex flex-col justify-between h-[165px] text-left"
+                className="bg-white border border-stone-200 rounded-xl overflow-hidden cursor-pointer hover:border-[#00D991] hover:shadow-md transition-all duration-200 flex flex-col justify-between h-[285px] text-left group"
               >
-                <div className="space-y-1">
-                  <div className="flex justify-between items-start gap-2">
-                    <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground bg-stone-150 px-2 py-0.5 rounded-sm">
+                {/* Vizuální vršek s fotkou */}
+                <div className="h-32 w-full bg-stone-50 overflow-hidden relative border-b border-stone-150">
+                  {hasPhoto ? (
+                    <img 
+                      src={prop.attachments?.[0] || ''} 
+                      alt={displayTitle} 
+                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                    />
+                  ) : (
+                    <div className="w-full h-full flex flex-col items-center justify-center text-stone-300">
+                      <Home className="h-8 w-8 stroke-[1.25]" />
+                      <span className="text-[9px] uppercase tracking-wider font-semibold pt-1">Bez fotografie</span>
+                    </div>
+                  )}
+
+                  {/* Překryvné štítky */}
+                  <div className="absolute top-2 left-2">
+                    <span className="text-[9px] font-extrabold uppercase tracking-wider text-white bg-black/75 px-2 py-0.5 rounded-sm backdrop-blur-xs">
                       {prop.transaction}
                     </span>
-                    <span className={`text-[9px] font-semibold px-2 py-0.5 rounded-full uppercase tracking-wider shrink-0 ${
-                      prop.offer_status === 'v nabídce' ? 'bg-emerald-500/10 text-emerald-600' :
-                      prop.offer_status === 'rezervováno' ? 'bg-amber-500/10 text-amber-600' :
-                      prop.offer_status === 'uzavřeno' ? 'bg-indigo-500/10 text-indigo-600' :
-                      'bg-stone-500/10 text-stone-600'
+                  </div>
+                  <div className="absolute top-2 right-2">
+                    <span className={`text-[9px] font-bold px-2 py-0.5 rounded-full uppercase tracking-wider backdrop-blur-xs shadow-xs ${
+                      prop.offer_status === 'v nabídce' ? 'bg-emerald-500 text-white' :
+                      prop.offer_status === 'rezervováno' ? 'bg-amber-500 text-white' :
+                      prop.offer_status === 'uzavřeno' ? 'bg-indigo-600 text-white' :
+                      'bg-stone-500 text-white'
                     }`}>
                       {prop.offer_status}
                     </span>
                   </div>
-                  <h3 className="font-display font-semibold text-[14px] text-foreground pt-1 truncate">
-                    {displayTitle}
-                  </h3>
-                  <p className="text-[11.5px] text-muted-foreground truncate flex items-center gap-1 pt-0.5">
-                    <MapPin className="h-3 w-3 shrink-0" />
-                    <span>{prop.address}</span>
-                  </p>
                 </div>
 
-                <div className="border-t border-stone-100 pt-3 mt-3 flex justify-between items-center">
-                  <span className="text-xs font-mono font-bold text-foreground">
-                    {formatCompactPrice(prop.price)}
-                  </span>
-                  {prop.kind === 'byt' && prop.flat_area && (
-                    <span className="text-[10px] text-muted-foreground font-mono">{prop.flat_area} m²</span>
-                  )}
-                  {prop.kind === 'dům' && prop.house_area && (
-                    <span className="text-[10px] text-muted-foreground font-mono">{prop.house_area} m²</span>
-                  )}
+                {/* Obsah karty */}
+                <div className="p-3 flex-1 flex flex-col justify-between">
+                  <div className="space-y-1">
+                    <h3 className="font-display font-semibold text-[13.5px] text-stone-900 truncate">
+                      {displayTitle}
+                    </h3>
+                    <p className="text-[11px] text-stone-500 truncate flex items-center gap-1">
+                      <MapPin className="h-3 w-3 shrink-0" />
+                      <span>{prop.address}</span>
+                    </p>
+
+                    {/* Doplňující info: Provize / Zájemci */}
+                    <div className="flex flex-wrap gap-1.5 pt-1.5">
+                      {(prop.commission_pct || prop.commission_val) && (
+                        <span className="text-[9px] font-semibold bg-stone-100 text-stone-700 px-1.5 py-0.5 rounded-sm border border-stone-250">
+                          Provize: {prop.commission_pct ? `${prop.commission_pct}%` : `${formatCompactPrice(prop.commission_val!)}`}
+                        </span>
+                      )}
+                      {matchingBuyersCount > 0 && (
+                        <span className="text-[9px] font-semibold bg-emerald-500/10 text-emerald-700 px-1.5 py-0.5 rounded-sm border border-emerald-500/20">
+                          {matchingBuyersCount} {matchingBuyersCount === 1 ? 'zájemce' : matchingBuyersCount < 5 ? 'zájemci' : 'zájemců'}
+                        </span>
+                      )}
+                    </div>
+                  </div>
+
+                  <div className="border-t border-stone-150 pt-2 flex justify-between items-center mt-2">
+                    <span className="text-[12.5px] font-mono font-bold text-stone-900">
+                      {formatCompactPrice(prop.price)}
+                    </span>
+                    {prop.kind === 'byt' && prop.flat_area && (
+                      <span className="text-[10px] text-stone-500 font-mono">{prop.flat_area} m²</span>
+                    )}
+                    {prop.kind === 'dům' && prop.house_area && (
+                      <span className="text-[10px] text-stone-500 font-mono">{prop.house_area} m²</span>
+                    )}
+                  </div>
                 </div>
               </div>
             );
@@ -1005,16 +1144,87 @@ export const PropertiesView: React.FC<PropertiesViewProps> = ({
                       </div>
                     </div>
 
-                    <div className="space-y-1.5">
-                      <Label htmlFor="edit_price">Cena / nájem (Kč) *</Label>
-                      <Input
-                        id="edit_price"
-                        type="number"
-                        value={editPrice}
-                        onChange={(e) => setEditPrice(e.target.value)}
-                        required
-                        className="text-xs"
-                      />
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                      <div className="space-y-1.5">
+                        <Label htmlFor="edit_price">Cena / nájem (Kč) *</Label>
+                        <Input
+                          id="edit_price"
+                          type="number"
+                          value={editPrice}
+                          onChange={(e) => setEditPrice(e.target.value)}
+                          required
+                          className="text-xs"
+                        />
+                      </div>
+
+                      <div className="space-y-1.5">
+                        <Label htmlFor="edit_photo">Hlavní fotografie (URL)</Label>
+                        <div className="flex gap-2 items-center">
+                          <Input
+                            id="edit_photo"
+                            type="text"
+                            value={photoUrl}
+                            onChange={(e) => setPhotoUrl(e.target.value)}
+                            placeholder="https://..."
+                            className="text-xs flex-1"
+                          />
+                          {photoUrl && /^https?:\/\//i.test(photoUrl) && (
+                            <img src={photoUrl} alt="Náhled" className="h-9 w-9 rounded object-cover border border-stone-200" />
+                          )}
+                        </div>
+                      </div>
+                    </div>
+
+                    {editTransaction === 'pronájem' && (
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 border-t border-dashed border-stone-200 pt-3">
+                        <div className="space-y-1.5">
+                          <Label htmlFor="edit_deposit">Vratná kauce (Kč)</Label>
+                          <Input
+                            id="edit_deposit"
+                            type="number"
+                            value={rentDeposit}
+                            onChange={(e) => setRentDeposit(e.target.value)}
+                            placeholder="Kč"
+                            className="text-xs"
+                          />
+                        </div>
+                        <div className="space-y-1.5">
+                          <Label htmlFor="edit_fees">Měsíční poplatky (Kč)</Label>
+                          <Input
+                            id="edit_fees"
+                            type="number"
+                            value={rentFeesUtilities}
+                            onChange={(e) => setRentFeesUtilities(e.target.value)}
+                            placeholder="Kč"
+                            className="text-xs"
+                          />
+                        </div>
+                      </div>
+                    )}
+
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 border-t border-dashed border-stone-200 pt-3">
+                      <div className="space-y-1.5">
+                        <Label htmlFor="edit_commission_pct">Provize makléře (%)</Label>
+                        <Input
+                          id="edit_commission_pct"
+                          type="number"
+                          value={commissionPct}
+                          onChange={(e) => setCommissionPct(e.target.value)}
+                          placeholder="%"
+                          className="text-xs"
+                        />
+                      </div>
+                      <div className="space-y-1.5">
+                        <Label htmlFor="edit_commission_val">Provize makléře (Kč)</Label>
+                        <Input
+                          id="edit_commission_val"
+                          type="number"
+                          value={commissionVal}
+                          onChange={(e) => setCommissionVal(e.target.value)}
+                          placeholder="Kč"
+                          className="text-xs"
+                        />
+                      </div>
                     </div>
 
                     <div className="space-y-1.5">
@@ -1413,6 +1623,64 @@ export const PropertiesView: React.FC<PropertiesViewProps> = ({
                       </div>
                     )}
                   </div>
+
+                  {/* Doporučení zájemci (Párování) */}
+                  {(() => {
+                    const matchingBuyers = getMatchingBuyersForProperty(selectedProperty).filter((c) => {
+                      return !deals.some((d) => d.buyer_id === c.id && d.property_id === selectedProperty.id);
+                    });
+
+                    return (
+                      <div className="space-y-4 pt-4 border-t border-dashed border-stone-200">
+                        <div className="flex justify-between items-center">
+                          <h3 className="font-display text-base font-semibold text-foreground">
+                            Doporučení zájemci z databáze
+                          </h3>
+                          <span className="text-xs font-semibold bg-emerald-50 text-emerald-600 px-2 py-0.5 rounded-full font-mono">
+                            {matchingBuyers.length}
+                          </span>
+                        </div>
+
+                        {matchingBuyers.length === 0 ? (
+                          <p className="text-xs text-muted-foreground italic">Žádní další vhodní kupující v databázi.</p>
+                        ) : (
+                          <div className="divide-y divide-stone-150 border border-stone-200 rounded-md overflow-hidden bg-white">
+                            {matchingBuyers.map((contact) => {
+                              const budgetText = contact.budget_to 
+                                ? `do ${formatCompactPrice(contact.budget_to)}` 
+                                : 'neuveden';
+                              
+                              return (
+                                <div
+                                  key={contact.id}
+                                  onClick={() => {
+                                    setIsDetailOpen(false);
+                                    onNavigateToContact(contact.id);
+                                  }}
+                                  className="p-3 hover:bg-stone-50 cursor-pointer flex justify-between items-center text-xs transition-colors"
+                                >
+                                  <div className="flex items-center gap-2">
+                                    <User className="h-3.5 w-3.5 text-stone-400" />
+                                    <div>
+                                      <div className="text-foreground font-semibold">
+                                        {contact.full_name}
+                                      </div>
+                                      <div className="text-[10px] text-stone-500 font-normal">
+                                        Rozpočet: {budgetText}
+                                      </div>
+                                    </div>
+                                  </div>
+                                  <span className="text-[10px] text-primary hover:underline font-bold">
+                                    Zobrazit
+                                  </span>
+                                </div>
+                              );
+                            })}
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })()}
                 </div>
               </div>
 
@@ -1708,6 +1976,75 @@ export const PropertiesView: React.FC<PropertiesViewProps> = ({
                         ))}
                       </SelectContent>
                     </Select>
+                  </div>
+                </div>
+
+                <div className="space-y-1.5">
+                  <Label htmlFor="new_photo">Hlavní fotografie (URL)</Label>
+                  <div className="flex gap-2 items-center">
+                    <Input
+                      id="new_photo"
+                      type="text"
+                      value={photoUrl}
+                      onChange={(e) => setPhotoUrl(e.target.value)}
+                      placeholder="https://..."
+                      className="border-stone-200 h-9 text-xs flex-1"
+                    />
+                    {photoUrl && /^https?:\/\//i.test(photoUrl) && (
+                      <img src={photoUrl} alt="Náhled" className="h-9 w-9 rounded object-cover border border-stone-200" />
+                    )}
+                  </div>
+                </div>
+
+                {newTransaction === 'pronájem' && (
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 border-t border-dashed border-stone-200 pt-3">
+                    <div className="space-y-1.5">
+                      <Label htmlFor="new_deposit">Vratná kauce (Kč)</Label>
+                      <Input
+                        id="new_deposit"
+                        type="number"
+                        value={rentDeposit}
+                        onChange={(e) => setRentDeposit(e.target.value)}
+                        placeholder="Kč"
+                        className="border-stone-200 h-9 text-xs"
+                      />
+                    </div>
+                    <div className="space-y-1.5">
+                      <Label htmlFor="new_fees">Měsíční poplatky (Kč)</Label>
+                      <Input
+                        id="new_fees"
+                        type="number"
+                        value={rentFeesUtilities}
+                        onChange={(e) => setRentFeesUtilities(e.target.value)}
+                        placeholder="Kč"
+                        className="border-stone-200 h-9 text-xs"
+                      />
+                    </div>
+                  </div>
+                )}
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 border-t border-dashed border-stone-200 pt-3">
+                  <div className="space-y-1.5">
+                    <Label htmlFor="new_commission_pct">Provize makléře (%)</Label>
+                    <Input
+                      id="new_commission_pct"
+                      type="number"
+                      value={commissionPct}
+                      onChange={(e) => setCommissionPct(e.target.value)}
+                      placeholder="%"
+                      className="border-stone-200 h-9 text-xs"
+                    />
+                  </div>
+                  <div className="space-y-1.5">
+                    <Label htmlFor="new_commission_val">Provize makléře (Kč)</Label>
+                    <Input
+                      id="new_commission_val"
+                      type="number"
+                      value={commissionVal}
+                      onChange={(e) => setCommissionVal(e.target.value)}
+                      placeholder="Kč"
+                      className="border-stone-200 h-9 text-xs"
+                    />
                   </div>
                 </div>
 

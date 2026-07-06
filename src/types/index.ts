@@ -77,6 +77,8 @@ export interface Property {
   rent_duration: string | null;
   rent_available_from: string | null;
   rent_equipment: string | null;
+  commission_pct: number | null;
+  commission_val: number | null;
 }
 
 export interface Deal {
