@@ -18,7 +18,8 @@ export default defineConfig({
         changeOrigin: true,
         rewrite: (path) => path.replace(/^\/api-scraper/, ''),
         headers: {
-          'Cookie': 'sznconsent=1'
+          'Cookie': 'sznconsent=1',
+          'Sna-Cookie': 'sznconsent=1'
         }
       },
     },

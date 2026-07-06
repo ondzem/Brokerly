@@ -446,6 +446,12 @@ export const PropertiesView: React.FC<PropertiesViewProps> = ({
       return;
     }
 
+    // Automatically normalize URL: prepend https:// if missing
+    let normalizedUrl = importUrl.trim();
+    if (!/^https?:\/\//i.test(normalizedUrl)) {
+      normalizedUrl = 'https://' + normalizedUrl;
+    }
+
     const geminiKey = import.meta.env.NEXT_PUBLIC_GEMINI_API_KEY || '';
     const scraperKey = import.meta.env.NEXT_PUBLIC_SCRAPER_API_KEY || '';
 
@@ -455,19 +461,24 @@ export const PropertiesView: React.FC<PropertiesViewProps> = ({
     }
 
     setIsImporting(true);
-    const toastId = toast.loading('Stahuji obsah inzerátu přes proxy...');
+    
+    // Use clear separate toasts to avoid sonner-specific updating bugs
+    const toastId = toast.loading('1/2: Stahuji inzerát přes proxy...');
 
     try {
       // 1. Download via local Vite development proxy (bypasses CORS completely and forwards consent cookies)
-      const scraperUrl = `/api-scraper?api_key=${encodeURIComponent(scraperKey)}&url=${encodeURIComponent(importUrl)}&keep_headers=true`;
+      const scraperUrl = `/api-scraper?api_key=${encodeURIComponent(scraperKey)}&url=${encodeURIComponent(normalizedUrl)}&keep_headers=true`;
       const response = await fetch(scraperUrl);
       if (!response.ok) {
-        throw new Error('Chyba při stahování stránky přes proxy. Zkontrolujte prosím Váš API klíč.');
+        throw new Error('Chyba při stahování stránky. Zkontrolujte API klíč nebo zda Vám neběželo více instancí serveru.');
       }
       const html = await response.text();
 
+      // Dismiss first toast and start second stage toast
+      toast.dismiss(toastId);
+      const toastId2 = toast.loading('2/2: Analyzuji text inzerátu pomocí AI...');
+
       // 2. Parse HTML and clean up to plain text to save tokens
-      toast.loading('Analyzuji text inzerátu pomocí AI...', { id: toastId });
       const parser = new DOMParser();
       const doc = parser.parseFromString(html, 'text/html');
       doc.querySelectorAll('script, style, header, footer, nav, noscript, iframe, svg').forEach((el) => el.remove());
@@ -475,7 +486,8 @@ export const PropertiesView: React.FC<PropertiesViewProps> = ({
       const cleanText = text.replace(/\s+/g, ' ').substring(0, 15000).trim();
 
       if (cleanText.length < 100) {
-        throw new Error('Inzerát neobsahuje dostatek čitelného textu.');
+        toast.dismiss(toastId2);
+        throw new Error('Nepodařilo se stáhnout obsah stránky (stránka vrátila prázdný text nebo byla zablokována).');
       }
 
       // 3. Call Gemini Structured Outputs API
@@ -545,8 +557,10 @@ export const PropertiesView: React.FC<PropertiesViewProps> = ({
         body: JSON.stringify(geminiPayload)
       });
 
+      toast.dismiss(toastId2);
+
       if (!geminiRes.ok) {
-        throw new Error('Chyba při komunikaci s Gemini API.');
+        throw new Error('Chyba při komunikaci s Gemini API (překročen limit nebo neaktivní klíč).');
       }
 
       const geminiData = await geminiRes.json();
@@ -592,11 +606,12 @@ export const PropertiesView: React.FC<PropertiesViewProps> = ({
       if (parsed.land_access) setLandAccess(parsed.land_access);
       if (parsed.land_dimensions) setLandDimensions(parsed.land_dimensions);
 
-      toast.success('Inzerát byl úspěšně načten a data byla doplněna!', { id: toastId });
+      toast.success('Inzerát byl úspěšně načten a data byla doplněna!');
       setImportUrl('');
     } catch (err: any) {
       console.error(err);
-      toast.error(err.message || 'Nepodařilo se importovat data.', { id: toastId });
+      toast.dismiss(toastId);
+      toast.error(`Chyba importu: ${err.message || 'Nepodařilo se importovat data.'}`);
     } finally {
       setIsImporting(false);
     }
