@@ -230,6 +230,7 @@ export default function App() {
             onRefresh={() => loadData(true)}
             onNavigateToContact={handleNavigateToContact}
             onNavigateToDeal={handleNavigateToDeal}
+            theme={theme}
           />
         );
       case 'reminders':
@@ -257,8 +258,8 @@ export default function App() {
 
   return (
     <div 
-      className={`min-h-screen ${isDashboard ? '' : 'bg-background'} flex font-sans transition-colors duration-150`}
-      style={isDashboard ? { backgroundColor: theme === 'light' ? '#F2F1EC' : '#00221F' } : undefined}
+      className="min-h-screen flex font-sans transition-colors duration-150"
+      style={{ backgroundColor: theme === 'light' ? '#F2F1EC' : '#00221F' }}
     >
       {/* Sidebar Navigation */}
       <aside className="w-16 bg-[#00221F] border-r border-[#00221F] flex flex-col justify-between items-center py-6 fixed left-0 top-0 bottom-0 z-40">
@@ -395,10 +396,10 @@ export default function App() {
       {/* Main Layout Area */}
       <div 
         className="flex-grow flex flex-col min-h-screen pl-16"
-        style={isDashboard ? { backgroundColor: theme === 'light' ? '#F2F1EC' : '#00221F' } : undefined}
+        style={{ backgroundColor: theme === 'light' ? '#F2F1EC' : '#00221F' }}
       >
         {/* Main Container */}
-        <main className={`flex-grow w-full ${isDashboard ? 'max-w-none p-0' : 'max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8'}`}>
+        <main className={`flex-grow w-full ${isDashboard ? 'max-w-none p-0' : 'max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8 py-8'}`}>
           {renderActiveView()}
         </main>
       </div>

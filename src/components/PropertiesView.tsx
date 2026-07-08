@@ -62,6 +62,7 @@ interface PropertiesViewProps {
   onRefresh: () => void;
   onNavigateToContact: (contactId: string) => void;
   onNavigateToDeal: (dealId: string) => void;
+  theme?: 'light' | 'dark';
 }
 
 export const PropertiesView: React.FC<PropertiesViewProps> = ({
@@ -73,6 +74,7 @@ export const PropertiesView: React.FC<PropertiesViewProps> = ({
   onRefresh,
   onNavigateToContact,
   onNavigateToDeal,
+  theme = 'light',
 }) => {
   const [selectedProperty, setSelectedProperty] = useState<Property | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
@@ -80,6 +82,9 @@ export const PropertiesView: React.FC<PropertiesViewProps> = ({
   const [isDetailOpen, setIsDetailOpen] = useState(false);
   const [viewMode, setViewMode] = useState<'cards' | 'list'>('cards');
   const [isConfirmDeleteOpen, setIsConfirmDeleteOpen] = useState(false);
+  const [transactionFilter, setTransactionFilter] = useState<'vše' | 'prodej' | 'pronájem'>('vše');
+  const [kindFilter, setKindFilter] = useState<'vše' | 'byt' | 'dům' | 'pozemek' | 'komerční'>('vše');
+  const [statusFilter, setStatusFilter] = useState<'vše' | 'v nabídce' | 'rezervováno' | 'akvizice' | 'uzavřeno'>('vše');
 
   // Focus property if navigated from outside
   useEffect(() => {
@@ -248,14 +253,36 @@ export const PropertiesView: React.FC<PropertiesViewProps> = ({
     });
   };
 
-  // Search filter
+  // Search and advanced filters
   const filteredProperties = properties.filter((p) => {
-    const q = searchQuery.toLowerCase();
-    return (
-      p.address.toLowerCase().includes(q) ||
-      p.kind.toLowerCase().includes(q) ||
-      p.transaction.toLowerCase().includes(q)
-    );
+    // Search query filter
+    if (searchQuery) {
+      const q = searchQuery.toLowerCase();
+      const matchSearch =
+        p.address.toLowerCase().includes(q) ||
+        p.kind.toLowerCase().includes(q) ||
+        p.transaction.toLowerCase().includes(q);
+      if (!matchSearch) return false;
+    }
+
+    // Transaction filter
+    if (transactionFilter !== 'vše' && p.transaction !== transactionFilter) {
+      return false;
+    }
+
+    // Kind filter
+    if (kindFilter !== 'vše' && p.kind !== kindFilter) {
+      return false;
+    }
+
+    // Status filter (Note: 'Prodáno' filter maps to 'uzavřeno' in the DB)
+    if (statusFilter !== 'vše') {
+      if (p.offer_status !== statusFilter) {
+        return false;
+      }
+    }
+
+    return true;
   });
 
   const handleFlatFeatureToggle = (feat: 'výtah' | 'balkon/lodžie' | 'terasa' | 'sklep') => {
@@ -830,60 +857,195 @@ export const PropertiesView: React.FC<PropertiesViewProps> = ({
     ? deals.filter((d) => d.property_id === selectedProperty.id)
     : [];
 
+  // Theme styling tokens
+  const colors = theme === 'light' ? {
+    bg: '#F2F1EC',
+    textPrimary: '#0B1F1A',
+    textSecondary: 'rgba(11,31,26,0.6)',
+    textMuted: 'rgba(11,31,26,0.5)',
+    cardBg: '#ffffff',
+    cardBorder: 'border-[0.5px] border-stone-300/60 shadow-sm',
+    accent: '#00D991',
+    accentBg: '#DCF5E7',
+    accentText: '#0B5C3D',
+    grayBg: '#ECEBE6',
+    grayText: '#55605C',
+    propPlaceholderBg: '#E9E8E2',
+    propPlaceholderStroke: 'rgba(11,31,26,0.2)',
+  } : {
+    bg: '#00221F',
+    textPrimary: '#ffffff',
+    textSecondary: 'rgba(232,232,232,0.6)',
+    textMuted: 'rgba(232,232,232,0.5)',
+    cardBg: '#072C27',
+    cardBorder: 'border-[0.5px] border-white/10 shadow-sm',
+    accent: '#00D991',
+    accentBg: 'rgba(0,217,145,0.13)',
+    accentText: '#4FE0AC',
+    grayBg: 'rgba(232,232,232,0.1)',
+    grayText: '#C3CFCC',
+    propPlaceholderBg: '#0B3833',
+    propPlaceholderStroke: 'rgba(232,232,232,0.25)',
+  };
+
+  const totalCount = properties.length;
+  const inOfferCount = properties.filter(p => p.offer_status === 'v nabídce').length;
+  const reservedCount = properties.filter(p => p.offer_status === 'rezervováno').length;
+
   return (
-    <div className="space-y-6">
-      {/* Header section */}
-      <div className="flex justify-between items-center">
-        <div>
-          <h1 className="text-3xl font-display font-normal tracking-tight text-[#141414]">Nemovitosti</h1>
-          <p className="text-muted-foreground text-sm mt-1">
-            Přehled portfolia nemovitostí k prodeji a pronájmu.
-          </p>
+    <div className="space-y-6 select-none font-sans">
+      {/* Header section (3C Design) */}
+      <div className="flex justify-between items-baseline md:items-center">
+        <div className="flex flex-col md:flex-row md:items-baseline gap-2 md:gap-3.5">
+          <h1 className="font-display font-light text-[26px] leading-tight" style={{ color: colors.textPrimary }}>
+            Nemovitosti
+          </h1>
+          <span className="text-[13px]" style={{ color: colors.textSecondary }}>
+            {totalCount} {totalCount === 1 ? 'nemovitost' : totalCount >= 2 && totalCount <= 4 ? 'nemovitosti' : 'nemovitostí'} · {inOfferCount} v nabídce · {reservedCount} {reservedCount === 1 ? 'rezervovaná' : reservedCount >= 2 && reservedCount <= 4 ? 'rezervované' : 'rezervovaných'}
+          </span>
         </div>
-        <Button
+        <button
           onClick={handleOpenCreate}
-          className="gap-1.5 h-10 font-medium"
+          className="flex items-center gap-2 hover:opacity-90 font-medium text-[14px] px-4 py-2.5 rounded-[10px] cursor-pointer transition-all duration-150 flex-none"
+          style={{ backgroundColor: colors.accent, color: '#00221F' }}
         >
-          <Plus className="h-4.5 w-4.5" />
-          Nová nemovitost
-        </Button>
+          + Nová nemovitost
+        </button>
       </div>
 
-      {/* Search & View Mode Toggles bar */}
-      <div className="flex flex-col sm:flex-row gap-4 items-center justify-between bg-white border border-stone-200 p-3.5 rounded-lg shadow-xs">
+      {/* Search & View Mode Filters Bar (3C Design) */}
+      <div className="flex items-center gap-2 overflow-x-auto whitespace-nowrap scrollbar-none py-1">
         {/* Search */}
-        <div className="relative w-full sm:w-80">
-          <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-          <Input
-            placeholder="Hledat adresu, druh nemovitosti..."
-            className="pl-9 border-stone-200 focus-visible:ring-1 h-9 text-xs"
+        <div 
+          className="flex items-center gap-2 bg-white border border-stone-250/70 rounded-full px-3.5 py-1.5 w-[180px] flex-none shadow-sm dark:bg-stone-900 dark:border-white/10"
+        >
+          <Search className="h-3.5 w-3.5" style={{ color: colors.textMuted }} />
+          <input
+            type="text"
+            placeholder="Hledat"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
+            className="w-full bg-transparent border-none outline-none text-[12.5px] placeholder-stone-400 focus:ring-0 p-0"
+            style={{ color: colors.textPrimary }}
           />
         </div>
 
+        {/* Separator */}
+        <div className="w-[0.5px] h-5 bg-stone-300 dark:bg-white/15 flex-none" />
+
+        {/* Transaction Filters */}
+        <button
+          onClick={() => setTransactionFilter('vše')}
+          className={`text-[12.5px] font-medium px-[11px] py-[5px] rounded-full transition-all duration-150 border flex-none cursor-pointer ${
+            transactionFilter === 'vše'
+              ? 'border-transparent shadow-xs'
+              : 'bg-white border-stone-250/70 dark:bg-stone-900 dark:border-white/10 dark:text-white'
+          }`}
+          style={{ 
+            backgroundColor: transactionFilter === 'vše' ? colors.accent : undefined,
+            color: transactionFilter === 'vše' ? '#00221F' : colors.textPrimary 
+          }}
+        >
+          Vše
+        </button>
+        <button
+          onClick={() => setTransactionFilter('prodej')}
+          className={`text-[12.5px] font-medium px-[11px] py-[5px] rounded-full transition-all duration-150 border flex-none cursor-pointer ${
+            transactionFilter === 'prodej'
+              ? 'border-transparent shadow-xs'
+              : 'bg-white border-stone-250/70 dark:bg-stone-900 dark:border-white/10 dark:text-white'
+          }`}
+          style={{ 
+            backgroundColor: transactionFilter === 'prodej' ? colors.accent : undefined,
+            color: transactionFilter === 'prodej' ? '#00221F' : colors.textPrimary 
+          }}
+        >
+          Prodej
+        </button>
+        <button
+          onClick={() => setTransactionFilter('pronájem')}
+          className={`text-[12.5px] font-medium px-[11px] py-[5px] rounded-full transition-all duration-150 border flex-none cursor-pointer ${
+            transactionFilter === 'pronájem'
+              ? 'border-transparent shadow-xs'
+              : 'bg-white border-stone-250/70 dark:bg-stone-900 dark:border-white/10 dark:text-white'
+          }`}
+          style={{ 
+            backgroundColor: transactionFilter === 'pronájem' ? colors.accent : undefined,
+            color: transactionFilter === 'pronájem' ? '#00221F' : colors.textPrimary 
+          }}
+        >
+          Pronájem
+        </button>
+
+        {/* Separator */}
+        <div className="w-[0.5px] h-5 bg-stone-300 dark:bg-white/15 flex-none" />
+
+        {/* Kind Filters */}
+        {(['byt', 'dům', 'pozemek', 'komerční'] as const).map((kind) => (
+          <button
+            key={kind}
+            onClick={() => setKindFilter(kindFilter === kind ? 'vše' : kind)}
+            className={`text-[12.5px] font-medium px-[11px] py-[5px] rounded-full transition-all duration-150 border capitalize flex-none cursor-pointer ${
+              kindFilter === kind
+                ? 'border-transparent shadow-xs'
+                : 'bg-white border-stone-250/70 dark:bg-stone-900 dark:border-white/10 dark:text-white'
+            }`}
+            style={{ 
+              backgroundColor: kindFilter === kind ? colors.accent : undefined,
+              color: kindFilter === kind ? '#00221F' : colors.textPrimary 
+            }}
+          >
+            {kind}
+          </button>
+        ))}
+
+        {/* Separator */}
+        <div className="w-[0.5px] h-5 bg-stone-300 dark:bg-white/15 flex-none" />
+
+        {/* Status Filters */}
+        {([
+          { id: 'v nabídce', label: 'V nabídce' },
+          { id: 'rezervováno', label: 'Rezervováno' },
+          { id: 'akvizice', label: 'Akvizice' },
+          { id: 'uzavřeno', label: 'Prodáno' }
+        ] as const).map((st) => (
+          <button
+            key={st.id}
+            onClick={() => setStatusFilter(statusFilter === st.id ? 'vše' : st.id)}
+            className={`text-[12.5px] font-medium px-[11px] py-[5px] rounded-full transition-all duration-150 border flex-none cursor-pointer ${
+              statusFilter === st.id
+                ? 'border-transparent shadow-xs'
+                : 'bg-white border-stone-250/70 dark:bg-stone-900 dark:border-white/10 dark:text-white'
+            }`}
+            style={{ 
+              backgroundColor: statusFilter === st.id ? colors.accent : undefined,
+              color: statusFilter === st.id ? '#00221F' : colors.textPrimary 
+            }}
+          >
+            {st.label}
+          </button>
+        ))}
+
         {/* View Mode controls / toggles */}
-        <div className="flex bg-stone-100 p-0.5 rounded-md w-full sm:w-auto self-stretch sm:self-auto border border-stone-200">
+        <div className="ml-auto flex bg-[#ECEBE6] p-[3px] rounded-[10px] flex-none dark:bg-stone-850">
           <button
             onClick={() => setViewMode('cards')}
-            className={`flex-1 sm:flex-initial px-3.5 py-1.5 rounded-sm text-xs font-semibold tracking-wide transition-all flex items-center justify-center gap-1.5 ${
+            className={`px-3 py-1.5 rounded-[8px] text-[12.5px] font-medium transition-all duration-150 cursor-pointer ${
               viewMode === 'cards'
-                ? 'bg-white text-[#141414] shadow-xs'
-                : 'text-stone-500 hover:text-stone-800'
+                ? 'bg-white text-[#0B1F1A] shadow-xs dark:bg-stone-900 dark:text-white'
+                : 'text-stone-500 hover:text-stone-800 dark:text-stone-400 dark:hover:text-stone-200'
             }`}
           >
-            <LayoutGrid className="h-3.5 w-3.5" />
             Karty
           </button>
           <button
             onClick={() => setViewMode('list')}
-            className={`flex-1 sm:flex-initial px-3.5 py-1.5 rounded-sm text-xs font-semibold tracking-wide transition-all flex items-center justify-center gap-1.5 ${
+            className={`px-3 py-1.5 rounded-[8px] text-[12.5px] font-medium transition-all duration-150 cursor-pointer ${
               viewMode === 'list'
-                ? 'bg-white text-[#141414] shadow-xs'
-                : 'text-stone-500 hover:text-stone-800'
+                ? 'bg-white text-[#0B1F1A] shadow-xs dark:bg-stone-900 dark:text-white'
+                : 'text-stone-500 hover:text-stone-800 dark:text-stone-400 dark:hover:text-stone-200'
             }`}
           >
-            <List className="h-3.5 w-3.5" />
             Seznam
           </button>
         </div>
@@ -891,16 +1053,80 @@ export const PropertiesView: React.FC<PropertiesViewProps> = ({
 
       {/* RENDER LIST OR CARDS */}
       {filteredProperties.length === 0 ? (
-        <div className="p-12 text-sm text-muted-foreground italic text-center bg-white border border-stone-200 rounded-lg shadow-xs">
-          Nebyly nalezeny žádné nemovitosti.
+        /* Empty State (3E Design) */
+        <div 
+          className="border border-dashed rounded-xl py-18 px-10 flex flex-col items-center justify-center gap-2.5 text-center shadow-xs"
+          style={{ borderColor: colors.propPlaceholderStroke, backgroundColor: colors.cardBg }}
+        >
+          <svg width="44" height="44" viewBox="0 0 24 24" fill="none" stroke={colors.textMuted} strokeWidth="1.2" className="flex-none">
+            <path d="M4.5 10.5L12 4l7.5 6.5V20h-5.5v-5.5h-4V20H4.5z" />
+            <path d="M9 4.8V3h2" strokeLinecap="round" />
+          </svg>
+          <div className="text-[16px] font-medium mt-1" style={{ color: colors.textPrimary }}>
+            Zatím tu nic není. Přidej první nemovitost.
+          </div>
+          <div className="text-[13.5px] max-w-[380px] leading-relaxed" style={{ color: colors.textSecondary }}>
+            Přidej první nemovitost a uvidíš u ní zájemce a fáze obchodu.
+          </div>
+          <button
+            onClick={handleOpenCreate}
+            className="flex items-center gap-2 hover:opacity-90 font-medium text-[14px] px-4 py-2.5 rounded-[10px] cursor-pointer transition-all duration-150 flex-none mt-2.5 shadow-sm"
+            style={{ backgroundColor: colors.accent, color: '#00221F' }}
+          >
+            + Nová nemovitost
+          </button>
         </div>
       ) : viewMode === 'cards' ? (
-        /* CARDS GRID VIEW */
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 mt-4">
+        /* CARDS GRID VIEW - aspect-ratio: 16/10, 4 columns (3C Design) */
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-[14px]">
           {filteredProperties.map((prop) => {
-            let displayTitle = '';
-                      const matchingBuyersCount = getMatchingBuyersForProperty(prop).length;
+            const matchingBuyersCount = getMatchingBuyersForProperty(prop).length;
             const hasPhoto = prop.attachments && prop.attachments.length > 0 && prop.attachments[0];
+
+            let displayTitle = '';
+            if (prop.kind === 'byt') {
+              displayTitle = `Byt ${prop.flat_layout || ''}`;
+            } else if (prop.kind === 'dům') {
+              displayTitle = `Dům ${prop.house_layout || ''}`;
+            } else if (prop.kind === 'pozemek') {
+              displayTitle = 'Pozemek';
+            } else if (prop.kind === 'komerční') {
+              displayTitle = 'Komerční';
+            } else {
+              displayTitle = 'Garáž/Ostatní';
+            }
+
+            const addressParts = prop.address.split(',');
+            const streetPart = addressParts[0]?.trim() || '';
+            const cityPart = addressParts[1]?.trim() || prop.address;
+
+            // Details subtitle
+            let detailsStr = streetPart;
+            if (prop.kind === 'byt' && prop.flat_area) {
+              detailsStr += ` · ${prop.flat_area} m²` + (prop.floor ? ` · ${prop.floor}. patro` : '');
+            } else if (prop.kind === 'dům' && prop.house_area) {
+              detailsStr += ` · ${prop.house_area} m²` + (prop.land_area ? ` · pozemek ${prop.land_area} m²` : '');
+            } else if (prop.kind === 'pozemek' && prop.land_area) {
+              detailsStr = `Stavební parcela · ${prop.land_area} m²`;
+            } else if (prop.kind === 'komerční' && prop.flat_area) {
+              detailsStr += ` · ${prop.flat_area} m²`;
+            }
+
+            // Price suffix
+            const priceStr = prop.price.toLocaleString('cs-CZ') + (prop.transaction === 'pronájem' ? ' Kč/měs' : ' Kč');
+
+            // Status colors
+            let statusBg = colors.accent;
+            let statusText = '#00221F';
+            if (prop.offer_status === 'rezervováno') {
+              statusBg = '#E8A13C';
+            } else if (prop.offer_status === 'akvizice') {
+              statusBg = theme === 'light' ? '#ffffff' : '#072C27';
+              statusText = colors.textPrimary;
+            } else if (prop.offer_status === 'uzavřeno') {
+              statusBg = '#C9C8C2';
+              statusText = '#0B1F1A';
+            }
 
             return (
               <div
@@ -909,78 +1135,79 @@ export const PropertiesView: React.FC<PropertiesViewProps> = ({
                   setSelectedProperty(prop);
                   setIsDetailOpen(true);
                 }}
-                className="bg-white border border-stone-200 rounded-xl overflow-hidden cursor-pointer hover:border-[#00D991] hover:shadow-md transition-all duration-200 flex flex-col justify-between h-[285px] text-left group"
+                className={`rounded-xl overflow-hidden cursor-pointer hover:border-[#00D991]/60 hover:shadow-md transition-all duration-200 flex flex-col text-left group border ${colors.cardBorder}`}
+                style={{ backgroundColor: colors.cardBg }}
               >
-                {/* Vizuální vršek s fotkou */}
-                <div className="h-32 w-full bg-stone-50 overflow-hidden relative border-b border-stone-150">
+                {/* Visual Header Image Container (Aspect-Ratio 16/10) */}
+                <div 
+                  className="w-full aspect-[16/10] overflow-hidden relative flex items-center justify-center border-b select-none"
+                  style={{ backgroundColor: colors.propPlaceholderBg, borderColor: theme === 'light' ? 'rgba(11,31,26,0.08)' : 'rgba(255,255,255,0.05)' }}
+                >
                   {hasPhoto ? (
                     <img 
                       src={prop.attachments?.[0] || ''} 
                       alt={displayTitle} 
-                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                      className="w-full h-full object-cover group-hover:scale-[1.03] transition-transform duration-300"
                     />
                   ) : (
-                    <div className="w-full h-full flex flex-col items-center justify-center text-stone-300">
-                      <Home className="h-8 w-8 stroke-[1.25]" />
-                      <span className="text-[9px] uppercase tracking-wider font-semibold pt-1">Bez fotografie</span>
-                    </div>
+                    <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke={colors.propPlaceholderStroke} strokeWidth="1.4" className="opacity-70 group-hover:scale-105 transition-transform duration-200">
+                      <path d="M4.5 10.5L12 4l7.5 6.5V20h-5.5v-5.5h-4V20H4.5z" />
+                    </svg>
                   )}
 
-                  {/* Překryvné štítky */}
-                  <div className="absolute top-2 left-2">
-                    <span className="text-[9px] font-extrabold uppercase tracking-wider text-white bg-black/75 px-2 py-0.5 rounded-sm backdrop-blur-xs">
-                      {prop.transaction}
-                    </span>
-                  </div>
-                  <div className="absolute top-2 right-2">
-                    <span className={`text-[9px] font-bold px-2 py-0.5 rounded-full uppercase tracking-wider backdrop-blur-xs shadow-xs ${
-                      prop.offer_status === 'v nabídce' ? 'bg-emerald-500 text-white' :
-                      prop.offer_status === 'rezervováno' ? 'bg-amber-500 text-white' :
-                      prop.offer_status === 'uzavřeno' ? 'bg-indigo-600 text-white' :
-                      'bg-stone-500 text-white'
-                    }`}>
-                      {prop.offer_status}
-                    </span>
+                  {/* Overlaid Badges */}
+                  <span className="absolute top-2.5 left-2.5 bg-[#00221F] text-white text-[11px] font-medium px-2 py-0.5 rounded-[5px] uppercase tracking-wider select-none shadow-xs">
+                    {prop.transaction}
+                  </span>
+                  <span 
+                    className="absolute top-2.5 right-2.5 text-[11px] font-medium px-2 py-0.5 rounded-[5px] uppercase tracking-wider select-none border shadow-xs"
+                    style={{ 
+                      backgroundColor: statusBg, 
+                      color: statusText,
+                      borderColor: prop.offer_status === 'akvizice' ? (theme === 'light' ? 'rgba(11,31,26,0.25)' : 'rgba(255,255,255,0.15)') : 'transparent'
+                    }}
+                  >
+                    {prop.offer_status === 'uzavřeno' ? 'Prodáno' : prop.offer_status}
+                  </span>
+                </div>
+
+                {/* Card Body Info */}
+                <div className="p-3.5 flex flex-col justify-between flex-grow">
+                  <div>
+                    <div className="font-semibold text-[15px] truncate" style={{ color: colors.textPrimary }}>
+                      {displayTitle}
+                    </div>
+                    <div className="font-semibold text-[18px] tracking-tight font-sans mt-0.5" style={{ color: colors.textPrimary, fontVariantNumeric: 'tabular-nums' }}>
+                      {priceStr}
+                    </div>
+                    <div className="text-[13.5px] mt-1 truncate" style={{ color: colors.textPrimary }}>
+                      {cityPart}
+                    </div>
+                    <div className="text-[12px] mt-0.5 truncate" style={{ color: colors.textSecondary }} title={detailsStr}>
+                      {detailsStr || 'Bez popisu'}
+                    </div>
                   </div>
                 </div>
 
-                {/* Obsah karty */}
-                <div className="p-3 flex-1 flex flex-col justify-between">
-                  <div className="space-y-1">
-                    <h3 className="font-display font-semibold text-[13.5px] text-stone-900 truncate">
-                      {displayTitle}
-                    </h3>
-                    <p className="text-[11px] text-stone-500 truncate flex items-center gap-1">
-                      <MapPin className="h-3 w-3 shrink-0" />
-                      <span>{prop.address}</span>
-                    </p>
-
-                    {/* Doplňující info: Provize / Zájemci */}
-                    <div className="flex flex-wrap gap-1.5 pt-1.5">
-                      {(prop.commission_pct || prop.commission_val) && (
-                        <span className="text-[9px] font-semibold bg-stone-100 text-stone-700 px-1.5 py-0.5 rounded-sm border border-stone-250">
-                          Provize: {prop.commission_pct ? `${prop.commission_pct}%` : `${formatCompactPrice(prop.commission_val!)}`}
-                        </span>
-                      )}
-                      {matchingBuyersCount > 0 && (
-                        <span className="text-[9px] font-semibold bg-emerald-500/10 text-emerald-700 px-1.5 py-0.5 rounded-sm border border-emerald-500/20">
-                          {matchingBuyersCount} {matchingBuyersCount === 1 ? 'zájemce' : matchingBuyersCount < 5 ? 'zájemci' : 'zájemců'}
-                        </span>
-                      )}
-                    </div>
-                  </div>
-
-                  <div className="border-t border-stone-150 pt-2 flex justify-between items-center mt-2">
-                    <span className="text-[12.5px] font-mono font-bold text-stone-900">
-                      {formatCompactPrice(prop.price)}
-                    </span>
-                    {prop.kind === 'byt' && prop.flat_area && (
-                      <span className="text-[10px] text-stone-500 font-mono">{prop.flat_area} m²</span>
-                    )}
-                    {prop.kind === 'dům' && prop.house_area && (
-                      <span className="text-[10px] text-stone-500 font-mono">{prop.house_area} m²</span>
-                    )}
-                  </div>
+                {/* Card Footer Bar */}
+                <div 
+                  className="flex justify-between items-center py-2 px-3.5 border-t"
+                  style={{ borderColor: theme === 'light' ? 'rgba(11,31,26,0.08)' : 'rgba(255,255,255,0.05)' }}
+                >
+                  <span 
+                    className="text-[12px] font-medium px-2 py-0.5 rounded-[6px] transition-colors select-none"
+                    style={{ 
+                      backgroundColor: colors.grayBg, 
+                      color: matchingBuyersCount > 0 ? colors.textPrimary : colors.textMuted 
+                    }}
+                  >
+                    {matchingBuyersCount > 0 
+                      ? `${matchingBuyersCount} ${matchingBuyersCount === 1 ? 'zájemce' : matchingBuyersCount >= 2 && matchingBuyersCount <= 4 ? 'zájemci' : 'zájemců'}` 
+                      : 'Bez zájemců'}
+                  </span>
+                  <span className="text-[12.5px] font-medium flex items-center hover:underline cursor-pointer" style={{ color: '#0E8A5F' }}>
+                    Detail →
+                  </span>
                 </div>
               </div>
             );
@@ -988,10 +1215,20 @@ export const PropertiesView: React.FC<PropertiesViewProps> = ({
         </div>
       ) : (
         /* TABLE LIST VIEW */
-        <div className="overflow-x-auto bg-white border border-stone-200 rounded-lg shadow-xs mt-4">
+        <div 
+          className="overflow-x-auto rounded-xl border shadow-sm"
+          style={{ backgroundColor: colors.cardBg, borderColor: theme === 'light' ? 'rgba(11,31,26,0.12)' : 'rgba(255,255,255,0.1)' }}
+        >
           <table className="w-full text-left border-collapse">
             <thead>
-              <tr className="border-b border-stone-250 bg-stone-50 text-[10px] uppercase font-bold tracking-wider text-muted-foreground">
+              <tr 
+                className="border-b text-[10.5px] uppercase font-bold tracking-wider"
+                style={{ 
+                  color: colors.textMuted,
+                  borderColor: theme === 'light' ? 'rgba(11,31,26,0.08)' : 'rgba(255,255,255,0.05)',
+                  backgroundColor: theme === 'light' ? '#F9F8F6' : '#052320'
+                }}
+              >
                 <th className="py-3 px-4">Adresa</th>
                 <th className="py-3 px-4">Druh</th>
                 <th className="py-3 px-4">Transakce</th>
@@ -1000,45 +1237,68 @@ export const PropertiesView: React.FC<PropertiesViewProps> = ({
                 <th className="py-3 px-4"></th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-stone-150 text-xs">
-              {filteredProperties.map((prop) => (
-                <tr
-                  key={prop.id}
-                  onClick={() => {
-                    setSelectedProperty(prop);
-                    setIsDetailOpen(true);
-                  }}
-                  className="hover:bg-stone-50/70 cursor-pointer transition-colors"
-                >
-                  <td className="py-3.5 px-4 font-medium text-foreground truncate max-w-[240px]">
-                    {prop.address}
-                  </td>
-                  <td className="py-3.5 px-4 font-mono capitalize">
-                    {prop.kind} {prop.flat_layout || prop.house_layout || ''}
-                  </td>
-                  <td className="py-3.5 px-4">
-                    <span className="uppercase text-[9px] font-bold bg-stone-100 text-stone-600 px-1.5 py-0.5 rounded-sm">
-                      {prop.transaction}
-                    </span>
-                  </td>
-                  <td className="py-3.5 px-4 text-right font-mono font-bold">
-                    {formatCompactPrice(prop.price)}
-                  </td>
-                  <td className="py-3.5 px-4 text-center">
-                    <span className={`text-[9px] font-semibold px-2 py-0.5 rounded-full uppercase tracking-wider ${
-                      prop.offer_status === 'v nabídce' ? 'bg-emerald-500/10 text-emerald-600' :
-                      prop.offer_status === 'rezervováno' ? 'bg-amber-500/10 text-amber-600' :
-                      prop.offer_status === 'uzavřeno' ? 'bg-indigo-500/10 text-indigo-600' :
-                      'bg-stone-500/10 text-stone-600'
-                    }`}>
-                      {prop.offer_status}
-                    </span>
-                  </td>
-                  <td className="py-3.5 px-4 text-right">
-                    <span className="text-[10px] text-primary hover:underline font-bold">Detail</span>
-                  </td>
-                </tr>
-              ))}
+            <tbody 
+              className="divide-y text-[13px]"
+              style={{ 
+                color: colors.textPrimary,
+                borderColor: theme === 'light' ? 'rgba(11,31,26,0.08)' : 'rgba(255,255,255,0.05)'
+              }}
+            >
+              {filteredProperties.map((prop) => {
+                const count = getMatchingBuyersForProperty(prop).length;
+                const priceStr = prop.price.toLocaleString('cs-CZ') + (prop.transaction === 'pronájem' ? ' Kč/měs' : ' Kč');
+                let displayTitle = '';
+                if (prop.kind === 'byt') {
+                  displayTitle = `Byt ${prop.flat_layout || ''}`;
+                } else if (prop.kind === 'dům') {
+                  displayTitle = `Dům ${prop.house_layout || ''}`;
+                } else if (prop.kind === 'pozemek') {
+                  displayTitle = 'Pozemek';
+                } else if (prop.kind === 'komerční') {
+                  displayTitle = 'Komerční';
+                } else {
+                  displayTitle = 'Garáž/Ostatní';
+                }
+                return (
+                  <tr
+                    key={prop.id}
+                    onClick={() => {
+                      setSelectedProperty(prop);
+                      setIsDetailOpen(true);
+                    }}
+                    className="hover:bg-stone-50/50 dark:hover:bg-white/5 cursor-pointer transition-colors"
+                  >
+                    <td className="py-3.5 px-4 font-medium truncate max-w-[280px]">
+                      {prop.address}
+                    </td>
+                    <td className="py-3.5 px-4 capitalize">
+                      {displayTitle}
+                    </td>
+                    <td className="py-3.5 px-4">
+                      <span className="uppercase text-[9px] font-bold bg-[#00221F] text-white px-2 py-0.5 rounded-[4px]">
+                        {prop.transaction}
+                      </span>
+                    </td>
+                    <td className="py-3.5 px-4 text-right font-semibold" style={{ fontVariantNumeric: 'tabular-nums' }}>
+                      {priceStr}
+                    </td>
+                    <td className="py-3.5 px-4 text-center">
+                      <span className="text-[10.5px] font-medium px-2 py-0.5 rounded-[4px] uppercase tracking-wider"
+                            style={{
+                              backgroundColor: prop.offer_status === 'v nabídce' ? colors.accentBg : prop.offer_status === 'rezervováno' ? '#FBEED8' : colors.grayBg,
+                              color: prop.offer_status === 'v nabídce' ? colors.accentText : prop.offer_status === 'rezervováno' ? '#8A5A16' : colors.textPrimary
+                            }}>
+                        {prop.offer_status === 'uzavřeno' ? 'Prodáno' : prop.offer_status}
+                      </span>
+                    </td>
+                    <td className="py-3.5 px-4 text-right">
+                      <span className="text-[12.5px] font-medium hover:underline" style={{ color: '#0E8A5F' }}>
+                        Detail →
+                      </span>
+                    </td>
+                  </tr>
+                );
+              })}
             </tbody>
           </table>
         </div>
