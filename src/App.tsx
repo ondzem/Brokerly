@@ -7,13 +7,14 @@ import { PropertiesView } from '@/components/PropertiesView';
 import { RemindersView } from '@/components/RemindersView';
 import { SettingsView } from '@/components/SettingsView';
 import { DashboardView } from '@/components/DashboardView';
-import { Briefcase, Users, Home, Clock, Settings as SettingsIcon, Key, LayoutGrid, Sun, Moon } from 'lucide-react';
+import { Briefcase, Users, Home, Clock, Settings as SettingsIcon, Key, LayoutGrid, Sun, Moon, Menu, X } from 'lucide-react';
 import { toast } from 'sonner';
 import { Toaster } from '@/components/ui/sonner';
 
 type ActiveTab = 'dashboard' | 'kanban' | 'contacts' | 'properties' | 'reminders' | 'settings';
 
 export default function App() {
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [activeTab, setActiveTab] = useState<ActiveTab>(() => {
     if (typeof window !== 'undefined') {
       const saved = localStorage.getItem('brokerly_active_tab');
@@ -33,6 +34,12 @@ export default function App() {
   useEffect(() => {
     if (typeof window !== 'undefined') {
       localStorage.setItem('brokerly_theme', theme);
+      const root = window.document.documentElement;
+      if (theme === 'dark') {
+        root.classList.add('dark');
+      } else {
+        root.classList.remove('dark');
+      }
     }
   }, [theme]);
   
@@ -258,11 +265,172 @@ export default function App() {
 
   return (
     <div 
-      className="min-h-screen flex font-sans transition-colors duration-150"
+      className="min-h-screen flex flex-col md:flex-row font-sans transition-colors duration-150"
       style={{ backgroundColor: theme === 'light' ? '#F2F1EC' : '#00221F' }}
     >
-      {/* Sidebar Navigation */}
-      <aside className="w-16 bg-[#00221F] border-r border-[#00221F] flex flex-col justify-between items-center py-6 fixed left-0 top-0 bottom-0 z-40">
+      {/* Mobile Top Navigation */}
+      <header className="md:hidden h-16 bg-[#00221F] text-white flex items-center justify-between px-4 fixed top-0 left-0 right-0 z-40 border-b border-[#00221F]/20 shadow-md select-none">
+        <button
+          onClick={() => {
+            setFocusContactId(undefined);
+            setFocusPropertyId(undefined);
+            setFocusDealId(undefined);
+            setActiveTab('dashboard');
+            setIsMobileMenuOpen(false);
+          }}
+          className="flex items-center gap-2 cursor-pointer focus:outline-none bg-transparent border-none"
+        >
+          <img 
+            src="/White Logo - Brokerly.webp" 
+            alt="Brokerly" 
+            className="w-9 h-9 object-contain" 
+          />
+          <span className="font-display font-light text-[17px] tracking-tight">Brokerly</span>
+        </button>
+
+        <button
+          onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+          className="p-2 text-white/80 hover:text-white transition-colors cursor-pointer focus:outline-none bg-transparent border-none"
+          aria-label="Menu"
+        >
+          {isMobileMenuOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
+        </button>
+      </header>
+
+      {/* Mobile Navigation Drawer Overlay */}
+      {isMobileMenuOpen && (
+        <div className="fixed inset-0 z-30 md:hidden flex flex-col pt-16 bg-[#00221F]/98 backdrop-blur-md select-none animate-in fade-in duration-200">
+          <div className="flex-grow flex flex-col justify-between p-6 overflow-y-auto">
+            <nav className="flex flex-col gap-3">
+              <button
+                onClick={() => {
+                  setFocusContactId(undefined);
+                  setFocusPropertyId(undefined);
+                  setFocusDealId(undefined);
+                  setActiveTab('dashboard');
+                  setIsMobileMenuOpen(false);
+                }}
+                className={`flex items-center gap-3.5 py-3.5 px-4 rounded-xl text-[16px] font-medium transition-all text-left bg-transparent border-none cursor-pointer w-full ${
+                  activeTab === 'dashboard'
+                    ? 'bg-[#00D991]/10 text-[#00D991]'
+                    : 'text-white/80 hover:text-white hover:bg-white/5'
+                }`}
+              >
+                <LayoutGrid className="h-5 w-5 stroke-[1.5]" />
+                <span>Nástěnka (Dashboard)</span>
+              </button>
+
+              <button
+                onClick={() => {
+                  setFocusDealId(undefined);
+                  setActiveTab('kanban');
+                  setIsMobileMenuOpen(false);
+                }}
+                className={`flex items-center gap-3.5 py-3.5 px-4 rounded-xl text-[16px] font-medium transition-all text-left bg-transparent border-none cursor-pointer w-full ${
+                  activeTab === 'kanban'
+                    ? 'bg-[#00D991]/10 text-[#00D991]'
+                    : 'text-white/80 hover:text-white hover:bg-white/5'
+                }`}
+              >
+                <Briefcase className="h-5 w-5 stroke-[1.5]" />
+                <span>Nástěnka obchodů (Kanban)</span>
+              </button>
+
+              <button
+                onClick={() => {
+                  setFocusContactId(undefined);
+                  setActiveTab('contacts');
+                  setIsMobileMenuOpen(false);
+                }}
+                className={`flex items-center gap-3.5 py-3.5 px-4 rounded-xl text-[16px] font-medium transition-all text-left bg-transparent border-none cursor-pointer w-full ${
+                  activeTab === 'contacts'
+                    ? 'bg-[#00D991]/10 text-[#00D991]'
+                    : 'text-white/80 hover:text-white hover:bg-white/5'
+                }`}
+              >
+                <Users className="h-5 w-5 stroke-[1.5]" />
+                <span>Kontakty</span>
+              </button>
+
+              <button
+                onClick={() => {
+                  setFocusPropertyId(undefined);
+                  setActiveTab('properties');
+                  setIsMobileMenuOpen(false);
+                }}
+                className={`flex items-center gap-3.5 py-3.5 px-4 rounded-xl text-[16px] font-medium transition-all text-left bg-transparent border-none cursor-pointer w-full ${
+                  activeTab === 'properties'
+                    ? 'bg-[#00D991]/10 text-[#00D991]'
+                    : 'text-white/80 hover:text-white hover:bg-white/5'
+                }`}
+              >
+                <Home className="h-5 w-5 stroke-[1.5]" />
+                <span>Nemovitosti</span>
+              </button>
+
+              <button
+                onClick={() => {
+                  setActiveTab('reminders');
+                  setIsMobileMenuOpen(false);
+                }}
+                className={`flex items-center gap-3.5 py-3.5 px-4 rounded-xl text-[16px] font-medium transition-all text-left justify-between bg-transparent border-none cursor-pointer w-full ${
+                  activeTab === 'reminders'
+                    ? 'bg-[#00D991]/10 text-[#00D991]'
+                    : 'text-white/80 hover:text-white hover:bg-white/5'
+                }`}
+              >
+                <div className="flex items-center gap-3.5">
+                  <Clock className="h-5 w-5 stroke-[1.5]" />
+                  <span>Dnešní připomínky</span>
+                </div>
+                {pendingCount > 0 && (
+                  <span className="flex h-5 w-5 items-center justify-center rounded-full bg-rose-600 text-[10px] font-bold text-white">
+                    {pendingCount}
+                  </span>
+                )}
+              </button>
+
+              <button
+                onClick={() => {
+                  setActiveTab('settings');
+                  setIsMobileMenuOpen(false);
+                }}
+                className={`flex items-center gap-3.5 py-3.5 px-4 rounded-xl text-[16px] font-medium transition-all text-left bg-transparent border-none cursor-pointer w-full ${
+                  activeTab === 'settings'
+                    ? 'bg-[#00D991]/10 text-[#00D991]'
+                    : 'text-white/80 hover:text-white hover:bg-white/5'
+                }`}
+              >
+                <SettingsIcon className="h-5 w-5 stroke-[1.5]" />
+                <span>Nastavení</span>
+              </button>
+            </nav>
+
+            <div className="flex flex-col gap-3 pt-6 border-t border-white/10">
+              {/* Theme Toggle */}
+              <button
+                onClick={() => setTheme(prev => prev === 'light' ? 'dark' : 'light')}
+                className="flex items-center justify-between py-3.5 px-4 rounded-xl text-[16px] font-medium text-white/80 hover:text-white hover:bg-white/5 transition-all cursor-pointer text-left bg-transparent border-none w-full"
+              >
+                <span className="flex items-center gap-3.5">
+                  {theme === 'light' ? (
+                    <Moon className="h-5 w-5 stroke-[1.5]" />
+                  ) : (
+                    <Sun className="h-5 w-5 stroke-[1.5]" />
+                  )}
+                  <span>{theme === 'light' ? 'Tmavý režim' : 'Světlý režim'}</span>
+                </span>
+                <span className="text-xs text-white/40 uppercase tracking-wider">
+                  {theme === 'light' ? 'vypnuto' : 'zapnuto'}
+                </span>
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Desktop Sidebar Navigation */}
+      <aside className="hidden md:flex w-16 bg-[#00221F] border-r border-[#00221F] flex-col justify-between items-center py-6 fixed left-0 top-0 bottom-0 z-40">
         <div className="flex flex-col items-center gap-8 w-full">
           {/* Brand Logo */}
           <button
@@ -292,7 +460,7 @@ export default function App() {
                 setActiveTab('dashboard');
               }}
               title="Nástěnka (Dashboard)"
-              className={`flex items-center justify-center p-3 rounded-md transition-all ${
+              className={`flex items-center justify-center p-3 rounded-md transition-all cursor-pointer ${
                 activeTab === 'dashboard'
                   ? 'text-[#00D991]'
                   : 'text-white/60 hover:text-white'
@@ -307,7 +475,7 @@ export default function App() {
                 setActiveTab('kanban');
               }}
               title="Nástěnka obchodů"
-              className={`flex items-center justify-center p-3 rounded-md transition-all ${
+              className={`flex items-center justify-center p-3 rounded-md transition-all cursor-pointer ${
                 activeTab === 'kanban'
                   ? 'text-[#00D991]'
                   : 'text-white/60 hover:text-white'
@@ -322,7 +490,7 @@ export default function App() {
                 setActiveTab('contacts');
               }}
               title="Kontakty"
-              className={`flex items-center justify-center p-3 rounded-md transition-all ${
+              className={`flex items-center justify-center p-3 rounded-md transition-all cursor-pointer ${
                 activeTab === 'contacts'
                   ? 'text-[#00D991]'
                   : 'text-white/60 hover:text-white'
@@ -337,7 +505,7 @@ export default function App() {
                 setActiveTab('properties');
               }}
               title="Nemovitosti"
-              className={`flex items-center justify-center p-3 rounded-md transition-all ${
+              className={`flex items-center justify-center p-3 rounded-md transition-all cursor-pointer ${
                 activeTab === 'properties'
                   ? 'text-[#00D991]'
                   : 'text-white/60 hover:text-white'
@@ -349,7 +517,7 @@ export default function App() {
             <button
               onClick={() => setActiveTab('reminders')}
               title="Dnešní připomínky"
-              className={`flex items-center justify-center p-3 rounded-md transition-all relative ${
+              className={`flex items-center justify-center p-3 rounded-md transition-all relative cursor-pointer ${
                 activeTab === 'reminders'
                   ? 'text-[#00D991]'
                   : 'text-white/60 hover:text-white'
@@ -382,7 +550,7 @@ export default function App() {
           <button
             onClick={() => setActiveTab('settings')}
             title="Nastavení"
-            className={`flex items-center justify-center p-3 rounded-md w-full transition-all ${
+            className={`flex items-center justify-center p-3 rounded-md w-full transition-all cursor-pointer ${
               activeTab === 'settings'
                 ? 'text-[#00D991]'
                 : 'text-white/60 hover:text-white'
@@ -395,7 +563,7 @@ export default function App() {
 
       {/* Main Layout Area */}
       <div 
-        className="flex-grow flex flex-col min-h-screen pl-16"
+        className="flex-grow flex flex-col min-h-screen pl-0 md:pl-16 pt-16 md:pt-0"
         style={{ backgroundColor: theme === 'light' ? '#F2F1EC' : '#00221F' }}
       >
         {/* Main Container */}

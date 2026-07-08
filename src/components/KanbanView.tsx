@@ -350,7 +350,7 @@ export const KanbanView: React.FC<KanbanViewProps> = ({
       </div>
 
       {/* Kanban Board */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 lg:grid-cols-8 gap-4 items-start overflow-x-auto pb-4">
+      <div className="flex flex-row overflow-x-auto pb-4 gap-4 items-start select-none scrollbar-thin">
         {STAGES.map((col) => {
           const colDeals = deals.filter((d) => d.stage === col.id);
 
@@ -360,17 +360,17 @@ export const KanbanView: React.FC<KanbanViewProps> = ({
               onDragOver={(e) => handleDragOverCol(e, col.id)}
               onDragLeave={handleDragLeaveCol}
               onDrop={(e) => handleDropCol(e, col.id)}
-              className={`rounded-lg border-2 p-3.5 min-h-[520px] flex flex-col gap-3 transition-all duration-200 ${
+              className={`rounded-lg border-2 p-3.5 min-h-[520px] flex flex-col gap-3 transition-all duration-200 w-[280px] shrink-0 ${
                 draggedOverCol === col.id
                   ? 'bg-[#00D991]/5 border-dashed border-[#00D991]'
-                  : 'bg-stone-50/50 border-transparent'
+                  : 'bg-stone-50/50 border-transparent dark:bg-white/5'
               }`}
             >
               <div className="flex items-center justify-between border-b border-border/60 pb-2">
-                <span className="font-display text-[13px] text-[#141414] font-semibold">
+                <span className="font-display text-[13px] text-[#141414] dark:text-white font-semibold">
                   {col.label}
                 </span>
-                <span className="bg-secondary text-stone-600 text-xs px-2 py-0.5 rounded-full font-medium">
+                <span className="bg-secondary dark:bg-white/10 text-stone-600 dark:text-stone-300 text-xs px-2 py-0.5 rounded-full font-medium">
                   {colDeals.length}
                 </span>
               </div>
@@ -385,10 +385,10 @@ export const KanbanView: React.FC<KanbanViewProps> = ({
                       draggable
                       onDragStart={(e) => handleDragStart(e, deal.id)}
                       onClick={() => openDealDetails(deal)}
-                      className="bg-white rounded-md border border-border/85 p-3.5 hover:border-[#00D991] hover:shadow-sm cursor-grab active:cursor-grabbing transition-all duration-150 space-y-3"
+                      className="bg-white dark:bg-[#072C27] rounded-md border border-border/85 dark:border-white/10 p-3.5 hover:border-[#00D991] hover:shadow-sm cursor-grab active:cursor-grabbing transition-all duration-150 space-y-3"
                     >
                       <div className="space-y-1">
-                        <div className="font-display text-[13px] leading-snug font-semibold text-foreground truncate">
+                        <div className="font-display text-[13px] leading-snug font-semibold text-foreground dark:text-white truncate">
                           {deal.deal_name}
                         </div>
                         {deal.value && (
@@ -400,7 +400,7 @@ export const KanbanView: React.FC<KanbanViewProps> = ({
 
                       <div className="flex flex-wrap gap-1">
                         {deal.financing && (
-                          <span className="bg-stone-100 text-stone-600 text-[9px] font-semibold px-2 py-0.5 rounded-full uppercase tracking-wider">
+                          <span className="bg-stone-100 dark:bg-white/10 text-stone-600 dark:text-stone-300 text-[9px] font-semibold px-2 py-0.5 rounded-full uppercase tracking-wider">
                             {deal.financing}
                           </span>
                         )}
