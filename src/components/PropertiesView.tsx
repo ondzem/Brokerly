@@ -1055,8 +1055,8 @@ export const PropertiesView: React.FC<PropertiesViewProps> = ({
       {filteredProperties.length === 0 ? (
         /* Empty State (3E Design) */
         <div 
-          className="border border-dashed rounded-xl py-18 px-10 flex flex-col items-center justify-center gap-2.5 text-center shadow-xs"
-          style={{ borderColor: colors.propPlaceholderStroke, backgroundColor: colors.cardBg }}
+          className="border border-dashed rounded-xl py-18 px-10 flex flex-col items-center justify-center gap-2.5 text-center"
+          style={{ borderColor: colors.propPlaceholderStroke, backgroundColor: 'transparent' }}
         >
           <svg width="44" height="44" viewBox="0 0 24 24" fill="none" stroke={colors.textMuted} strokeWidth="1.2" className="flex-none">
             <path d="M4.5 10.5L12 4l7.5 6.5V20h-5.5v-5.5h-4V20H4.5z" />
