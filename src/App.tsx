@@ -301,7 +301,7 @@ export default function App() {
       {isMobileMenuOpen && (
         <div className="fixed inset-0 z-30 md:hidden flex flex-col pt-16 bg-[#00221F]/98 backdrop-blur-md select-none animate-in fade-in duration-200">
           <div className="flex-grow flex flex-col justify-between p-6 overflow-y-auto">
-            <nav className="flex flex-col gap-3">
+            <nav className="flex flex-col gap-3 justify-center items-center">
               <button
                 onClick={() => {
                   setFocusContactId(undefined);
@@ -310,7 +310,7 @@ export default function App() {
                   setActiveTab('dashboard');
                   setIsMobileMenuOpen(false);
                 }}
-                className={`flex items-center gap-3.5 py-3.5 px-4 rounded-xl text-[16px] font-medium transition-all text-left bg-transparent border-none cursor-pointer w-full ${
+                className={`flex items-center justify-center gap-3 py-3.5 px-4 rounded-xl text-[18px] font-medium transition-all bg-transparent border-none cursor-pointer w-full ${
                   activeTab === 'dashboard'
                     ? 'bg-[#00D991]/10 text-[#00D991]'
                     : 'text-white/80 hover:text-white hover:bg-white/5'
@@ -326,7 +326,7 @@ export default function App() {
                   setActiveTab('kanban');
                   setIsMobileMenuOpen(false);
                 }}
-                className={`flex items-center gap-3.5 py-3.5 px-4 rounded-xl text-[16px] font-medium transition-all text-left bg-transparent border-none cursor-pointer w-full ${
+                className={`flex items-center justify-center gap-3 py-3.5 px-4 rounded-xl text-[18px] font-medium transition-all bg-transparent border-none cursor-pointer w-full ${
                   activeTab === 'kanban'
                     ? 'bg-[#00D991]/10 text-[#00D991]'
                     : 'text-white/80 hover:text-white hover:bg-white/5'
@@ -342,7 +342,7 @@ export default function App() {
                   setActiveTab('contacts');
                   setIsMobileMenuOpen(false);
                 }}
-                className={`flex items-center gap-3.5 py-3.5 px-4 rounded-xl text-[16px] font-medium transition-all text-left bg-transparent border-none cursor-pointer w-full ${
+                className={`flex items-center justify-center gap-3 py-3.5 px-4 rounded-xl text-[18px] font-medium transition-all bg-transparent border-none cursor-pointer w-full ${
                   activeTab === 'contacts'
                     ? 'bg-[#00D991]/10 text-[#00D991]'
                     : 'text-white/80 hover:text-white hover:bg-white/5'
@@ -358,7 +358,7 @@ export default function App() {
                   setActiveTab('properties');
                   setIsMobileMenuOpen(false);
                 }}
-                className={`flex items-center gap-3.5 py-3.5 px-4 rounded-xl text-[16px] font-medium transition-all text-left bg-transparent border-none cursor-pointer w-full ${
+                className={`flex items-center justify-center gap-3 py-3.5 px-4 rounded-xl text-[18px] font-medium transition-all bg-transparent border-none cursor-pointer w-full ${
                   activeTab === 'properties'
                     ? 'bg-[#00D991]/10 text-[#00D991]'
                     : 'text-white/80 hover:text-white hover:bg-white/5'
@@ -373,18 +373,16 @@ export default function App() {
                   setActiveTab('reminders');
                   setIsMobileMenuOpen(false);
                 }}
-                className={`flex items-center gap-3.5 py-3.5 px-4 rounded-xl text-[16px] font-medium transition-all text-left justify-between bg-transparent border-none cursor-pointer w-full ${
+                className={`flex items-center justify-center gap-3 py-3.5 px-4 rounded-xl text-[18px] font-medium transition-all bg-transparent border-none cursor-pointer w-full ${
                   activeTab === 'reminders'
                     ? 'bg-[#00D991]/10 text-[#00D991]'
                     : 'text-white/80 hover:text-white hover:bg-white/5'
                 }`}
               >
-                <div className="flex items-center gap-3.5">
-                  <Clock className="h-5 w-5 stroke-[1.5]" />
-                  <span>Dnešní připomínky</span>
-                </div>
+                <Clock className="h-5 w-5 stroke-[1.5]" />
+                <span>Dnešní připomínky</span>
                 {pendingCount > 0 && (
-                  <span className="flex h-5 w-5 items-center justify-center rounded-full bg-rose-600 text-[10px] font-bold text-white">
+                  <span className="flex h-5 w-5 items-center justify-center rounded-full bg-rose-600 text-[10px] font-bold text-white ml-1">
                     {pendingCount}
                   </span>
                 )}
@@ -395,7 +393,7 @@ export default function App() {
                   setActiveTab('settings');
                   setIsMobileMenuOpen(false);
                 }}
-                className={`flex items-center gap-3.5 py-3.5 px-4 rounded-xl text-[16px] font-medium transition-all text-left bg-transparent border-none cursor-pointer w-full ${
+                className={`flex items-center justify-center gap-3 py-3.5 px-4 rounded-xl text-[18px] font-medium transition-all bg-transparent border-none cursor-pointer w-full ${
                   activeTab === 'settings'
                     ? 'bg-[#00D991]/10 text-[#00D991]'
                     : 'text-white/80 hover:text-white hover:bg-white/5'
@@ -406,22 +404,20 @@ export default function App() {
               </button>
             </nav>
 
-            <div className="flex flex-col gap-3 pt-6 border-t border-white/10">
+            <div className="flex flex-col gap-3 pt-6 border-t border-white/10 w-full items-center">
               {/* Theme Toggle */}
               <button
                 onClick={() => setTheme(prev => prev === 'light' ? 'dark' : 'light')}
-                className="flex items-center justify-between py-3.5 px-4 rounded-xl text-[16px] font-medium text-white/80 hover:text-white hover:bg-white/5 transition-all cursor-pointer text-left bg-transparent border-none w-full"
+                className="flex items-center justify-center gap-3 py-3.5 px-4 rounded-xl text-[18px] font-medium text-white/80 hover:text-white hover:bg-white/5 transition-all cursor-pointer bg-transparent border-none w-full text-center"
               >
-                <span className="flex items-center gap-3.5">
-                  {theme === 'light' ? (
-                    <Moon className="h-5 w-5 stroke-[1.5]" />
-                  ) : (
-                    <Sun className="h-5 w-5 stroke-[1.5]" />
-                  )}
-                  <span>{theme === 'light' ? 'Tmavý režim' : 'Světlý režim'}</span>
-                </span>
-                <span className="text-xs text-white/40 uppercase tracking-wider">
-                  {theme === 'light' ? 'vypnuto' : 'zapnuto'}
+                {theme === 'light' ? (
+                  <Moon className="h-5 w-5 stroke-[1.5]" />
+                ) : (
+                  <Sun className="h-5 w-5 stroke-[1.5]" />
+                )}
+                <span>{theme === 'light' ? 'Tmavý režim' : 'Světlý režim'}</span>
+                <span className="text-xs text-white/40 uppercase tracking-wider ml-1">
+                  ({theme === 'light' ? 'vypnuto' : 'zapnuto'})
                 </span>
               </button>
             </div>

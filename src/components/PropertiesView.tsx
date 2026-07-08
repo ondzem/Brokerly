@@ -895,8 +895,8 @@ export const PropertiesView: React.FC<PropertiesViewProps> = ({
   return (
     <div className="space-y-6 select-none font-sans">
       {/* Header section (3C Design) */}
-      <div className="flex justify-between items-baseline md:items-center">
-        <div className="flex flex-col md:flex-row md:items-baseline gap-2 md:gap-3.5">
+      <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3">
+        <div className="flex flex-col gap-1">
           <h1 className="font-display font-light text-[26px] leading-tight" style={{ color: colors.textPrimary }}>
             Nemovitosti
           </h1>
@@ -906,7 +906,7 @@ export const PropertiesView: React.FC<PropertiesViewProps> = ({
         </div>
         <button
           onClick={handleOpenCreate}
-          className="flex items-center gap-2 hover:opacity-90 font-medium text-[14px] px-4 py-2.5 rounded-[10px] cursor-pointer transition-all duration-150 flex-none"
+          className="flex items-center justify-center gap-2 hover:opacity-90 font-medium text-[14px] px-4 py-2.5 rounded-[10px] cursor-pointer transition-all duration-150 w-full sm:w-auto flex-none shadow-xs"
           style={{ backgroundColor: colors.accent, color: '#00221F' }}
         >
           + Nová nemovitost
