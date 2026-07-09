@@ -1053,27 +1053,13 @@ export const PropertiesView: React.FC<PropertiesViewProps> = ({
       </div>
 
       {/* Search & View Mode Filters Bar (Mobile - Collapsible Filter Drawer) */}
-      <div className="flex md:hidden flex-col gap-3 w-full">
-        <div className="flex items-center gap-2 w-full">
-          {/* Search */}
-          <div 
-            className="flex items-center gap-2 bg-white border border-stone-250/70 rounded-full px-3.5 py-1.5 flex-grow shadow-sm dark:bg-stone-900 dark:border-white/10"
-          >
-            <Search className="h-3.5 w-3.5" style={{ color: colors.textMuted }} />
-            <input
-              type="text"
-              placeholder="Hledat"
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full bg-transparent border-none outline-none text-[12.5px] placeholder-stone-400 focus:ring-0 p-0"
-              style={{ color: colors.textPrimary }}
-            />
-          </div>
-
+      <div className="flex md:hidden flex-col gap-3.5 w-full">
+        {/* Row 1: Filters (Left) and View Switcher (Right) */}
+        <div className="flex items-center justify-between w-full">
           {/* Toggle Filter Button */}
           <button
             onClick={() => setIsMobileFiltersExpanded(!isMobileFiltersExpanded)}
-            className="flex items-center justify-center gap-1.5 px-3.5 py-2.2 rounded-full border border-stone-250/70 bg-white dark:bg-stone-900 dark:border-white/10 font-medium text-[13px] shadow-sm cursor-pointer select-none"
+            className="flex items-center justify-center gap-1.5 px-4 py-2.2 rounded-full border border-stone-250/70 bg-white dark:bg-stone-900 dark:border-white/10 font-medium text-[13.5px] shadow-sm cursor-pointer select-none"
             style={{ color: colors.textPrimary }}
           >
             <SlidersHorizontal className="h-3.5 w-3.5" style={{ color: isMobileFiltersExpanded ? colors.accent : colors.textMuted }} />
@@ -1087,7 +1073,7 @@ export const PropertiesView: React.FC<PropertiesViewProps> = ({
           <div className="flex bg-[#ECEBE6] p-[3px] rounded-[10px] flex-none dark:bg-stone-850">
             <button
               onClick={() => setViewMode('cards')}
-              className={`px-2.5 py-1 rounded-[8px] text-[12px] font-medium transition-all duration-150 cursor-pointer ${
+              className={`px-3 py-1.5 rounded-[8px] text-[12.5px] font-medium transition-all duration-150 cursor-pointer ${
                 viewMode === 'cards'
                   ? 'bg-white text-[#0B1F1A] shadow-xs dark:bg-stone-900 dark:text-white'
                   : 'text-stone-500 hover:text-stone-800 dark:text-stone-400 dark:hover:text-stone-200'
@@ -1097,7 +1083,7 @@ export const PropertiesView: React.FC<PropertiesViewProps> = ({
             </button>
             <button
               onClick={() => setViewMode('list')}
-              className={`px-2.5 py-1 rounded-[8px] text-[12px] font-medium transition-all duration-150 cursor-pointer ${
+              className={`px-3 py-1.5 rounded-[8px] text-[12.5px] font-medium transition-all duration-150 cursor-pointer ${
                 viewMode === 'list'
                   ? 'bg-white text-[#0B1F1A] shadow-xs dark:bg-stone-900 dark:text-white'
                   : 'text-stone-500 hover:text-stone-800 dark:text-stone-400 dark:hover:text-stone-200'
@@ -1106,6 +1092,21 @@ export const PropertiesView: React.FC<PropertiesViewProps> = ({
               Seznam
             </button>
           </div>
+        </div>
+
+        {/* Row 2: Full-width Search Input */}
+        <div 
+          className="flex items-center gap-2 bg-white border border-stone-250/70 rounded-full px-3.5 py-1.8 w-full shadow-sm dark:bg-stone-900 dark:border-white/10"
+        >
+          <Search className="h-3.5 w-3.5" style={{ color: colors.textMuted }} />
+          <input
+            type="text"
+            placeholder="Hledat"
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="w-full bg-transparent border-none outline-none text-[12.5px] placeholder-stone-400 focus:ring-0 p-0"
+            style={{ color: colors.textPrimary }}
+          />
         </div>
 
         {/* Collapsible Mobile Options Box */}
