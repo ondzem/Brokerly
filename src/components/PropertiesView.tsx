@@ -918,7 +918,7 @@ export const PropertiesView: React.FC<PropertiesViewProps> = ({
       <div className="hidden md:flex items-center gap-2 overflow-x-auto whitespace-nowrap scrollbar-none py-1">
         {/* Search */}
         <div 
-          className="flex items-center gap-2 bg-white border border-stone-250/70 rounded-full px-3.5 py-1.5 w-[180px] flex-none shadow-sm dark:bg-stone-900 dark:border-white/10"
+          className="flex items-center gap-2 bg-white border border-stone-250/70 rounded-full px-3.5 h-9 w-[180px] flex-none shadow-sm dark:bg-stone-900 dark:border-white/10"
         >
           <Search className="h-3.5 w-3.5" style={{ color: colors.textMuted }} />
           <input
@@ -926,7 +926,7 @@ export const PropertiesView: React.FC<PropertiesViewProps> = ({
             placeholder="Hledat"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full bg-transparent border-none outline-none text-[12.5px] placeholder-stone-400 focus:ring-0 p-0"
+            className="w-full bg-transparent border-none outline-none text-[12.5px] placeholder-stone-400 focus:ring-0 p-0 h-full"
             style={{ color: colors.textPrimary }}
           />
         </div>
@@ -1028,10 +1028,10 @@ export const PropertiesView: React.FC<PropertiesViewProps> = ({
         ))}
 
         {/* View Mode controls / toggles */}
-        <div className="ml-auto flex bg-[#ECEBE6] p-[3px] rounded-[10px] flex-none dark:bg-stone-850">
+        <div className="ml-auto flex bg-[#ECEBE6] p-[3px] rounded-[10px] flex-none dark:bg-stone-850 h-9 items-center">
           <button
             onClick={() => setViewMode('cards')}
-            className={`px-3 py-1.5 rounded-[8px] text-[12.5px] font-medium transition-all duration-150 cursor-pointer ${
+            className={`px-3.5 h-[30px] flex items-center justify-center rounded-[8px] text-[12.5px] font-medium transition-all duration-150 cursor-pointer ${
               viewMode === 'cards'
                 ? 'bg-white text-[#0B1F1A] shadow-xs dark:bg-stone-900 dark:text-white'
                 : 'text-stone-500 hover:text-stone-800 dark:text-stone-400 dark:hover:text-stone-200'
@@ -1041,7 +1041,7 @@ export const PropertiesView: React.FC<PropertiesViewProps> = ({
           </button>
           <button
             onClick={() => setViewMode('list')}
-            className={`px-3 py-1.5 rounded-[8px] text-[12.5px] font-medium transition-all duration-150 cursor-pointer ${
+            className={`px-3.5 h-[30px] flex items-center justify-center rounded-[8px] text-[12.5px] font-medium transition-all duration-150 cursor-pointer ${
               viewMode === 'list'
                 ? 'bg-white text-[#0B1F1A] shadow-xs dark:bg-stone-900 dark:text-white'
                 : 'text-stone-500 hover:text-stone-800 dark:text-stone-400 dark:hover:text-stone-200'
@@ -1059,7 +1059,7 @@ export const PropertiesView: React.FC<PropertiesViewProps> = ({
           {/* Toggle Filter Button */}
           <button
             onClick={() => setIsMobileFiltersExpanded(!isMobileFiltersExpanded)}
-            className="flex items-center justify-center gap-1.5 px-4 py-2.2 rounded-full border border-stone-250/70 bg-white dark:bg-stone-900 dark:border-white/10 font-medium text-[13.5px] shadow-sm cursor-pointer select-none"
+            className="flex items-center justify-center gap-1.5 px-4 h-9 rounded-full border border-stone-250/70 bg-white dark:bg-stone-900 dark:border-white/10 font-medium text-[12.5px] shadow-sm cursor-pointer select-none"
             style={{ color: colors.textPrimary }}
           >
             <SlidersHorizontal className="h-3.5 w-3.5" style={{ color: isMobileFiltersExpanded ? colors.accent : colors.textMuted }} />
@@ -1070,10 +1070,10 @@ export const PropertiesView: React.FC<PropertiesViewProps> = ({
           </button>
 
           {/* View Switcher */}
-          <div className="flex bg-[#ECEBE6] p-[3px] rounded-[10px] flex-none dark:bg-stone-850">
+          <div className="flex bg-[#ECEBE6] p-[3px] rounded-[10px] flex-none dark:bg-stone-850 h-9 items-center">
             <button
               onClick={() => setViewMode('cards')}
-              className={`px-3 py-1.5 rounded-[8px] text-[12.5px] font-medium transition-all duration-150 cursor-pointer ${
+              className={`px-3.5 h-[30px] flex items-center justify-center rounded-[8px] text-[12.5px] font-medium transition-all duration-150 cursor-pointer ${
                 viewMode === 'cards'
                   ? 'bg-white text-[#0B1F1A] shadow-xs dark:bg-stone-900 dark:text-white'
                   : 'text-stone-500 hover:text-stone-800 dark:text-stone-400 dark:hover:text-stone-200'
@@ -1083,7 +1083,7 @@ export const PropertiesView: React.FC<PropertiesViewProps> = ({
             </button>
             <button
               onClick={() => setViewMode('list')}
-              className={`px-3 py-1.5 rounded-[8px] text-[12.5px] font-medium transition-all duration-150 cursor-pointer ${
+              className={`px-3.5 h-[30px] flex items-center justify-center rounded-[8px] text-[12.5px] font-medium transition-all duration-150 cursor-pointer ${
                 viewMode === 'list'
                   ? 'bg-white text-[#0B1F1A] shadow-xs dark:bg-stone-900 dark:text-white'
                   : 'text-stone-500 hover:text-stone-800 dark:text-stone-400 dark:hover:text-stone-200'
@@ -1096,7 +1096,7 @@ export const PropertiesView: React.FC<PropertiesViewProps> = ({
 
         {/* Row 2: Full-width Search Input */}
         <div 
-          className="flex items-center gap-2 bg-white border border-stone-250/70 rounded-full px-3.5 py-1.8 w-full shadow-sm dark:bg-stone-900 dark:border-white/10"
+          className="flex items-center gap-2 bg-white border border-stone-250/70 rounded-full px-3.5 h-9 w-full shadow-sm dark:bg-stone-900 dark:border-white/10"
         >
           <Search className="h-3.5 w-3.5" style={{ color: colors.textMuted }} />
           <input
@@ -1104,7 +1104,7 @@ export const PropertiesView: React.FC<PropertiesViewProps> = ({
             placeholder="Hledat"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full bg-transparent border-none outline-none text-[12.5px] placeholder-stone-400 focus:ring-0 p-0"
+            className="w-full bg-transparent border-none outline-none text-[12.5px] placeholder-stone-400 focus:ring-0 p-0 h-full"
             style={{ color: colors.textPrimary }}
           />
         </div>
@@ -1393,92 +1393,162 @@ export const PropertiesView: React.FC<PropertiesViewProps> = ({
         </div>
       ) : (
         /* TABLE LIST VIEW */
-        <div 
-          className="overflow-x-auto rounded-xl border shadow-sm"
-          style={{ backgroundColor: colors.cardBg, borderColor: theme === 'light' ? 'rgba(11,31,26,0.12)' : 'rgba(255,255,255,0.1)' }}
-        >
-          <table className="w-full text-left border-collapse">
-            <thead>
-              <tr 
-                className="border-b text-[10.5px] uppercase font-bold tracking-wider"
+        /* TABLE LIST VIEW (Desktop table, Mobile stacked list) */
+        <div>
+          {/* Desktop Table View */}
+          <div 
+            className="hidden md:block overflow-x-auto rounded-xl border shadow-sm"
+            style={{ backgroundColor: colors.cardBg, borderColor: theme === 'light' ? 'rgba(11,31,26,0.12)' : 'rgba(255,255,255,0.1)' }}
+          >
+            <table className="w-full text-left border-collapse">
+              <thead>
+                <tr 
+                  className="border-b text-[10.5px] uppercase font-bold tracking-wider"
+                  style={{ 
+                    color: colors.textMuted,
+                    borderColor: theme === 'light' ? 'rgba(11,31,26,0.08)' : 'rgba(255,255,255,0.05)',
+                    backgroundColor: theme === 'light' ? '#F9F8F6' : '#052320'
+                  }}
+                >
+                  <th className="py-3 px-4">Adresa</th>
+                  <th className="py-3 px-4">Druh</th>
+                  <th className="py-3 px-4">Transakce</th>
+                  <th className="py-3 px-4 text-right">Cena</th>
+                  <th className="py-3 px-4 text-center">Stav</th>
+                  <th className="py-3 px-4"></th>
+                </tr>
+              </thead>
+              <tbody 
+                className="divide-y text-[13px]"
                 style={{ 
-                  color: colors.textMuted,
-                  borderColor: theme === 'light' ? 'rgba(11,31,26,0.08)' : 'rgba(255,255,255,0.05)',
-                  backgroundColor: theme === 'light' ? '#F9F8F6' : '#052320'
+                  color: colors.textPrimary,
+                  borderColor: theme === 'light' ? 'rgba(11,31,26,0.08)' : 'rgba(255,255,255,0.05)'
                 }}
               >
-                <th className="py-3 px-4">Adresa</th>
-                <th className="py-3 px-4">Druh</th>
-                <th className="py-3 px-4">Transakce</th>
-                <th className="py-3 px-4 text-right">Cena</th>
-                <th className="py-3 px-4 text-center">Stav</th>
-                <th className="py-3 px-4"></th>
-              </tr>
-            </thead>
-            <tbody 
-              className="divide-y text-[13px]"
-              style={{ 
-                color: colors.textPrimary,
-                borderColor: theme === 'light' ? 'rgba(11,31,26,0.08)' : 'rgba(255,255,255,0.05)'
-              }}
-            >
-              {filteredProperties.map((prop) => {
-                const count = getMatchingBuyersForProperty(prop).length;
-                const priceStr = prop.price.toLocaleString('cs-CZ') + (prop.transaction === 'pronájem' ? ' Kč/měs' : ' Kč');
-                let displayTitle = '';
-                if (prop.kind === 'byt') {
-                  displayTitle = `Byt ${prop.flat_layout || ''}`;
-                } else if (prop.kind === 'dům') {
-                  displayTitle = `Dům ${prop.house_layout || ''}`;
-                } else if (prop.kind === 'pozemek') {
-                  displayTitle = 'Pozemek';
-                } else if (prop.kind === 'komerční') {
-                  displayTitle = 'Komerční';
-                } else {
-                  displayTitle = 'Garáž/Ostatní';
-                }
-                return (
-                  <tr
-                    key={prop.id}
-                    onClick={() => {
-                      setSelectedProperty(prop);
-                      setIsDetailOpen(true);
-                    }}
-                    className="hover:bg-stone-50/50 dark:hover:bg-white/5 cursor-pointer transition-colors"
-                  >
-                    <td className="py-3.5 px-4 font-medium truncate max-w-[280px]">
+                {filteredProperties.map((prop) => {
+                  const count = getMatchingBuyersForProperty(prop).length;
+                  const priceStr = prop.price.toLocaleString('cs-CZ') + (prop.transaction === 'pronájem' ? ' Kč/měs' : ' Kč');
+                  let displayTitle = '';
+                  if (prop.kind === 'byt') {
+                    displayTitle = `Byt ${prop.flat_layout || ''}`;
+                  } else if (prop.kind === 'dům') {
+                    displayTitle = `Dům ${prop.house_layout || ''}`;
+                  } else if (prop.kind === 'pozemek') {
+                    displayTitle = 'Pozemek';
+                  } else if (prop.kind === 'komerční') {
+                    displayTitle = 'Komerční';
+                  } else {
+                    displayTitle = 'Garáž/Ostatní';
+                  }
+                  return (
+                    <tr
+                      key={prop.id}
+                      onClick={() => {
+                        setSelectedProperty(prop);
+                        setIsDetailOpen(true);
+                      }}
+                      className="hover:bg-stone-50/50 dark:hover:bg-white/5 cursor-pointer transition-colors"
+                    >
+                      <td className="py-3.5 px-4 font-medium truncate max-w-[280px]">
+                        {prop.address}
+                      </td>
+                      <td className="py-3.5 px-4 capitalize">
+                        {displayTitle}
+                      </td>
+                      <td className="py-3.5 px-4">
+                        <span className="uppercase text-[9px] font-bold bg-[#00221F] text-white px-2 py-0.5 rounded-[4px]">
+                          {prop.transaction}
+                        </span>
+                      </td>
+                      <td className="py-3.5 px-4 text-right font-semibold" style={{ fontVariantNumeric: 'tabular-nums' }}>
+                        {priceStr}
+                      </td>
+                      <td className="py-3.5 px-4 text-center">
+                        <span className="text-[10.5px] font-medium px-2 py-0.5 rounded-[4px] uppercase tracking-wider"
+                              style={{
+                                backgroundColor: prop.offer_status === 'v nabídce' ? colors.accentBg : prop.offer_status === 'rezervováno' ? '#FBEED8' : colors.grayBg,
+                                color: prop.offer_status === 'v nabídce' ? colors.accentText : prop.offer_status === 'rezervováno' ? '#8A5A16' : colors.textPrimary
+                              }}>
+                          {prop.offer_status === 'uzavřeno' ? 'Prodáno' : prop.offer_status}
+                        </span>
+                      </td>
+                      <td className="py-3.5 px-4 text-right">
+                        <span className="text-[12.5px] font-medium hover:underline" style={{ color: '#0E8A5F' }}>
+                          Detail →
+                        </span>
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+
+          {/* Mobile Stacked List View */}
+          <div className="block md:hidden space-y-3">
+            {filteredProperties.map((prop) => {
+              const priceStr = prop.price.toLocaleString('cs-CZ') + (prop.transaction === 'pronájem' ? ' Kč/měs' : ' Kč');
+              let displayTitle = '';
+              if (prop.kind === 'byt') {
+                displayTitle = `Byt ${prop.flat_layout || ''}`;
+              } else if (prop.kind === 'dům') {
+                displayTitle = `Dům ${prop.house_layout || ''}`;
+              } else if (prop.kind === 'pozemek') {
+                displayTitle = 'Pozemek';
+              } else if (prop.kind === 'komerční') {
+                displayTitle = 'Komerční';
+              } else {
+                displayTitle = 'Garáž/Ostatní';
+              }
+
+              return (
+                <div
+                  key={prop.id}
+                  onClick={() => {
+                    setSelectedProperty(prop);
+                    setIsDetailOpen(true);
+                  }}
+                  className={`p-4 rounded-xl border flex flex-col gap-2.5 shadow-xs cursor-pointer hover:border-[#00D991]/50 transition-all ${colors.cardBorder}`}
+                  style={{ backgroundColor: colors.cardBg }}
+                >
+                  <div className="flex justify-between items-start gap-2">
+                    <div className="font-semibold text-[14.5px] truncate max-w-[70%]" style={{ color: colors.textPrimary }}>
                       {prop.address}
-                    </td>
-                    <td className="py-3.5 px-4 capitalize">
-                      {displayTitle}
-                    </td>
-                    <td className="py-3.5 px-4">
+                    </div>
+                    <span 
+                      className="text-[10px] font-medium px-2 py-0.5 rounded-[4px] uppercase tracking-wider flex-none"
+                      style={{
+                        backgroundColor: prop.offer_status === 'v nabídce' ? colors.accentBg : prop.offer_status === 'rezervováno' ? '#FBEED8' : colors.grayBg,
+                        color: prop.offer_status === 'v nabídce' ? colors.accentText : prop.offer_status === 'rezervováno' ? '#8A5A16' : colors.textPrimary
+                      }}
+                    >
+                      {prop.offer_status === 'uzavřeno' ? 'Prodáno' : prop.offer_status}
+                    </span>
+                  </div>
+
+                  <div className="flex justify-between items-center text-[13px]">
+                    <div className="flex items-center gap-2">
                       <span className="uppercase text-[9px] font-bold bg-[#00221F] text-white px-2 py-0.5 rounded-[4px]">
                         {prop.transaction}
                       </span>
-                    </td>
-                    <td className="py-3.5 px-4 text-right font-semibold" style={{ fontVariantNumeric: 'tabular-nums' }}>
+                      <span className="capitalize" style={{ color: colors.textSecondary }}>
+                        {displayTitle}
+                      </span>
+                    </div>
+                    <div className="font-semibold" style={{ color: colors.textPrimary, fontVariantNumeric: 'tabular-nums' }}>
                       {priceStr}
-                    </td>
-                    <td className="py-3.5 px-4 text-center">
-                      <span className="text-[10.5px] font-medium px-2 py-0.5 rounded-[4px] uppercase tracking-wider"
-                            style={{
-                              backgroundColor: prop.offer_status === 'v nabídce' ? colors.accentBg : prop.offer_status === 'rezervováno' ? '#FBEED8' : colors.grayBg,
-                              color: prop.offer_status === 'v nabídce' ? colors.accentText : prop.offer_status === 'rezervováno' ? '#8A5A16' : colors.textPrimary
-                            }}>
-                        {prop.offer_status === 'uzavřeno' ? 'Prodáno' : prop.offer_status}
-                      </span>
-                    </td>
-                    <td className="py-3.5 px-4 text-right">
-                      <span className="text-[12.5px] font-medium hover:underline" style={{ color: '#0E8A5F' }}>
-                        Detail →
-                      </span>
-                    </td>
-                  </tr>
-                );
-              })}
-            </tbody>
-          </table>
+                    </div>
+                  </div>
+
+                  <div className="flex justify-end pt-2 border-t" style={{ borderColor: theme === 'light' ? 'rgba(11,31,26,0.06)' : 'rgba(255,255,255,0.04)' }}>
+                    <span className="text-[12.5px] font-medium hover:underline flex items-center gap-1" style={{ color: '#0E8A5F' }}>
+                      Detail nemovitosti →
+                    </span>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
         </div>
       )}
 
