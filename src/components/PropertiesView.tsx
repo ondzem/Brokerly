@@ -896,7 +896,7 @@ export const PropertiesView: React.FC<PropertiesViewProps> = ({
   return (
     <div className="space-y-6 select-none font-sans">
       {/* Header section (3C Design) */}
-      <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3">
+      <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3 mb-2.5 sm:mb-0">
         <div className="flex flex-col gap-1">
           <h1 className="font-display font-light text-[26px] leading-tight" style={{ color: colors.textPrimary }}>
             Nemovitosti
@@ -918,7 +918,7 @@ export const PropertiesView: React.FC<PropertiesViewProps> = ({
       <div className="hidden md:flex items-center gap-2 overflow-x-auto whitespace-nowrap scrollbar-none py-1">
         {/* Search */}
         <div 
-          className="flex items-center gap-2 bg-white border border-stone-250/70 rounded-full px-3.5 h-9 w-[180px] flex-none shadow-sm dark:bg-stone-900 dark:border-white/10"
+          className="flex items-center gap-2 bg-white border border-stone-250/70 rounded-[10px] px-3.5 h-9 w-[180px] flex-none shadow-sm dark:bg-stone-900 dark:border-white/10"
         >
           <Search className="h-3.5 w-3.5" style={{ color: colors.textMuted }} />
           <input
@@ -937,7 +937,7 @@ export const PropertiesView: React.FC<PropertiesViewProps> = ({
         {/* Transaction Filters */}
         <button
           onClick={() => setTransactionFilter('vše')}
-          className={`text-[12.5px] font-medium px-[11px] py-[5px] rounded-full transition-all duration-150 border flex-none cursor-pointer ${
+          className={`text-[12.5px] font-medium px-[11px] py-[5px] rounded-[10px] transition-all duration-150 border flex-none cursor-pointer ${
             transactionFilter === 'vše'
               ? 'border-transparent shadow-xs'
               : 'bg-white border-stone-250/70 dark:bg-stone-900 dark:border-white/10 dark:text-white'
@@ -951,7 +951,7 @@ export const PropertiesView: React.FC<PropertiesViewProps> = ({
         </button>
         <button
           onClick={() => setTransactionFilter('prodej')}
-          className={`text-[12.5px] font-medium px-[11px] py-[5px] rounded-full transition-all duration-150 border flex-none cursor-pointer ${
+          className={`text-[12.5px] font-medium px-[11px] py-[5px] rounded-[10px] transition-all duration-150 border flex-none cursor-pointer ${
             transactionFilter === 'prodej'
               ? 'border-transparent shadow-xs'
               : 'bg-white border-stone-250/70 dark:bg-stone-900 dark:border-white/10 dark:text-white'
@@ -965,7 +965,7 @@ export const PropertiesView: React.FC<PropertiesViewProps> = ({
         </button>
         <button
           onClick={() => setTransactionFilter('pronájem')}
-          className={`text-[12.5px] font-medium px-[11px] py-[5px] rounded-full transition-all duration-150 border flex-none cursor-pointer ${
+          className={`text-[12.5px] font-medium px-[11px] py-[5px] rounded-[10px] transition-all duration-150 border flex-none cursor-pointer ${
             transactionFilter === 'pronájem'
               ? 'border-transparent shadow-xs'
               : 'bg-white border-stone-250/70 dark:bg-stone-900 dark:border-white/10 dark:text-white'
@@ -986,7 +986,7 @@ export const PropertiesView: React.FC<PropertiesViewProps> = ({
           <button
             key={kind}
             onClick={() => setKindFilter(kindFilter === kind ? 'vše' : kind)}
-            className={`text-[12.5px] font-medium px-[11px] py-[5px] rounded-full transition-all duration-150 border capitalize flex-none cursor-pointer ${
+            className={`text-[12.5px] font-medium px-[11px] py-[5px] rounded-[10px] transition-all duration-150 border capitalize flex-none cursor-pointer ${
               kindFilter === kind
                 ? 'border-transparent shadow-xs'
                 : 'bg-white border-stone-250/70 dark:bg-stone-900 dark:border-white/10 dark:text-white'
@@ -1013,7 +1013,7 @@ export const PropertiesView: React.FC<PropertiesViewProps> = ({
           <button
             key={st.id}
             onClick={() => setStatusFilter(statusFilter === st.id ? 'vše' : st.id)}
-            className={`text-[12.5px] font-medium px-[11px] py-[5px] rounded-full transition-all duration-150 border flex-none cursor-pointer ${
+            className={`text-[12.5px] font-medium px-[11px] py-[5px] rounded-[10px] transition-all duration-150 border flex-none cursor-pointer ${
               statusFilter === st.id
                 ? 'border-transparent shadow-xs'
                 : 'bg-white border-stone-250/70 dark:bg-stone-900 dark:border-white/10 dark:text-white'
@@ -1059,7 +1059,7 @@ export const PropertiesView: React.FC<PropertiesViewProps> = ({
           {/* Toggle Filter Button */}
           <button
             onClick={() => setIsMobileFiltersExpanded(!isMobileFiltersExpanded)}
-            className="flex items-center justify-center gap-1.5 px-4 h-9 rounded-full border border-stone-250/70 bg-white dark:bg-stone-900 dark:border-white/10 font-medium text-[12.5px] shadow-sm cursor-pointer select-none"
+            className="flex items-center justify-center gap-1.5 px-4 h-9 rounded-[10px] border border-stone-250/70 bg-white dark:bg-stone-900 dark:border-white/10 font-medium text-[12.5px] shadow-sm cursor-pointer select-none"
             style={{ color: colors.textPrimary }}
           >
             <SlidersHorizontal className="h-3.5 w-3.5" style={{ color: isMobileFiltersExpanded ? colors.accent : colors.textMuted }} />
@@ -1096,7 +1096,7 @@ export const PropertiesView: React.FC<PropertiesViewProps> = ({
 
         {/* Row 2: Full-width Search Input */}
         <div 
-          className="flex items-center gap-2 bg-white border border-stone-250/70 rounded-full px-3.5 h-9 w-full shadow-sm dark:bg-stone-900 dark:border-white/10"
+          className="flex items-center gap-2 bg-white border border-stone-250/70 rounded-[10px] px-3.5 h-9 w-full shadow-sm dark:bg-stone-900 dark:border-white/10"
         >
           <Search className="h-3.5 w-3.5" style={{ color: colors.textMuted }} />
           <input
@@ -1125,7 +1125,7 @@ export const PropertiesView: React.FC<PropertiesViewProps> = ({
                   <button
                     key={t}
                     onClick={() => setTransactionFilter(t)}
-                    className={`text-[12.5px] font-medium px-3.5 py-1.5 rounded-full transition-all duration-150 border cursor-pointer ${
+                    className={`text-[12.5px] font-medium px-3.5 py-1.5 rounded-[10px] transition-all duration-150 border cursor-pointer ${
                       transactionFilter === t
                         ? 'border-transparent shadow-xs'
                         : 'bg-white border-stone-250/70 dark:bg-stone-900 dark:border-white/10 dark:text-white'
@@ -1149,7 +1149,7 @@ export const PropertiesView: React.FC<PropertiesViewProps> = ({
               <div className="flex flex-wrap gap-2">
                 <button
                   onClick={() => setKindFilter('vše')}
-                  className={`text-[12.5px] font-medium px-3.5 py-1.5 rounded-full transition-all duration-150 border cursor-pointer ${
+                  className={`text-[12.5px] font-medium px-3.5 py-1.5 rounded-[10px] transition-all duration-150 border cursor-pointer ${
                     kindFilter === 'vše'
                       ? 'border-transparent shadow-xs'
                       : 'bg-white border-stone-250/70 dark:bg-stone-900 dark:border-white/10 dark:text-white'
@@ -1165,7 +1165,7 @@ export const PropertiesView: React.FC<PropertiesViewProps> = ({
                   <button
                     key={kind}
                     onClick={() => setKindFilter(kind)}
-                    className={`text-[12.5px] font-medium px-3.5 py-1.5 rounded-full transition-all duration-150 border capitalize cursor-pointer ${
+                    className={`text-[12.5px] font-medium px-3.5 py-1.5 rounded-[10px] transition-all duration-150 border capitalize cursor-pointer ${
                       kindFilter === kind
                         ? 'border-transparent shadow-xs'
                         : 'bg-white border-stone-250/70 dark:bg-stone-900 dark:border-white/10 dark:text-white'
@@ -1189,7 +1189,7 @@ export const PropertiesView: React.FC<PropertiesViewProps> = ({
               <div className="flex flex-wrap gap-2">
                 <button
                   onClick={() => setStatusFilter('vše')}
-                  className={`text-[12.5px] font-medium px-3.5 py-1.5 rounded-full transition-all duration-150 border cursor-pointer ${
+                  className={`text-[12.5px] font-medium px-3.5 py-1.5 rounded-[10px] transition-all duration-150 border cursor-pointer ${
                     statusFilter === 'vše'
                       ? 'border-transparent shadow-xs'
                       : 'bg-white border-stone-250/70 dark:bg-stone-900 dark:border-white/10 dark:text-white'
@@ -1210,7 +1210,7 @@ export const PropertiesView: React.FC<PropertiesViewProps> = ({
                   <button
                     key={st.id}
                     onClick={() => setStatusFilter(st.id)}
-                    className={`text-[12.5px] font-medium px-3.5 py-1.5 rounded-full transition-all duration-150 border cursor-pointer ${
+                    className={`text-[12.5px] font-medium px-3.5 py-1.5 rounded-[10px] transition-all duration-150 border cursor-pointer ${
                       statusFilter === st.id
                         ? 'border-transparent shadow-xs'
                         : 'bg-white border-stone-250/70 dark:bg-stone-900 dark:border-white/10 dark:text-white'

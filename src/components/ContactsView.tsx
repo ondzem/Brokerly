@@ -349,7 +349,7 @@ export const ContactsView: React.FC<ContactsViewProps> = ({
           <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
           <Input
             placeholder="Hledat jméno, telefon, e-mail..."
-            className="pl-9 border-stone-200 focus-visible:ring-1 h-9 text-xs"
+            className="pl-9 border-stone-200 focus-visible:ring-1 h-9 text-xs rounded-[10px]"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
           />
