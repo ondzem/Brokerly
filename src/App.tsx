@@ -285,7 +285,6 @@ export default function App() {
             alt="Brokerly" 
             className="w-9 h-9 object-contain" 
           />
-          <span className="font-display font-light text-[17px] tracking-tight">Brokerly</span>
         </button>
 
         <button

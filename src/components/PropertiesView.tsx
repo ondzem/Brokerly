@@ -9,7 +9,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Card, CardContent, CardTitle, CardDescription } from '@/components/ui/card';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { toast } from 'sonner';
-import { Search, Plus, Home, User, Briefcase, DollarSign, MapPin, LayoutGrid, List } from 'lucide-react';
+import { Search, Plus, Home, User, Briefcase, DollarSign, MapPin, LayoutGrid, List, SlidersHorizontal } from 'lucide-react';
 
 const KIND_OPTIONS = [
   { id: 'byt', label: 'byt' },
@@ -85,6 +85,7 @@ export const PropertiesView: React.FC<PropertiesViewProps> = ({
   const [transactionFilter, setTransactionFilter] = useState<'vše' | 'prodej' | 'pronájem'>('vše');
   const [kindFilter, setKindFilter] = useState<'vše' | 'byt' | 'dům' | 'pozemek' | 'komerční'>('vše');
   const [statusFilter, setStatusFilter] = useState<'vše' | 'v nabídce' | 'rezervováno' | 'akvizice' | 'uzavřeno'>('vše');
+  const [isMobileFiltersExpanded, setIsMobileFiltersExpanded] = useState(false);
 
   // Focus property if navigated from outside
   useEffect(() => {
@@ -913,8 +914,8 @@ export const PropertiesView: React.FC<PropertiesViewProps> = ({
         </button>
       </div>
 
-      {/* Search & View Mode Filters Bar (3C Design) */}
-      <div className="flex items-center gap-2 overflow-x-auto whitespace-nowrap scrollbar-none py-1">
+      {/* Search & View Mode Filters Bar (Desktop - 3C Design) */}
+      <div className="hidden md:flex items-center gap-2 overflow-x-auto whitespace-nowrap scrollbar-none py-1">
         {/* Search */}
         <div 
           className="flex items-center gap-2 bg-white border border-stone-250/70 rounded-full px-3.5 py-1.5 w-[180px] flex-none shadow-sm dark:bg-stone-900 dark:border-white/10"
@@ -1051,6 +1052,182 @@ export const PropertiesView: React.FC<PropertiesViewProps> = ({
         </div>
       </div>
 
+      {/* Search & View Mode Filters Bar (Mobile - Collapsible Filter Drawer) */}
+      <div className="flex md:hidden flex-col gap-3 w-full">
+        <div className="flex items-center gap-2 w-full">
+          {/* Search */}
+          <div 
+            className="flex items-center gap-2 bg-white border border-stone-250/70 rounded-full px-3.5 py-1.5 flex-grow shadow-sm dark:bg-stone-900 dark:border-white/10"
+          >
+            <Search className="h-3.5 w-3.5" style={{ color: colors.textMuted }} />
+            <input
+              type="text"
+              placeholder="Hledat"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="w-full bg-transparent border-none outline-none text-[12.5px] placeholder-stone-400 focus:ring-0 p-0"
+              style={{ color: colors.textPrimary }}
+            />
+          </div>
+
+          {/* Toggle Filter Button */}
+          <button
+            onClick={() => setIsMobileFiltersExpanded(!isMobileFiltersExpanded)}
+            className="flex items-center justify-center gap-1.5 px-3.5 py-2.2 rounded-full border border-stone-250/70 bg-white dark:bg-stone-900 dark:border-white/10 font-medium text-[13px] shadow-sm cursor-pointer select-none"
+            style={{ color: colors.textPrimary }}
+          >
+            <SlidersHorizontal className="h-3.5 w-3.5" style={{ color: isMobileFiltersExpanded ? colors.accent : colors.textMuted }} />
+            <span>Filtry</span>
+            {(transactionFilter !== 'vše' || kindFilter !== 'vše' || statusFilter !== 'vše') && (
+              <span className="w-1.5 h-1.5 rounded-full bg-[#00D991]" />
+            )}
+          </button>
+
+          {/* View Switcher */}
+          <div className="flex bg-[#ECEBE6] p-[3px] rounded-[10px] flex-none dark:bg-stone-850">
+            <button
+              onClick={() => setViewMode('cards')}
+              className={`px-2.5 py-1 rounded-[8px] text-[12px] font-medium transition-all duration-150 cursor-pointer ${
+                viewMode === 'cards'
+                  ? 'bg-white text-[#0B1F1A] shadow-xs dark:bg-stone-900 dark:text-white'
+                  : 'text-stone-500 hover:text-stone-800 dark:text-stone-400 dark:hover:text-stone-200'
+              }`}
+            >
+              Karty
+            </button>
+            <button
+              onClick={() => setViewMode('list')}
+              className={`px-2.5 py-1 rounded-[8px] text-[12px] font-medium transition-all duration-150 cursor-pointer ${
+                viewMode === 'list'
+                  ? 'bg-white text-[#0B1F1A] shadow-xs dark:bg-stone-900 dark:text-white'
+                  : 'text-stone-500 hover:text-stone-800 dark:text-stone-400 dark:hover:text-stone-200'
+              }`}
+            >
+              Seznam
+            </button>
+          </div>
+        </div>
+
+        {/* Collapsible Mobile Options Box */}
+        {isMobileFiltersExpanded && (
+          <div 
+            className="flex flex-col gap-4 p-4 rounded-xl border animate-in slide-in-from-top-2 duration-150 shadow-xs"
+            style={{ backgroundColor: colors.cardBg, borderColor: theme === 'light' ? 'rgba(11,31,26,0.1)' : 'rgba(255,255,255,0.08)' }}
+          >
+            {/* Transaction Group */}
+            <div className="space-y-1.5">
+              <div className="text-[11px] uppercase tracking-wider font-semibold" style={{ color: colors.textMuted }}>
+                Transakce
+              </div>
+              <div className="flex flex-wrap gap-2">
+                {(['vše', 'prodej', 'pronájem'] as const).map((t) => (
+                  <button
+                    key={t}
+                    onClick={() => setTransactionFilter(t)}
+                    className={`text-[12.5px] font-medium px-3.5 py-1.5 rounded-full transition-all duration-150 border cursor-pointer ${
+                      transactionFilter === t
+                        ? 'border-transparent shadow-xs'
+                        : 'bg-white border-stone-250/70 dark:bg-stone-900 dark:border-white/10 dark:text-white'
+                    }`}
+                    style={{ 
+                      backgroundColor: transactionFilter === t ? colors.accent : undefined,
+                      color: transactionFilter === t ? '#00221F' : colors.textPrimary 
+                    }}
+                  >
+                    {t === 'vše' ? 'Všechny' : t === 'prodej' ? 'Prodej' : 'Pronájem'}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Kind Group */}
+            <div className="space-y-1.5">
+              <div className="text-[11px] uppercase tracking-wider font-semibold" style={{ color: colors.textMuted }}>
+                Druh nemovitosti
+              </div>
+              <div className="flex flex-wrap gap-2">
+                <button
+                  onClick={() => setKindFilter('vše')}
+                  className={`text-[12.5px] font-medium px-3.5 py-1.5 rounded-full transition-all duration-150 border cursor-pointer ${
+                    kindFilter === 'vše'
+                      ? 'border-transparent shadow-xs'
+                      : 'bg-white border-stone-250/70 dark:bg-stone-900 dark:border-white/10 dark:text-white'
+                  }`}
+                  style={{ 
+                    backgroundColor: kindFilter === 'vše' ? colors.accent : undefined,
+                    color: kindFilter === 'vše' ? '#00221F' : colors.textPrimary 
+                  }}
+                >
+                  Všechny
+                </button>
+                {(['byt', 'dům', 'pozemek', 'komerční'] as const).map((kind) => (
+                  <button
+                    key={kind}
+                    onClick={() => setKindFilter(kind)}
+                    className={`text-[12.5px] font-medium px-3.5 py-1.5 rounded-full transition-all duration-150 border capitalize cursor-pointer ${
+                      kindFilter === kind
+                        ? 'border-transparent shadow-xs'
+                        : 'bg-white border-stone-250/70 dark:bg-stone-900 dark:border-white/10 dark:text-white'
+                    }`}
+                    style={{ 
+                      backgroundColor: kindFilter === kind ? colors.accent : undefined,
+                      color: kindFilter === kind ? '#00221F' : colors.textPrimary 
+                    }}
+                  >
+                    {kind}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Status Group */}
+            <div className="space-y-1.5">
+              <div className="text-[11px] uppercase tracking-wider font-semibold" style={{ color: colors.textMuted }}>
+                Stav nabídky
+              </div>
+              <div className="flex flex-wrap gap-2">
+                <button
+                  onClick={() => setStatusFilter('vše')}
+                  className={`text-[12.5px] font-medium px-3.5 py-1.5 rounded-full transition-all duration-150 border cursor-pointer ${
+                    statusFilter === 'vše'
+                      ? 'border-transparent shadow-xs'
+                      : 'bg-white border-stone-250/70 dark:bg-stone-900 dark:border-white/10 dark:text-white'
+                  }`}
+                  style={{ 
+                    backgroundColor: statusFilter === 'vše' ? colors.accent : undefined,
+                    color: statusFilter === 'vše' ? '#00221F' : colors.textPrimary 
+                  }}
+                >
+                  Všechny
+                </button>
+                {([
+                  { id: 'v nabídce', label: 'V nabídce' },
+                  { id: 'rezervováno', label: 'Rezervováno' },
+                  { id: 'akvizice', label: 'Akvizice' },
+                  { id: 'uzavřeno', label: 'Prodáno' }
+                ] as const).map((st) => (
+                  <button
+                    key={st.id}
+                    onClick={() => setStatusFilter(st.id)}
+                    className={`text-[12.5px] font-medium px-3.5 py-1.5 rounded-full transition-all duration-150 border cursor-pointer ${
+                      statusFilter === st.id
+                        ? 'border-transparent shadow-xs'
+                        : 'bg-white border-stone-250/70 dark:bg-stone-900 dark:border-white/10 dark:text-white'
+                    }`}
+                    style={{ 
+                      backgroundColor: statusFilter === st.id ? colors.accent : undefined,
+                      color: statusFilter === st.id ? '#00221F' : colors.textPrimary 
+                    }}
+                  >
+                    {st.label}
+                  </button>
+                ))}
+              </div>
+            </div>
+          </div>
+        )}
+      </div>
+
       {/* RENDER LIST OR CARDS */}
       {filteredProperties.length === 0 ? (
         /* Empty State (3E Design) */
@@ -1172,18 +1349,18 @@ export const PropertiesView: React.FC<PropertiesViewProps> = ({
                 </div>
 
                 {/* Card Body Info */}
-                <div className="p-3.5 flex flex-col justify-between flex-grow">
-                  <div>
+                <div className="p-3.5 pb-6 flex flex-col justify-between flex-grow">
+                  <div className="space-y-1">
                     <div className="font-semibold text-[15px] truncate" style={{ color: colors.textPrimary }}>
                       {displayTitle}
                     </div>
                     <div className="font-semibold text-[18px] tracking-tight font-sans mt-0.5" style={{ color: colors.textPrimary, fontVariantNumeric: 'tabular-nums' }}>
                       {priceStr}
                     </div>
-                    <div className="text-[13.5px] mt-1 truncate" style={{ color: colors.textPrimary }}>
+                    <div className="text-[13.5px] mt-2 truncate" style={{ color: colors.textPrimary }}>
                       {cityPart}
                     </div>
-                    <div className="text-[12px] mt-0.5 truncate" style={{ color: colors.textSecondary }} title={detailsStr}>
+                    <div className="text-[12px] mt-1 truncate" style={{ color: colors.textSecondary }} title={detailsStr}>
                       {detailsStr || 'Bez popisu'}
                     </div>
                   </div>
