@@ -122,12 +122,30 @@
   }
 }
 
-/* Custom layout helper breakpoints to avoid Tailwind class resolution ordering issues */
 @media (min-width: 1350px) {
   .desktop-large-flex {
     display: flex !important;
   }
   .desktop-large-hidden {
     display: none !important;
+  }
+}
+
+/* Scrollbar utilities */
+.scrollbar-none::-webkit-scrollbar {
+  display: none;
+}
+.scrollbar-none {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+@media (max-width: 639px) {
+  .mobile-scrollbar-none::-webkit-scrollbar {
+    display: none;
+  }
+  .mobile-scrollbar-none {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
   }
 }

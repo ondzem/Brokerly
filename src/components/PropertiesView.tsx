@@ -1928,7 +1928,7 @@ export const PropertiesView: React.FC<PropertiesViewProps> = ({
             setIsDetailOpen(open);
             if (!open) onClearFocusProperty?.();
           }}>
-            <DialogContent showCloseButton={false} className="max-w-6xl lg:max-w-7xl w-[92vw] lg:w-full p-0 overflow-y-auto sm:overflow-hidden border border-stone-200 dark:border-stone-850 bg-white dark:bg-stone-900 rounded-[14px] max-h-[92vh] !flex !flex-col gap-0 text-left font-sans shadow-2xl">
+            <DialogContent showCloseButton={false} className="max-w-6xl lg:max-w-7xl w-[92vw] lg:w-full p-0 overflow-y-auto sm:overflow-hidden border border-stone-200 dark:border-stone-850 bg-white dark:bg-stone-900 rounded-[14px] max-h-[92vh] !flex !flex-col gap-0 text-left font-sans shadow-2xl mobile-scrollbar-none">
               
               {/* TOP HEADER BAR */}
               <div className="relative flex flex-col sm:flex-row gap-4 sm:gap-[18px] p-4 sm:p-6 pb-4.5 border-b border-stone-200/60 dark:border-stone-800 bg-white dark:bg-stone-900 items-start flex-none">
