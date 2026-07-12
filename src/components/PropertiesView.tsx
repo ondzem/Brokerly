@@ -1933,6 +1933,58 @@ export const PropertiesView: React.FC<PropertiesViewProps> = ({
               {/* TOP HEADER BAR */}
               <div className="relative flex flex-col sm:flex-row gap-4 sm:gap-[18px] p-4 sm:p-6 pb-4.5 border-b border-stone-200/60 dark:border-stone-800 bg-white dark:bg-stone-900 items-start flex-none">
                 
+                {/* Mobile Actions Row: Renders at the very top on mobile, before the photo to prevent overlap */}
+                <div className="flex sm:hidden justify-end gap-2 w-full mb-2 flex-none">
+                  <div className="relative">
+                    <button 
+                      onClick={() => setIsHeaderMenuOpen(!isHeaderMenuOpen)}
+                      className="w-8 h-8 rounded-lg border border-stone-200 dark:border-stone-800 bg-white dark:bg-stone-900 flex items-center justify-center hover:bg-stone-50 dark:hover:bg-stone-850 transition text-[16px] text-[#0B1F1A] dark:text-stone-100 cursor-pointer shadow-sm"
+                    >
+                      <MoreHorizontal className="w-4 h-4" />
+                    </button>
+
+                    {isHeaderMenuOpen && (
+                      <>
+                        <div 
+                          className="fixed inset-0 z-40" 
+                          onClick={() => setIsHeaderMenuOpen(false)}
+                        />
+                        <div className="absolute right-0 mt-1.5 w-60 bg-white dark:bg-stone-900 border border-stone-200 dark:border-stone-800 shadow-lg rounded-xl z-50 py-1.5 text-left text-sm font-normal">
+                          <button
+                            onClick={() => {
+                              handleDuplicateProperty();
+                              setIsHeaderMenuOpen(false);
+                            }}
+                            className="w-full text-left px-4 py-2 hover:bg-stone-50 dark:hover:bg-stone-800 text-stone-700 dark:text-stone-300 font-medium transition cursor-pointer"
+                          >
+                            Duplikovat nemovitost
+                          </button>
+                          <div className="h-px bg-stone-100 dark:bg-stone-800 my-1" />
+                          <button
+                            onClick={() => {
+                              setIsHeaderMenuOpen(false);
+                              handleDeletePropertyClick();
+                            }}
+                            className="w-full text-left px-4 py-2 hover:bg-rose-50 dark:hover:bg-rose-950/30 text-rose-600 font-medium transition flex flex-col items-start cursor-pointer"
+                          >
+                            <span>Odstranit nemovitost...</span>
+                            <span className="text-[11px] text-stone-400 dark:text-stone-500 font-normal mt-0.5">
+                              Odstranění vyžaduje potvrzení
+                            </span>
+                          </button>
+                        </div>
+                      </>
+                    )}
+                  </div>
+
+                  <button 
+                    onClick={() => setIsDetailOpen(false)}
+                    className="w-8 h-8 rounded-lg border border-stone-200 dark:border-stone-800 bg-white dark:bg-stone-900 flex items-center justify-center hover:bg-stone-50 dark:hover:bg-stone-850 transition cursor-pointer text-[#0B1F1A] dark:text-stone-100 shadow-sm"
+                  >
+                    <X className="w-3.5 h-3.5" />
+                  </button>
+                </div>
+
                 {/* Thumbnail Icon */}
                 <div 
                   className="relative w-full h-[200px] sm:w-[172px] sm:h-[120px] aspect-[16/10] sm:aspect-auto rounded-[10px] bg-[#E9E8E2] dark:bg-stone-800 flex-none flex items-center justify-center overflow-hidden border border-stone-200/40 dark:border-stone-800"
@@ -1950,7 +2002,7 @@ export const PropertiesView: React.FC<PropertiesViewProps> = ({
                 </div>
 
                 {/* Details Panel */}
-                <div className="flex-1 min-w-0 text-left font-sans">
+                <div className="flex-1 min-w-0 text-left font-sans mt-3.5 sm:mt-0">
                   <div className="flex items-center gap-[10px] flex-wrap">
                     <span className="text-[22px] font-semibold text-[#0B1F1A] dark:text-stone-100 leading-tight">
                       {selectedProperty.kind === 'byt' 
@@ -1971,7 +2023,7 @@ export const PropertiesView: React.FC<PropertiesViewProps> = ({
                     </span>
                   </div>
                   
-                  <div className="flex items-baseline gap-[10px] mt-1 flex-wrap">
+                  <div className="flex items-baseline gap-[10px] mt-3 sm:mt-2.5 flex-wrap">
                     <span className="text-[24px] font-semibold text-[#0B1F1A] dark:text-stone-100 tabular-nums">
                       {selectedProperty.price.toLocaleString('cs-CZ')} Kč
                     </span>
@@ -1982,16 +2034,16 @@ export const PropertiesView: React.FC<PropertiesViewProps> = ({
                     )}
                   </div>
 
-                  <div className="text-[14px] text-[#0B1F1A] dark:text-stone-200 mt-1 font-medium">
+                  <div className="text-[15px] text-[#0B1F1A] dark:text-stone-200 mt-3 font-semibold">
                     {selectedProperty.address.split(',')[1]?.trim() || selectedProperty.address}
                   </div>
                   
-                  <div className="text-[12.5px] text-stone-500 dark:text-stone-400 mt-0.5">
+                  <div className="text-[13px] text-stone-500 dark:text-stone-400 mt-2 leading-relaxed">
                     {selectedProperty.address}
                   </div>
 
                   {ownerContact && (
-                    <div className="flex items-center gap-[6px] mt-1.5 flex-wrap">
+                    <div className="flex items-center gap-[6px] mt-4 flex-wrap">
                       <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#0E8A5F" strokeWidth="1.8">
                         <path d="M5 4h4l1.5 4L8 10c1 2.5 3.5 5 6 6l2-2.5 4 1.5v4c0 .6-.4 1-1 1C10 20 4 14 4 5c0-.6.4-1 1-1z" />
                       </svg>
@@ -2000,19 +2052,19 @@ export const PropertiesView: React.FC<PropertiesViewProps> = ({
                           setIsDetailOpen(false);
                           onNavigateToContact(ownerContact.id);
                         }}
-                        className="text-[13px] text-[#0E8A5F] hover:underline cursor-pointer font-medium"
+                        className="text-[13.5px] text-[#0E8A5F] hover:underline cursor-pointer font-semibold"
                       >
                         {ownerContact.full_name} · {ownerContact.phone || ownerContact.email}
                       </span>
-                      <span className="text-[12px] text-stone-400 dark:text-stone-500">
+                      <span className="text-[12px] text-stone-400 dark:text-stone-500 font-medium">
                         vlastník
                       </span>
                     </div>
                   )}
                 </div>
 
-                {/* Right side buttons */}
-                <div className="absolute top-4 right-4 z-10 sm:relative sm:top-0 sm:right-0 sm:ml-auto flex gap-2 items-start">
+                {/* Desktop Actions Row: Renders inline on tablet and desktop */}
+                <div className="hidden sm:flex gap-2 items-start ml-auto flex-none">
                   <div className="relative">
                     <button 
                       onClick={() => setIsHeaderMenuOpen(!isHeaderMenuOpen)}
