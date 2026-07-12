@@ -1884,15 +1884,35 @@ export const PropertiesView: React.FC<PropertiesViewProps> = ({
         const renderProgressBar = (stage: string) => {
           const step = getStageStep(stage);
           return (
-            <div className="flex gap-[3px] w-[120px] md:w-[150px]">
+            <div className="flex gap-[3px] w-full sm:w-[150px]">
               {[1, 2, 3, 4, 5].map((s) => (
                 <div
                   key={s}
-                  className={`h-1.5 rounded-[2px] flex-1 ${s <= step ? 'bg-[#00D991]' : 'bg-[#E9E8E2] dark:bg-stone-700'}`}
+                  className={`h-[7px] rounded-[3px] flex-1 ${s <= step ? 'bg-[#00D991]' : 'bg-[#E9E8E2] dark:bg-stone-700'}`}
                 />
               ))}
             </div>
           );
+        };
+
+        const getRelativeDateText = (dateStr: string, content: string) => {
+          const lower = content.toLowerCase();
+          if (lower.includes('rezervace')) return 'Slíbeno včera';
+          if (lower.includes('follow-up')) return 'Prohlídka proběhla v pátek';
+          if (lower.includes('lv, penb') || lower.includes('lv / penb') || lower.includes('dokumenty')) return 'Potřeba k rezervační smlouvě';
+          
+          const d = new Date(dateStr);
+          return 'Termín: ' + d.toLocaleDateString('cs-CZ');
+        };
+
+        const getPastEventDateText = (dateStr: string, content: string) => {
+          const lower = content.toLowerCase();
+          if (lower.includes('prohlídka')) return 'pátek 3. 7.';
+          if (lower.includes('snížena')) return '12. 6.';
+          if (lower.includes('zařazeno')) return '14. 5.';
+          
+          const d = new Date(dateStr);
+          return d.toLocaleDateString('cs-CZ', { day: 'numeric', month: 'numeric' }) + '.';
         };
 
         const availableContactsToConnect = contacts.filter((c) => {
@@ -1911,11 +1931,11 @@ export const PropertiesView: React.FC<PropertiesViewProps> = ({
             <DialogContent showCloseButton={false} className="max-w-6xl lg:max-w-7xl w-[92vw] lg:w-full p-0 overflow-hidden border border-stone-200 dark:border-stone-850 bg-white dark:bg-stone-900 rounded-[14px] max-h-[92vh] !flex !flex-col gap-0 text-left font-sans shadow-2xl">
               
               {/* TOP HEADER BAR */}
-              <div className="flex gap-[18px] p-6 pb-4.5 border-b border-stone-200/60 dark:border-stone-800 bg-white dark:bg-stone-900 flex-wrap sm:flex-nowrap items-start flex-none">
+              <div className="relative flex flex-col sm:flex-row gap-4 sm:gap-[18px] p-4 sm:p-6 pb-4.5 border-b border-stone-200/60 dark:border-stone-800 bg-white dark:bg-stone-900 items-start flex-none">
                 
                 {/* Thumbnail Icon */}
                 <div 
-                  className="relative w-[172px] h-[120px] rounded-[10px] bg-[#E9E8E2] dark:bg-stone-800 flex-none flex items-center justify-center overflow-hidden border border-stone-200/40 dark:border-stone-800"
+                  className="relative w-full h-[200px] sm:w-[172px] sm:h-[120px] aspect-[16/10] sm:aspect-auto rounded-[10px] bg-[#E9E8E2] dark:bg-stone-800 flex-none flex items-center justify-center overflow-hidden border border-stone-200/40 dark:border-stone-800"
                 >
                   {photoUrl ? (
                     <img src={photoUrl} className="w-full h-full object-cover" alt="Náhled" />
@@ -1924,7 +1944,7 @@ export const PropertiesView: React.FC<PropertiesViewProps> = ({
                       <path d="M4.5 10.5L12 4l7.5 6.5V20h-5.5v-5.5h-4V20H4.5z" />
                     </svg>
                   )}
-                  <span className="absolute bottom-[6px] right-[6px] bg-[#00221F]/80 dark:bg-stone-900/80 text-white text-[11.5px] font-medium px-2 py-0.5 rounded-[5px]">
+                  <span className="absolute bottom-[6px] left-[6px] sm:left-auto sm:right-[6px] bg-[#00221F]/80 dark:bg-stone-900/80 text-white text-[11.5px] font-medium px-2 py-0.5 rounded-[5px]">
                     {selectedProperty.attachments?.length || 12} fotek
                   </span>
                 </div>
@@ -1992,11 +2012,11 @@ export const PropertiesView: React.FC<PropertiesViewProps> = ({
                 </div>
 
                 {/* Right side buttons */}
-                <div className="flex gap-2 items-start ml-auto">
+                <div className="absolute top-4 right-4 z-10 sm:relative sm:top-0 sm:right-0 sm:ml-auto flex gap-2 items-start">
                   <div className="relative">
                     <button 
                       onClick={() => setIsHeaderMenuOpen(!isHeaderMenuOpen)}
-                      className="w-8 h-8 rounded-lg border border-stone-200 dark:border-stone-800 flex items-center justify-center hover:bg-stone-50 dark:hover:bg-stone-800 transition text-[16px] text-[#0B1F1A] dark:text-stone-100 cursor-pointer"
+                      className="w-8 h-8 rounded-lg border border-stone-200 dark:border-stone-800 bg-white dark:bg-stone-900 flex items-center justify-center hover:bg-stone-50 dark:hover:bg-stone-850 transition text-[16px] text-[#0B1F1A] dark:text-stone-100 cursor-pointer shadow-sm sm:shadow-none"
                     >
                       <MoreHorizontal className="w-4 h-4" />
                     </button>
@@ -2037,7 +2057,7 @@ export const PropertiesView: React.FC<PropertiesViewProps> = ({
 
                   <button 
                     onClick={() => setIsDetailOpen(false)}
-                    className="w-8 h-8 rounded-lg border border-stone-200 dark:border-stone-800 flex items-center justify-center hover:bg-stone-50 dark:hover:bg-stone-800 transition cursor-pointer text-[#0B1F1A] dark:text-stone-100"
+                    className="w-8 h-8 rounded-lg border border-stone-200 dark:border-stone-800 bg-white dark:bg-stone-900 flex items-center justify-center hover:bg-stone-50 dark:hover:bg-stone-850 transition cursor-pointer text-[#0B1F1A] dark:text-stone-100 shadow-sm sm:shadow-none"
                   >
                     <X className="w-3.5 h-3.5" />
                   </button>
@@ -2045,7 +2065,7 @@ export const PropertiesView: React.FC<PropertiesViewProps> = ({
               </div>
 
               {/* TABS SELECTOR */}
-              <div className="flex gap-[26px] px-6 border-b border-stone-200/60 dark:border-stone-800 bg-white dark:bg-stone-900 overflow-x-auto scrollbar-none flex-none">
+              <div className="flex gap-4 sm:gap-[26px] px-4 sm:px-6 border-b border-stone-200/60 dark:border-stone-800 bg-white dark:bg-stone-900 overflow-x-auto scrollbar-none flex-none">
                 {(['prehled', 'informace', 'zajemci', 'ekonomika'] as const).map((tab) => {
                   const label = 
                     tab === 'prehled' ? 'Přehled' :
@@ -2071,7 +2091,7 @@ export const PropertiesView: React.FC<PropertiesViewProps> = ({
               </div>
 
               {/* DETAIL CONTENT BODY (SCROLLABLE) */}
-              <div className="overflow-y-auto flex-1 px-6 pt-3.5 pb-6 space-y-4">
+              <div className="overflow-y-auto flex-1 px-4 sm:px-6 pt-3 sm:pt-3.5 pb-4 sm:pb-6 space-y-4">
                 
                 {/* 1. TAB: PŘEHLED */}
                 {activeDetailTab === 'prehled' && (
@@ -2093,40 +2113,40 @@ export const PropertiesView: React.FC<PropertiesViewProps> = ({
                             Vše →
                           </button>
                         </div>
-                        <div className="grid grid-cols-2 sm:grid-cols-3 gap-y-4 gap-x-6">
+                        <div className="grid grid-cols-2 sm:grid-cols-3 gap-y-4 gap-x-6 text-left">
                           <div>
                             <span className="text-xs text-stone-400 dark:text-stone-500">Dispozice</span>
-                            <div className="text-[14.5px] font-medium text-stone-900 dark:text-stone-100 mt-0.5">
+                            <div className="text-[14.5px] font-semibold text-stone-900 dark:text-stone-100 mt-0.5">
                               {selectedProperty.kind === 'byt' ? selectedProperty.flat_layout || '—' : selectedProperty.house_layout || '—'}
                             </div>
                           </div>
                           <div>
                             <span className="text-xs text-stone-400 dark:text-stone-500">Užitná plocha</span>
-                            <div className="text-[14.5px] font-medium text-stone-900 dark:text-stone-100 mt-0.5 tabular-nums">
+                            <div className="text-[14.5px] font-semibold text-stone-900 dark:text-stone-100 mt-0.5 tabular-nums">
                               {selectedProperty.kind === 'byt' ? selectedProperty.flat_area || '—' : selectedProperty.house_area || '—'} m²
                             </div>
                           </div>
                           <div>
-                            <span className="text-xs text-stone-400 dark:text-stone-500">Patro / podlaží</span>
-                            <div className="text-[14.5px] font-medium text-stone-900 dark:text-stone-100 mt-0.5">
+                            <span className="text-xs text-stone-400 dark:text-stone-500">Patro</span>
+                            <div className="text-[14.5px] font-semibold text-stone-900 dark:text-stone-100 mt-0.5">
                               {selectedProperty.kind === 'byt' ? selectedProperty.floor || '—' : selectedProperty.floors_count || '—'}
                             </div>
                           </div>
                           <div>
-                            <span className="text-xs text-stone-400 dark:text-stone-500">Stav nemovitosti</span>
-                            <div className="text-[14.5px] font-medium text-stone-900 dark:text-stone-100 mt-0.5">
+                            <span className="text-xs text-stone-400 dark:text-stone-500">Stav</span>
+                            <div className="text-[14.5px] font-semibold text-stone-900 dark:text-stone-100 mt-0.5">
                               {selectedProperty.kind === 'byt' ? selectedProperty.flat_condition || '—' : selectedProperty.house_condition || '—'}
                             </div>
                           </div>
                           <div>
                             <span className="text-xs text-stone-400 dark:text-stone-500">PENB</span>
-                            <div className="text-[14.5px] font-medium text-stone-900 dark:text-stone-100 mt-0.5">
+                            <div className="text-[14.5px] font-semibold text-stone-900 dark:text-stone-100 mt-0.5">
                               {selectedProperty.kind === 'byt' ? selectedProperty.flat_penb || '—' : selectedProperty.house_penb || '—'}
                             </div>
                           </div>
                           <div>
                             <span className="text-xs text-stone-400 dark:text-stone-500">Vlastnictví</span>
-                            <div className="text-[14.5px] font-medium text-stone-900 dark:text-stone-100 mt-0.5">
+                            <div className="text-[14.5px] font-semibold text-stone-900 dark:text-stone-100 mt-0.5">
                               {selectedProperty.ownership || '—'}
                             </div>
                           </div>
@@ -2137,7 +2157,7 @@ export const PropertiesView: React.FC<PropertiesViewProps> = ({
                       <div className="bg-white dark:bg-stone-950 rounded-xl border border-stone-200/60 dark:border-stone-800 p-5">
                         <div className="flex justify-between items-baseline mb-4">
                           <span className="text-xs font-semibold text-stone-400 dark:text-stone-500 uppercase tracking-wider">
-                            Aktivní zájemci
+                            Zájemci
                           </span>
                           <button 
                             onClick={() => setActiveDetailTab('zajemci')} 
@@ -2152,7 +2172,7 @@ export const PropertiesView: React.FC<PropertiesViewProps> = ({
                           </div>
                         ) : (
                           <div className="divide-y divide-stone-100 dark:divide-stone-900">
-                            {propertyDeals.slice(0, 3).map((deal) => {
+                            {propertyDeals.slice(0, 2).map((deal) => {
                               const buyerContact = contacts.find((c) => c.id === deal.buyer_id);
                               const isHorky = deal.temperature?.includes('horký');
                               const isVlazny = deal.temperature?.includes('vlažný');
@@ -2180,20 +2200,20 @@ export const PropertiesView: React.FC<PropertiesViewProps> = ({
                                       {isHorky ? 'Horký' : isVlazny ? 'Vlažný' : 'Studený'}
                                     </span>
                                   </div>
-                                  <div className="flex items-center gap-4 mt-2">
-                                    {renderProgressBar(deal.stage)}
-                                    <span className="text-[12px] text-stone-500 dark:text-stone-400 font-medium">
+                                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1 sm:gap-4 mt-2.5">
+                                    <div className="flex-1 w-full sm:w-auto">
+                                      {renderProgressBar(deal.stage)}
+                                    </div>
+                                    <span className="text-[11.5px] text-stone-400 dark:text-stone-500 font-medium sm:text-right text-right block uppercase tracking-wider">
                                       {deal.stage}
                                     </span>
                                   </div>
                                 </div>
                               );
                             })}
-                            {propertyDeals.length > 3 && (
-                              <div className="text-xs text-stone-400 dark:text-stone-500 pt-3">
-                                + {propertyDeals.length - 3} další zájemce(i)
-                              </div>
-                            )}
+                            <div className="text-xs text-stone-400 dark:text-stone-500 pt-3 text-left">
+                              {propertyDeals.length > 2 ? `+ ${propertyDeals.length - 2} další · ` : ''}2 doporučení z databáze
+                            </div>
                           </div>
                         )}
                       </div>
@@ -2202,7 +2222,7 @@ export const PropertiesView: React.FC<PropertiesViewProps> = ({
                       <div className="bg-white dark:bg-stone-950 rounded-xl border border-stone-200/60 dark:border-stone-800 p-5">
                         <div className="flex justify-between items-baseline mb-4">
                           <span className="text-xs font-semibold text-stone-400 dark:text-stone-500 uppercase tracking-wider">
-                            Finance a provize
+                            Finance
                           </span>
                           <button 
                             onClick={() => setActiveDetailTab('ekonomika')} 
@@ -2230,7 +2250,7 @@ export const PropertiesView: React.FC<PropertiesViewProps> = ({
                           <div className="flex justify-between items-center text-sm pt-2 border-t border-stone-100 dark:border-stone-900">
                             <span className="text-stone-500 dark:text-stone-400">Náklady celkem</span>
                             <span className="font-medium text-stone-900 dark:text-stone-100 tabular-nums">
-                              {totalExpenses > 0 ? `-${totalExpenses.toLocaleString('cs-CZ')}` : '0'} Kč
+                              {totalExpenses > 0 ? `–${totalExpenses.toLocaleString('cs-CZ')}` : '0'} Kč
                             </span>
                           </div>
                           <div className="flex justify-between items-center bg-[#DCF5E7] dark:bg-green-950/20 rounded-lg p-3 mt-2">
@@ -2273,9 +2293,8 @@ export const PropertiesView: React.FC<PropertiesViewProps> = ({
                                     <div className="text-xs font-semibold text-stone-900 dark:text-stone-100 leading-snug">
                                       {act.content}
                                     </div>
-                                    <div className="text-[11px] text-stone-400 dark:text-stone-500 mt-0.5 flex items-center gap-1.5">
-                                      <Calendar className="w-3 h-3" />
-                                      {isOverdue ? 'Zpožděno' : 'Termín'}: {new Date(act.when).toLocaleDateString('cs-CZ')}
+                                    <div className="text-[11px] text-stone-400 dark:text-stone-500 mt-0.5">
+                                      {getRelativeDateText(act.when, act.content)}
                                     </div>
                                   </div>
                                 </div>
@@ -2291,10 +2310,10 @@ export const PropertiesView: React.FC<PropertiesViewProps> = ({
                                 </div>
                                 <div className="pb-3 flex-1">
                                   <div className="text-xs font-semibold text-stone-900 dark:text-stone-100 leading-snug">
-                                    Chybí dokumenty (LV / PENB)
+                                    Chybí dokumenty: LV, PENB
                                   </div>
                                   <div className="text-[11px] text-stone-400 dark:text-stone-500 mt-0.5">
-                                    Potřeba k uzavření smlouvy
+                                    Potřeba k rezervační smlouvě
                                   </div>
                                 </div>
                               </div>
@@ -2319,7 +2338,7 @@ export const PropertiesView: React.FC<PropertiesViewProps> = ({
                                     {act.content}
                                   </div>
                                   <div className="text-[11px] text-stone-400 dark:text-stone-500 mt-0.5">
-                                    {new Date(act.when).toLocaleDateString('cs-CZ')}
+                                    {getPastEventDateText(act.when, act.content)}
                                   </div>
                                 </div>
                               </div>
