@@ -2410,7 +2410,10 @@ export const PropertiesView: React.FC<PropertiesViewProps> = ({
                     {/* Left Column */}
                     <div className="space-y-6">
                       {/* Section 1: Obecné parametry */}
-                      <div className="bg-white dark:bg-stone-950 rounded-xl border border-stone-200/60 dark:border-stone-800 p-5">
+                      <div className={cn(
+                        "bg-white dark:bg-stone-950 rounded-xl transition-all p-5 border",
+                        isEditingGeneral ? "border-[#00D991] shadow-sm" : "border-stone-200/60 dark:border-stone-800"
+                      )}>
                         <div className="flex justify-between items-baseline mb-4">
                           <span className="text-[14.5px] font-semibold text-stone-900 dark:text-stone-100">
                             Obecné parametry
@@ -2420,7 +2423,7 @@ export const PropertiesView: React.FC<PropertiesViewProps> = ({
                               onClick={() => setIsEditingGeneral(true)} 
                               className="text-xs font-semibold text-[#0E8A5F] flex items-center gap-1 hover:underline cursor-pointer"
                             >
-                              ✏️ Upravit
+                              ✎ Upravit
                             </button>
                           ) : (
                             <div className="flex gap-2">
@@ -3012,7 +3015,10 @@ export const PropertiesView: React.FC<PropertiesViewProps> = ({
                   {/* Right Column */}
                   <div className="space-y-6">
                     {/* Section 3: Poznámka */}
-                    <div className="bg-white dark:bg-stone-950 rounded-xl border border-stone-200/60 dark:border-stone-800 p-5">
+                    <div className={cn(
+                      "bg-white dark:bg-stone-950 rounded-xl transition-all p-5 border",
+                      isEditingNote ? "border-[#00D991] shadow-sm" : "border-stone-200/60 dark:border-stone-800"
+                    )}>
                       <div className="flex justify-between items-baseline mb-4">
                         <span className="text-[14.5px] font-semibold text-stone-900 dark:text-stone-100">
                           Poznámka
