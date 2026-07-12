@@ -232,6 +232,7 @@ export default function App() {
             properties={properties}
             contacts={contacts}
             deals={deals}
+            activities={activities}
             initialSelectedPropertyId={focusPropertyId}
             onClearFocusProperty={() => setFocusPropertyId(undefined)}
             onRefresh={() => loadData(true)}
@@ -558,11 +559,11 @@ export default function App() {
 
       {/* Main Layout Area */}
       <div 
-        className="flex-grow flex flex-col min-h-screen pl-0 md:pl-16 pt-16 md:pt-0"
+        className="flex-grow flex flex-col min-h-screen pl-0 md:pl-24 pt-16 md:pt-0"
         style={{ backgroundColor: theme === 'light' ? '#F2F1EC' : '#00221F' }}
       >
         {/* Main Container */}
-        <main className={`flex-grow w-full ${isDashboard ? 'max-w-none p-0' : 'max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8 py-8'}`}>
+        <main className={`flex-grow w-full ${isDashboard ? 'max-w-none p-0' : 'max-w-[1440px] 2xl:max-w-[1680px] mx-auto px-4 sm:px-6 lg:px-8 pt-12 pb-8'}`}>
           {renderActiveView()}
         </main>
       </div>

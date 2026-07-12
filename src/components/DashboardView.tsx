@@ -172,7 +172,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
 
   return (
     <div 
-      className="flex-grow flex flex-col min-h-screen py-8 px-4 md:px-8 lg:px-12 select-none font-sans"
+      className="flex-grow flex flex-col min-h-screen pt-12 pb-8 px-4 md:px-8 lg:px-12 select-none font-sans"
       style={{ 
         backgroundColor: colors.bg, 
         color: colors.textPrimary

@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { Property, Contact, Deal } from '@/types';
-import { createProperty, updateProperty, createContact, deleteProperty } from '@/lib/db';
+import { Property, Contact, Deal, Activity } from '@/types';
+import { createProperty, updateProperty, createContact, deleteProperty, createDeal, updateDeal } from '@/lib/db';
+import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -9,7 +10,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Card, CardContent, CardTitle, CardDescription } from '@/components/ui/card';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { toast } from 'sonner';
-import { Search, Plus, Home, User, Briefcase, DollarSign, MapPin, LayoutGrid, List, SlidersHorizontal } from 'lucide-react';
+import { Search, Plus, Home, User, Briefcase, DollarSign, MapPin, LayoutGrid, List, SlidersHorizontal, FileText, CheckCircle2, Trash2, Edit, X, ChevronRight, Calendar, ArrowRight, Upload, Sparkles, FileUp, MoreHorizontal } from 'lucide-react';
 
 const KIND_OPTIONS = [
   { id: 'byt', label: 'byt' },
@@ -35,7 +36,7 @@ const FLAT_LAYOUT_OPTIONS = ['1+kk', '2+kk', '2+1', '3+kk', '3+1', '4+kk', '4+1'
 const OWNERSHIP_OPTIONS = ['osobní', 'družstevní', 'SVJ'] as const;
 const CONSTRUCTION_OPTIONS = ['cihla', 'panel', 'jiné'] as const;
 const FLAT_CONDITION_OPTIONS = ['novostavba', 'po rekonstrukci', 'dobrý', 'před rekonstrukcí'] as const;
-const FLAT_FEATURE_OPTIONS = ['výtah', 'balkon/lodžie', 'terasa', 'sklep'] as const;
+const FLAT_FEATURE_OPTIONS = ['výtah', 'balkon/lodžie', 'terasa', 'sklep', 'podlahové vytápění', 'klimatizace'] as const;
 const PENB_OPTIONS = ['A', 'B', 'C', 'D', 'E', 'F', 'G'] as const;
 
 const HOUSE_LAYOUT_OPTIONS = ['2+kk', '3+kk', '4+kk', '5+kk', '6 a více'] as const;
@@ -57,6 +58,7 @@ interface PropertiesViewProps {
   properties: Property[];
   contacts: Contact[];
   deals: Deal[];
+  activities: Activity[];
   initialSelectedPropertyId?: string;
   onClearFocusProperty?: () => void;
   onRefresh: () => void;
@@ -69,6 +71,7 @@ export const PropertiesView: React.FC<PropertiesViewProps> = ({
   properties,
   contacts,
   deals,
+  activities,
   initialSelectedPropertyId,
   onClearFocusProperty,
   onRefresh,
@@ -141,6 +144,7 @@ export const PropertiesView: React.FC<PropertiesViewProps> = ({
   const [flatCondition, setFlatCondition] = useState<string>('');
   const [flatFeatures, setFlatFeatures] = useState<Property['flat_features']>([]);
   const [flatPenb, setFlatPenb] = useState<string>('');
+  const [flatParking, setFlatParking] = useState<string>('');
 
   // Dům specific states
   const [houseLayout, setHouseLayout] = useState<string>('');
@@ -167,6 +171,37 @@ export const PropertiesView: React.FC<PropertiesViewProps> = ({
   const [commissionVal, setCommissionVal] = useState('');
   const [photoUrl, setPhotoUrl] = useState('');
 
+  // Active detail tab
+  const [activeDetailTab, setActiveDetailTab] = useState<'prehled' | 'informace' | 'zajemci' | 'ekonomika'>('prehled');
+
+  // Inline editing toggles
+  const [isEditingGeneral, setIsEditingGeneral] = useState(false);
+  const [isEditingSpecifics, setIsEditingSpecifics] = useState(false);
+  const [isEditingNote, setIsEditingNote] = useState(false);
+  const [isEditingCommission, setIsEditingCommission] = useState(false);
+  const [isAddingExpense, setIsAddingExpense] = useState(false);
+
+  // New expense fields
+  const [newExpenseName, setNewExpenseName] = useState('');
+  const [newExpenseValue, setNewExpenseValue] = useState('');
+
+  // Commission status inline edit
+  const [editCommissionStatus, setEditCommissionStatus] = useState<'očekávaná' | 'potvrzená'>('očekávaná');
+
+  // Buyers list filters & options
+  const [zajemciFilter, setZajemciFilter] = useState<'všichni' | 'horký' | 'vlažný' | 'studený'>('všichni');
+  const [isAddingBuyer, setIsAddingBuyer] = useState(false);
+  const [searchBuyerQuery, setSearchBuyerQuery] = useState('');
+
+  // Deal inline edit states
+  const [editingDealId, setEditingDealId] = useState<string | null>(null);
+  const [editDealStage, setEditDealStage] = useState<string>('');
+  const [editDealTemperature, setEditDealTemperature] = useState<string>('');
+  const [editDealNextStep, setEditDealNextStep] = useState<string>('');
+
+  // Header options menu state
+  const [isHeaderMenuOpen, setIsHeaderMenuOpen] = useState(false);
+
   // Sync edits when selectedProperty changes
   useEffect(() => {
     if (selectedProperty) {
@@ -189,6 +224,7 @@ export const PropertiesView: React.FC<PropertiesViewProps> = ({
       setFlatCondition(selectedProperty.flat_condition || '');
       setFlatFeatures(selectedProperty.flat_features || []);
       setFlatPenb(selectedProperty.flat_penb || '');
+      setFlatParking(selectedProperty.comm_parking_entrance || '');
 
       // Dům specific
       setHouseLayout(selectedProperty.house_layout || '');
@@ -214,6 +250,22 @@ export const PropertiesView: React.FC<PropertiesViewProps> = ({
       setCommissionPct(selectedProperty.commission_pct ? selectedProperty.commission_pct.toString() : '');
       setCommissionVal(selectedProperty.commission_val ? selectedProperty.commission_val.toString() : '');
       setPhotoUrl(selectedProperty.attachments?.[0] || '');
+
+      // Reset tabs and sections edit states
+      setActiveDetailTab('prehled');
+      setIsEditingGeneral(false);
+      setIsEditingSpecifics(false);
+      setIsEditingNote(false);
+      setIsEditingCommission(false);
+      setIsAddingExpense(false);
+      setNewExpenseName('');
+      setNewExpenseValue('');
+      setEditCommissionStatus(selectedProperty.commission_status || 'očekávaná');
+      setZajemciFilter('všichni');
+      setIsAddingBuyer(false);
+      setSearchBuyerQuery('');
+      setEditingDealId(null);
+      setIsHeaderMenuOpen(false);
     }
   }, [selectedProperty]);
 
@@ -286,7 +338,7 @@ export const PropertiesView: React.FC<PropertiesViewProps> = ({
     return true;
   });
 
-  const handleFlatFeatureToggle = (feat: 'výtah' | 'balkon/lodžie' | 'terasa' | 'sklep') => {
+  const handleFlatFeatureToggle = (feat: 'výtah' | 'balkon/lodžie' | 'terasa' | 'sklep' | 'podlahové vytápění' | 'klimatizace') => {
     const target = flatFeatures || [];
     if (target.includes(feat)) {
       setFlatFeatures(target.filter((f) => f !== feat));
@@ -404,6 +456,191 @@ export const PropertiesView: React.FC<PropertiesViewProps> = ({
     } catch (error: any) {
       console.error(error);
       toast.error(`Chyba při mazání nemovitosti: ${error?.message || error}`);
+    }
+  };
+
+  const handleDuplicateProperty = async () => {
+    if (!selectedProperty) return;
+    try {
+      const { id, owner, ...copyData } = selectedProperty as any;
+      copyData.address = `${copyData.address} (kopie)`;
+      await createProperty(copyData);
+      setIsDetailOpen(false);
+      setSelectedProperty(null);
+      onRefresh();
+      toast.success('Nemovitost byla úspěšně duplikována.');
+    } catch (error: any) {
+      console.error(error);
+      toast.error(`Chyba při duplikování nemovitosti: ${error?.message || error}`);
+    }
+  };
+
+  // Tab 2: Informace - Save general parameters
+  const handleSaveGeneral = async () => {
+    if (!selectedProperty) return;
+    try {
+      const parsedPrice = parseSafeNumber(editPrice);
+      if (parsedPrice === null) {
+        toast.error('Cena musí být platné číslo.');
+        return;
+      }
+      const updated = await updateProperty(selectedProperty.id, {
+        owner_id: editOwnerId,
+        transaction: editTransaction,
+        offer_status: editOfferStatus,
+        price: parsedPrice,
+        address: editAddress,
+      });
+      setSelectedProperty(updated);
+      setIsEditingGeneral(false);
+      onRefresh();
+      toast.success('Obecné parametry byly úspěšně uloženy.');
+    } catch (e: any) {
+      toast.error('Chyba při ukládání obecných parametrů: ' + e.message);
+    }
+  };
+
+  // Tab 2: Informace - Save specific parameters (flat/house)
+  const handleSaveSpecifics = async () => {
+    if (!selectedProperty) return;
+    try {
+      const updateData: Partial<Property> = {};
+      if (editKind === 'byt') {
+        if (!flatLayout || !flatArea) {
+          toast.error('Dispozice a Užitná plocha jsou povinné.');
+          return;
+        }
+        updateData.flat_layout = flatLayout as Property['flat_layout'];
+        updateData.flat_area = parseSafeNumber(flatArea);
+        updateData.floor = flatFloor || null;
+        updateData.ownership = flatOwnership as Property['ownership'] || null;
+        updateData.construction = flatConstruction as Property['construction'] || null;
+        updateData.flat_condition = flatCondition as Property['flat_condition'] || null;
+        updateData.flat_features = flatFeatures || [];
+        updateData.flat_penb = flatPenb as Property['flat_penb'] || null;
+        updateData.comm_parking_entrance = flatParking || null;
+      } else if (editKind === 'dům') {
+        if (!houseLayout || !houseArea || !landArea) {
+          toast.error('Dispozice, Užitná plocha a Plocha pozemku jsou povinné.');
+          return;
+        }
+        updateData.house_layout = houseLayout as Property['house_layout'];
+        updateData.house_area = parseSafeNumber(houseArea);
+        updateData.land_area = parseSafeNumber(landArea);
+        updateData.house_type = houseType as Property['house_type'] || null;
+        updateData.floors_count = parseSafeNumber(houseFloors);
+        updateData.house_features = houseFeatures || [];
+        updateData.house_condition = houseCondition as Property['house_condition'] || null;
+        updateData.house_penb = housePenb as Property['house_penb'] || null;
+      }
+
+      const updated = await updateProperty(selectedProperty.id, updateData);
+      setSelectedProperty(updated);
+      setIsEditingSpecifics(false);
+      onRefresh();
+      toast.success('Specifické parametry byly úspěšně uloženy.');
+    } catch (e: any) {
+      toast.error('Chyba při ukládání specifických parametrů: ' + e.message);
+    }
+  };
+
+  // Tab 2: Informace - Save long text / note
+  const handleSaveNote = async () => {
+    if (!selectedProperty) return;
+    try {
+      const updated = await updateProperty(selectedProperty.id, {
+        facts_for_answers: editFacts || null,
+      });
+      setSelectedProperty(updated);
+      setIsEditingNote(false);
+      onRefresh();
+      toast.success('Poznámka byla úspěšně uložena.');
+    } catch (e: any) {
+      toast.error('Chyba při ukládání poznámky: ' + e.message);
+    }
+  };
+
+  // Tab 4: Ekonomika - Save commission
+  const handleSaveCommission = async () => {
+    if (!selectedProperty) return;
+    try {
+      const parsedPct = parseSafeNumber(commissionPct);
+      const parsedVal = parseSafeNumber(commissionVal);
+      const updated = await updateProperty(selectedProperty.id, {
+        commission_pct: parsedPct,
+        commission_val: parsedVal,
+        commission_status: editCommissionStatus,
+      });
+      setSelectedProperty(updated);
+      setIsEditingCommission(false);
+      onRefresh();
+      toast.success('Provize byla úspěšně uložena.');
+    } catch (e: any) {
+      toast.error('Chyba při ukládání provize: ' + e.message);
+    }
+  };
+
+  // Tab 4: Ekonomika - Save costs JSONB array
+  const handleSaveExpense = async (updatedCosts: { name: string; value: number }[]) => {
+    if (!selectedProperty) return;
+    try {
+      const updated = await updateProperty(selectedProperty.id, {
+        costs: updatedCosts,
+      });
+      setSelectedProperty(updated);
+      onRefresh();
+      toast.success('Výdaje byly úspěšně uloženy.');
+    } catch (e: any) {
+      toast.error('Chyba při ukládání výdajů: ' + e.message);
+    }
+  };
+
+  // Tab 3: Zájemci - Connect contact recommendation as a new Deal in 'lead' stage
+  const handleConnectBuyer = async (buyerId: string, contactTemp?: string | null) => {
+    if (!selectedProperty) return;
+    try {
+      let mappedTemp: Deal['temperature'] = 'vlažný (B)';
+      if (contactTemp === 'horký') mappedTemp = 'horký (A)';
+      if (contactTemp === 'vlažný') mappedTemp = 'vlažný (B)';
+      if (contactTemp === 'studený') mappedTemp = 'studený (C)';
+
+      await createDeal({
+        buyer_id: buyerId,
+        property_id: selectedProperty.id,
+        stage: 'lead',
+        result: 'otevřený',
+        temperature: mappedTemp,
+        financing: 'neřešeno',
+        must_sell_first: false,
+        moving_term: 'nespěchá',
+        value: selectedProperty.price,
+        next_step: 'Ověřit zájem',
+        next_step_date: null,
+        expected_close: null,
+        closed_date: null,
+        loss_reason: null,
+        assigned_agent: null,
+      });
+      onRefresh();
+      toast.success('Zájemce byl připojen k nemovitosti.');
+    } catch (e: any) {
+      toast.error('Chyba při připojování zájemce: ' + e.message);
+    }
+  };
+
+  // Tab 3: Zájemci - Update deal stage/temperature/next step inline
+  const handleUpdateDealInline = async (dealId: string) => {
+    try {
+      await updateDeal(dealId, {
+        stage: editDealStage as Deal['stage'],
+        temperature: editDealTemperature as Deal['temperature'],
+        next_step: editDealNextStep || null,
+      });
+      setEditingDealId(null);
+      onRefresh();
+      toast.success('Stav zájemce byl upraven.');
+    } catch (e: any) {
+      toast.error('Chyba při ukládání změn zájemce: ' + e.message);
     }
   };
   const handleCreateProperty = async (e: React.FormEvent) => {
@@ -1552,673 +1789,1934 @@ export const PropertiesView: React.FC<PropertiesViewProps> = ({
         </div>
       )}
 
-      {/* DETAIL DIALOG */}
-      {selectedProperty && (
-        <Dialog open={isDetailOpen} onOpenChange={(open) => {
-          setIsDetailOpen(open);
-          if (!open) onClearFocusProperty?.();
-        }}>
-          <DialogContent className="max-w-6xl lg:max-w-7xl w-[90vw] md:w-[92vw] lg:w-full max-h-[90vh] overflow-y-auto border-border">
-            <DialogHeader>
-              <DialogTitle className="font-display text-2xl font-bold border-b border-border pb-3 flex items-center justify-between">
-                <span>{editAddress}</span>
-                <span className="text-xs font-mono font-normal text-muted-foreground mr-6">
-                  Druh: <span className="font-semibold uppercase">{editKind}</span>
-                </span>
-              </DialogTitle>
-            </DialogHeader>
+            {/* DETAIL DIALOG */}
+      {selectedProperty && (() => {
+        // Gather active deals for this property
+        const propertyDeals = deals.filter((d) => d.property_id === selectedProperty.id);
+        
+        // Filter active deals list by Czech temperature pill filter
+        const filteredDeals = propertyDeals.filter((d) => {
+          if (zajemciFilter === 'všichni') return true;
+          if (zajemciFilter === 'horký') return d.temperature?.includes('horký');
+          if (zajemciFilter === 'vlažný') return d.temperature?.includes('vlažný');
+          if (zajemciFilter === 'studený') return d.temperature?.includes('studený');
+          return true;
+        });
 
-            <form onSubmit={handleSaveProperty} className="space-y-6 mt-4">
-              <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
-                {/* Left Column: Form Details */}
-                <div className="lg:col-span-7 space-y-6">
-                  {/* Block 1: Společná pole */}
-                  <div className="space-y-4 text-left">
-                    <h3 className="font-display text-base font-semibold text-foreground">Obecné parametry</h3>
-                    
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                      <div className="space-y-1.5">
-                        <Label htmlFor="edit_owner">Vlastník *</Label>
-                        <Select value={editOwnerId} onValueChange={setEditOwnerId} required>
-                          <SelectTrigger id="edit_owner" className="w-full">
-                            <span className="text-foreground text-xs">
-                              {contacts.find((c) => c.id === editOwnerId)?.full_name || "Vyberte vlastníka"}
-                            </span>
-                          </SelectTrigger>
-                          <SelectContent>
-                            {contacts.map((c) => (
-                              <SelectItem key={c.id} value={c.id}>
-                                {c.full_name} ({c.roles.join(', ')})
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                      </div>
+        // Calculate recommendations from contacts
+        const recommendations = contacts.filter((c) => {
+          // Must have role kupující
+          if (!c.roles || !c.roles.includes('kupující')) return false;
+          // Must not already have a deal for this property
+          const alreadyLinked = propertyDeals.some((d) => d.buyer_id === c.id);
+          if (alreadyLinked) return false;
+          // Match transaction kind
+          if (c.seeking_transaction && c.seeking_transaction !== selectedProperty.transaction) return false;
+          // Match kind
+          if (c.seeking_kind && c.seeking_kind.length > 0 && !c.seeking_kind.includes(selectedProperty.kind as any)) return false;
+          // Match layout
+          const checkLayoutMatch = (seeking: string[], propLayout: string) => {
+            return seeking.some((s) => {
+              if (s === propLayout) return true;
+              if (s === '4+ a více') {
+                return propLayout === '4+kk' || propLayout === '4+1' || propLayout === '5 a více' || propLayout === '6 a více';
+              }
+              return false;
+            });
+          };
+          if (selectedProperty.kind === 'byt' && selectedProperty.flat_layout && c.seeking_layout && c.seeking_layout.length > 0) {
+            if (!checkLayoutMatch(c.seeking_layout, selectedProperty.flat_layout)) return false;
+          }
+          if (selectedProperty.kind === 'dům' && selectedProperty.house_layout && c.seeking_layout && c.seeking_layout.length > 0) {
+            if (!checkLayoutMatch(c.seeking_layout, selectedProperty.house_layout)) return false;
+          }
+          // Budget match
+          if (c.budget_to && selectedProperty.price > c.budget_to) return false;
 
-                      <div className="space-y-1.5">
-                        <Label htmlFor="edit_address">Adresa nemovitosti *</Label>
-                        <Input
-                          id="edit_address"
-                          value={editAddress}
-                          onChange={(e) => setEditAddress(e.target.value)}
-                          required
-                        />
-                      </div>
-                    </div>
+          return true;
+        });
 
-                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                      <div className="space-y-1.5">
-                        <Label htmlFor="edit_kind">Druh *</Label>
-                        <Select value={editKind} onValueChange={(val: Property['kind']) => setEditKind(val)} required>
-                          <SelectTrigger id="edit_kind">
-                            <SelectValue />
-                          </SelectTrigger>
-                          <SelectContent>
-                            {KIND_OPTIONS.map((opt) => (
-                              <SelectItem key={opt.id} value={opt.id}>
-                                {opt.label}
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                      </div>
+        // Calculate timeline activities
+        const dealIds = propertyDeals.map((d) => d.id);
+        const contactIds = [selectedProperty.owner_id, ...propertyDeals.map((d) => d.buyer_id)];
+        const propertyActivities = activities.filter(
+          (act) => (act.deal_id && dealIds.includes(act.deal_id)) || (act.contact_id && contactIds.includes(act.contact_id))
+        );
 
-                      <div className="space-y-1.5">
-                        <Label htmlFor="edit_trans">Transakce *</Label>
-                        <Select value={editTransaction} onValueChange={(val: Property['transaction']) => setEditTransaction(val)} required>
-                          <SelectTrigger id="edit_trans">
-                            <SelectValue />
-                          </SelectTrigger>
-                          <SelectContent>
-                            {TRANSACTION_OPTIONS.map((opt) => (
-                              <SelectItem key={opt} value={opt}>
-                                {opt}
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                      </div>
+        // Sort into reminders and past events
+        const pendingReminders = propertyActivities
+          .filter((act) => act.is_reminder && !act.done)
+          .sort((a, b) => new Date(a.when).getTime() - new Date(b.when).getTime());
+        const pastEvents = propertyActivities
+          .filter((act) => !act.is_reminder || act.done)
+          .sort((a, b) => new Date(b.when).getTime() - new Date(a.when).getTime());
 
-                      <div className="space-y-1.5">
-                        <Label htmlFor="edit_status">Stav nabídky *</Label>
-                        <Select value={editOfferStatus} onValueChange={(val: Property['offer_status']) => setEditOfferStatus(val)} required>
-                          <SelectTrigger id="edit_status">
-                            <SelectValue />
-                          </SelectTrigger>
-                          <SelectContent>
-                            {OFFER_STATUS_OPTIONS.filter((opt) => opt !== 'prodá později').map((opt) => (
-                              <SelectItem key={opt} value={opt}>
-                                {opt}
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                      </div>
-                    </div>
+        // Commission details
+        const propertyPrice = selectedProperty.price;
+        const commPctNum = selectedProperty.commission_pct || 0;
+        const commValNum = selectedProperty.commission_val || (propertyPrice * (commPctNum / 100));
+        const commissionStatus = selectedProperty.commission_status || 'očekávaná';
+        
+        // Expenses list from JSONB costs
+        const expenseList = (selectedProperty.costs as { name: string; value: number }[]) || [];
+        const totalExpenses = expenseList.reduce((sum, item) => sum + (item.value || 0), 0);
+        const netCommission = commValNum - totalExpenses;
 
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                      <div className="space-y-1.5">
-                        <Label htmlFor="edit_price">Cena / nájem (Kč) *</Label>
-                        <Input
-                          id="edit_price"
-                          type="number"
-                          value={editPrice}
-                          onChange={(e) => setEditPrice(e.target.value)}
-                          required
-                          className="text-xs"
-                        />
-                      </div>
+        const getStageStep = (stage: string) => {
+          switch (stage) {
+            case 'lead':
+            case 'kontaktován':
+            case 'kvalifikován':
+              return 1;
+            case 'prohlídka':
+              return 2;
+            case 'nabídka':
+              return 3;
+            case 'rezervace':
+              return 4;
+            case 'podpis':
+              return 5;
+            default:
+              return 1;
+          }
+        };
 
-                      <div className="space-y-1.5">
-                        <Label htmlFor="edit_photo">Hlavní fotografie (URL)</Label>
-                        <div className="flex gap-2 items-center">
-                          <Input
-                            id="edit_photo"
-                            type="text"
-                            value={photoUrl}
-                            onChange={(e) => setPhotoUrl(e.target.value)}
-                            placeholder="https://..."
-                            className="text-xs flex-1"
-                          />
-                          {photoUrl && /^https?:\/\//i.test(photoUrl) && (
-                            <img src={photoUrl} alt="Náhled" className="h-9 w-9 rounded object-cover border border-stone-200" />
-                          )}
-                        </div>
-                      </div>
-                    </div>
+        const renderProgressBar = (stage: string) => {
+          const step = getStageStep(stage);
+          return (
+            <div className="flex gap-[3px] w-[120px] md:w-[150px]">
+              {[1, 2, 3, 4, 5].map((s) => (
+                <div
+                  key={s}
+                  className={`h-1.5 rounded-[2px] flex-1 ${s <= step ? 'bg-[#00D991]' : 'bg-[#E9E8E2] dark:bg-stone-700'}`}
+                />
+              ))}
+            </div>
+          );
+        };
 
-                    {editTransaction === 'pronájem' && (
-                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 border-t border-dashed border-stone-200 pt-3">
-                        <div className="space-y-1.5">
-                          <Label htmlFor="edit_deposit">Vratná kauce (Kč)</Label>
-                          <Input
-                            id="edit_deposit"
-                            type="number"
-                            value={rentDeposit}
-                            onChange={(e) => setRentDeposit(e.target.value)}
-                            placeholder="Kč"
-                            className="text-xs"
-                          />
-                        </div>
-                        <div className="space-y-1.5">
-                          <Label htmlFor="edit_fees">Měsíční poplatky (Kč)</Label>
-                          <Input
-                            id="edit_fees"
-                            type="number"
-                            value={rentFeesUtilities}
-                            onChange={(e) => setRentFeesUtilities(e.target.value)}
-                            placeholder="Kč"
-                            className="text-xs"
-                          />
-                        </div>
-                      </div>
+        const availableContactsToConnect = contacts.filter((c) => {
+          const alreadyLinked = propertyDeals.some((d) => d.buyer_id === c.id);
+          return !alreadyLinked;
+        });
+
+        // Owner object
+        const ownerContact = contacts.find((c) => c.id === selectedProperty.owner_id);
+
+        return (
+          <Dialog open={isDetailOpen} onOpenChange={(open) => {
+            setIsDetailOpen(open);
+            if (!open) onClearFocusProperty?.();
+          }}>
+            <DialogContent showCloseButton={false} className="max-w-6xl lg:max-w-7xl w-[92vw] lg:w-full p-0 overflow-hidden border border-stone-200 dark:border-stone-850 bg-white dark:bg-stone-900 rounded-[14px] max-h-[92vh] !flex !flex-col gap-0 text-left font-sans shadow-2xl">
+              
+              {/* TOP HEADER BAR */}
+              <div className="flex gap-[18px] p-6 pb-4.5 border-b border-stone-200/60 dark:border-stone-800 bg-white dark:bg-stone-900 flex-wrap sm:flex-nowrap items-start flex-none">
+                
+                {/* Thumbnail Icon */}
+                <div 
+                  className="relative w-[172px] h-[120px] rounded-[10px] bg-[#E9E8E2] dark:bg-stone-800 flex-none flex items-center justify-center overflow-hidden border border-stone-200/40 dark:border-stone-800"
+                >
+                  {photoUrl ? (
+                    <img src={photoUrl} className="w-full h-full object-cover" alt="Náhled" />
+                  ) : (
+                    <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="rgba(11,31,26,0.2)" strokeWidth="1.4">
+                      <path d="M4.5 10.5L12 4l7.5 6.5V20h-5.5v-5.5h-4V20H4.5z" />
+                    </svg>
+                  )}
+                  <span className="absolute bottom-[6px] right-[6px] bg-[#00221F]/80 dark:bg-stone-900/80 text-white text-[11.5px] font-medium px-2 py-0.5 rounded-[5px]">
+                    {selectedProperty.attachments?.length || 12} fotek
+                  </span>
+                </div>
+
+                {/* Details Panel */}
+                <div className="flex-1 min-w-0 text-left font-sans">
+                  <div className="flex items-center gap-[10px] flex-wrap">
+                    <span className="text-[22px] font-semibold text-[#0B1F1A] dark:text-stone-100 leading-tight">
+                      {selectedProperty.kind === 'byt' 
+                        ? `Byt ${selectedProperty.flat_layout || ''}` 
+                        : selectedProperty.kind === 'dům' 
+                        ? `Dům ${selectedProperty.house_layout || ''}`
+                        : selectedProperty.kind === 'pozemek'
+                        ? 'Pozemek'
+                        : selectedProperty.kind === 'komerční'
+                        ? 'Komerční nemovitost'
+                        : 'Garáž/ostatní'}
+                    </span>
+                    <span className="text-[12px] font-medium bg-[#00221F] text-white px-[9px] py-[2px] rounded-[6px]">
+                      {selectedProperty.transaction === 'prodej' ? 'Prodej' : 'Pronájem'}
+                    </span>
+                    <span className="text-[12px] font-medium bg-[#00D991] text-[#00221F] px-[9px] py-[2px] rounded-[6px]">
+                      {selectedProperty.offer_status === 'v nabídce' ? 'V nabídce' : selectedProperty.offer_status}
+                    </span>
+                  </div>
+                  
+                  <div className="flex items-baseline gap-[10px] mt-1 flex-wrap">
+                    <span className="text-[24px] font-semibold text-[#0B1F1A] dark:text-stone-100 tabular-nums">
+                      {selectedProperty.price.toLocaleString('cs-CZ')} Kč
+                    </span>
+                    {selectedProperty.kind === 'byt' && selectedProperty.flat_area && (
+                      <span className="text-[13px] text-stone-500 dark:text-stone-400 tabular-nums">
+                        {Math.round(selectedProperty.price / selectedProperty.flat_area).toLocaleString('cs-CZ')} Kč/m²
+                      </span>
                     )}
-
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 border-t border-dashed border-stone-200 pt-3">
-                      <div className="space-y-1.5">
-                        <Label htmlFor="edit_commission_pct">Provize makléře (%)</Label>
-                        <Input
-                          id="edit_commission_pct"
-                          type="number"
-                          value={commissionPct}
-                          onChange={(e) => setCommissionPct(e.target.value)}
-                          placeholder="%"
-                          className="text-xs"
-                        />
-                      </div>
-                      <div className="space-y-1.5">
-                        <Label htmlFor="edit_commission_val">Provize makléře (Kč)</Label>
-                        <Input
-                          id="edit_commission_val"
-                          type="number"
-                          value={commissionVal}
-                          onChange={(e) => setCommissionVal(e.target.value)}
-                          placeholder="Kč"
-                          className="text-xs"
-                        />
-                      </div>
-                    </div>
-
-                    <div className="space-y-1.5">
-                      <Label htmlFor="edit_facts">Poznámka</Label>
-                      <Textarea
-                        id="edit_facts"
-                        rows={3}
-                        value={editFacts}
-                        onChange={(e) => setEditFacts(e.target.value)}
-                        placeholder="Poznámka k nemovitosti..."
-                        className="text-xs"
-                      />
-                    </div>
                   </div>
 
-                  {/* Block 2: Byt details */}
-                  {editKind === 'byt' && (
-                    <div className="border-t border-stone-200 pt-6 space-y-4 text-left">
-                      <h3 className="font-display text-base font-semibold text-foreground">Specifické parametry pro BYT</h3>
-                      
-                      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                        <div className="space-y-1.5">
-                          <Label htmlFor="flat_layout">Dispozice *</Label>
-                          <Select value={flatLayout} onValueChange={setFlatLayout}>
-                            <SelectTrigger id="flat_layout">
-                              <SelectValue placeholder="Vyberte" />
-                            </SelectTrigger>
-                            <SelectContent>
-                              {FLAT_LAYOUT_OPTIONS.map((opt) => (
-                                <SelectItem key={opt} value={opt}>
-                                  {opt}
-                                </SelectItem>
-                              ))}
-                            </SelectContent>
-                          </Select>
-                        </div>
+                  <div className="text-[14px] text-[#0B1F1A] dark:text-stone-200 mt-1 font-medium">
+                    {selectedProperty.address.split(',')[1]?.trim() || selectedProperty.address}
+                  </div>
+                  
+                  <div className="text-[12.5px] text-stone-500 dark:text-stone-400 mt-0.5">
+                    {selectedProperty.address}
+                  </div>
 
-                        <div className="space-y-1.5">
-                          <Label htmlFor="flat_area">Užitná plocha (m²) *</Label>
-                          <Input
-                            id="flat_area"
-                            type="number"
-                            value={flatArea}
-                            onChange={(e) => setFlatArea(e.target.value)}
-                          />
-                        </div>
-
-                        <div className="space-y-1.5">
-                          <Label htmlFor="flat_floor">Patro / z pater</Label>
-                          <Input
-                            id="flat_floor"
-                            value={flatFloor}
-                            onChange={(e) => setFlatFloor(e.target.value)}
-                            placeholder="Např. 3. ze 5"
-                          />
-                        </div>
-                      </div>
-
-                      <div className="grid grid-cols-1 sm:grid-cols-4 gap-4">
-                        <div className="space-y-1.5">
-                          <Label htmlFor="flat_ownership">Vlastnictví</Label>
-                          <Select value={flatOwnership} onValueChange={setFlatOwnership}>
-                            <SelectTrigger id="flat_ownership">
-                              <SelectValue placeholder="Vyberte" />
-                            </SelectTrigger>
-                            <SelectContent>
-                              {OWNERSHIP_OPTIONS.map((opt) => (
-                                <SelectItem key={opt} value={opt}>
-                                  {opt}
-                                </SelectItem>
-                              ))}
-                            </SelectContent>
-                          </Select>
-                        </div>
-
-                        <div className="space-y-1.5">
-                          <Label htmlFor="flat_const">Konstrukce</Label>
-                          <Select value={flatConstruction} onValueChange={setFlatConstruction}>
-                            <SelectTrigger id="flat_const">
-                              <SelectValue placeholder="Vyberte" />
-                            </SelectTrigger>
-                            <SelectContent>
-                              {CONSTRUCTION_OPTIONS.map((opt) => (
-                                <SelectItem key={opt} value={opt}>
-                                  {opt}
-                                </SelectItem>
-                              ))}
-                            </SelectContent>
-                          </Select>
-                        </div>
-
-                        <div className="space-y-1.5">
-                          <Label htmlFor="flat_cond">Stav bytu</Label>
-                          <Select value={flatCondition} onValueChange={setFlatCondition}>
-                            <SelectTrigger id="flat_cond">
-                              <SelectValue placeholder="Vyberte" />
-                            </SelectTrigger>
-                            <SelectContent>
-                              {FLAT_CONDITION_OPTIONS.map((opt) => (
-                                <SelectItem key={opt} value={opt}>
-                                  {opt}
-                                </SelectItem>
-                              ))}
-                            </SelectContent>
-                          </Select>
-                        </div>
-
-                        <div className="space-y-1.5">
-                          <Label htmlFor="flat_penb">PENB</Label>
-                          <Select value={flatPenb} onValueChange={setFlatPenb}>
-                            <SelectTrigger id="flat_penb">
-                              <SelectValue placeholder="Třída" />
-                            </SelectTrigger>
-                            <SelectContent>
-                              {PENB_OPTIONS.map((opt) => (
-                                <SelectItem key={opt} value={opt}>
-                                  {opt}
-                                </SelectItem>
-                              ))}
-                            </SelectContent>
-                          </Select>
-                        </div>
-                      </div>
-
-                      <div className="space-y-1.5">
-                        <Label>Vybavení bytu</Label>
-                        <div className="flex flex-wrap gap-4 pt-1">
-                          {FLAT_FEATURE_OPTIONS.map((opt) => (
-                            <label key={opt} className="flex items-center gap-2 text-xs font-normal cursor-pointer select-none">
-                              <input
-                                type="checkbox"
-                                checked={flatFeatures?.includes(opt) || false}
-                                onChange={() => handleFlatFeatureToggle(opt)}
-                                className="rounded border-stone-300 text-primary focus:ring-primary h-3.5 w-3.5"
-                              />
-                              {opt}
-                            </label>
-                          ))}
-                        </div>
-                      </div>
-                    </div>
-                  )}
-
-                  {/* Block 2: Dům details */}
-                  {editKind === 'dům' && (
-                    <div className="border-t border-stone-200 pt-6 space-y-4 text-left">
-                      <h3 className="font-display text-base font-semibold text-foreground">Specifické parametry pro DŮM</h3>
-                      
-                      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                        <div className="space-y-1.5">
-                          <Label htmlFor="house_layout">Dispozice / místnosti *</Label>
-                          <Select value={houseLayout} onValueChange={setHouseLayout}>
-                            <SelectTrigger id="house_layout">
-                              <SelectValue placeholder="Vyberte" />
-                            </SelectTrigger>
-                            <SelectContent>
-                              {HOUSE_LAYOUT_OPTIONS.map((opt) => (
-                                <SelectItem key={opt} value={opt}>
-                                  {opt}
-                                </SelectItem>
-                              ))}
-                            </SelectContent>
-                          </Select>
-                        </div>
-
-                        <div className="space-y-1.5">
-                          <Label htmlFor="house_area">Užitná plocha (m²) *</Label>
-                          <Input
-                            id="house_area"
-                            type="number"
-                            value={houseArea}
-                            onChange={(e) => setHouseArea(e.target.value)}
-                          />
-                        </div>
-
-                        <div className="space-y-1.5">
-                          <Label htmlFor="land_area">Plocha pozemku (m²) *</Label>
-                          <Input
-                            id="land_area"
-                            type="number"
-                            value={landArea}
-                            onChange={(e) => setLandArea(e.target.value)}
-                          />
-                        </div>
-                      </div>
-
-                      <div className="grid grid-cols-1 sm:grid-cols-4 gap-4">
-                        <div className="space-y-1.5">
-                          <Label htmlFor="house_type">Typ domu</Label>
-                          <Select value={houseType} onValueChange={setHouseType}>
-                            <SelectTrigger id="house_type">
-                              <SelectValue placeholder="Vyberte" />
-                            </SelectTrigger>
-                            <SelectContent>
-                              {HOUSE_TYPE_OPTIONS.map((opt) => (
-                                <SelectItem key={opt} value={opt}>
-                                  {opt}
-                                </SelectItem>
-                              ))}
-                            </SelectContent>
-                          </Select>
-                        </div>
-
-                        <div className="space-y-1.5">
-                          <Label htmlFor="house_floors">Počet podlaží</Label>
-                          <Input
-                            id="house_floors"
-                            type="number"
-                            value={houseFloors}
-                            onChange={(e) => setHouseFloors(e.target.value)}
-                          />
-                        </div>
-
-                        <div className="space-y-1.5">
-                          <Label htmlFor="house_cond">Stav domu</Label>
-                          <Select value={houseCondition} onValueChange={setHouseCondition}>
-                            <SelectTrigger id="house_cond">
-                              <SelectValue placeholder="Vyberte" />
-                            </SelectTrigger>
-                            <SelectContent>
-                              {FLAT_CONDITION_OPTIONS.map((opt) => (
-                                <SelectItem key={opt} value={opt}>
-                                  {opt}
-                                </SelectItem>
-                              ))}
-                            </SelectContent>
-                          </Select>
-                        </div>
-
-                        <div className="space-y-1.5">
-                          <Label htmlFor="house_penb">PENB</Label>
-                          <Select value={housePenb} onValueChange={setHousePenb}>
-                            <SelectTrigger id="house_penb">
-                              <SelectValue placeholder="Třída" />
-                            </SelectTrigger>
-                            <SelectContent>
-                              {PENB_OPTIONS.map((opt) => (
-                                <SelectItem key={opt} value={opt}>
-                                  {opt}
-                                </SelectItem>
-                              ))}
-                            </SelectContent>
-                          </Select>
-                        </div>
-                      </div>
-
-                      <div className="space-y-1.5">
-                        <Label>Vybavení a příslušenství</Label>
-                        <div className="flex flex-wrap gap-4 pt-1">
-                          {HOUSE_FEATURE_OPTIONS.map((opt) => (
-                            <label key={opt} className="flex items-center gap-2 text-xs font-normal cursor-pointer select-none">
-                              <input
-                                type="checkbox"
-                                checked={houseFeatures?.includes(opt) || false}
-                                onChange={() => handleHouseFeatureToggle(opt)}
-                                className="rounded border-stone-300 text-primary focus:ring-primary h-3.5 w-3.5"
-                              />
-                              {opt}
-                            </label>
-                          ))}
-                        </div>
-                      </div>
-                    </div>
-                  )}
-
-                  {/* Block 3: Pozemek details */}
-                  {editKind === 'pozemek' && (
-                    <div className="border-t border-stone-200 pt-6 space-y-4 text-left">
-                      <h3 className="font-display text-base font-semibold text-foreground">Specifické parametry pro POZEMEK</h3>
-                      
-                      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                        <div className="space-y-1.5">
-                          <Label htmlFor="land_size">Výměra (m²) *</Label>
-                          <Input
-                            id="land_size"
-                            type="number"
-                            value={landSize}
-                            onChange={(e) => setLandSize(e.target.value)}
-                            placeholder="např. 800"
-                            className="text-xs"
-                          />
-                        </div>
-
-                        <div className="space-y-1.5">
-                          <Label htmlFor="land_type">Druh pozemku</Label>
-                          <Input
-                            id="land_type"
-                            value={landType}
-                            onChange={(e) => setLandType(e.target.value)}
-                            placeholder="např. stavební, zahrada"
-                            className="text-xs"
-                          />
-                        </div>
-
-                        <div className="space-y-1.5">
-                          <Label htmlFor="land_utilities">Zasíťování</Label>
-                          <Input
-                            id="land_utilities"
-                            value={landUtilities}
-                            onChange={(e) => setLandUtilities(e.target.value)}
-                            placeholder="např. elektřina, voda, plyn"
-                            className="text-xs"
-                          />
-                        </div>
-                      </div>
-
-                      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                        <div className="space-y-1.5">
-                          <Label htmlFor="zoning_plan">Územní plán</Label>
-                          <Input
-                            id="zoning_plan"
-                            value={zoningPlan}
-                            onChange={(e) => setZoningPlan(e.target.value)}
-                            placeholder="např. čisté obytné území"
-                            className="text-xs"
-                          />
-                        </div>
-
-                        <div className="space-y-1.5">
-                          <Label htmlFor="land_access">Přístup</Label>
-                          <Input
-                            id="land_access"
-                            value={landAccess}
-                            onChange={(e) => setLandAccess(e.target.value)}
-                            placeholder="např. z obecní asfaltové cesty"
-                            className="text-xs"
-                          />
-                        </div>
-
-                        <div className="space-y-1.5">
-                          <Label htmlFor="land_dimensions">Šířka / tvar / svažitost</Label>
-                          <Input
-                            id="land_dimensions"
-                            value={landDimensions}
-                            onChange={(e) => setLandDimensions(e.target.value)}
-                            placeholder="např. 20x40m, mírný svah"
-                            className="text-xs"
-                          />
-                        </div>
-                      </div>
+                  {ownerContact && (
+                    <div className="flex items-center gap-[6px] mt-1.5 flex-wrap">
+                      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#0E8A5F" strokeWidth="1.8">
+                        <path d="M5 4h4l1.5 4L8 10c1 2.5 3.5 5 6 6l2-2.5 4 1.5v4c0 .6-.4 1-1 1C10 20 4 14 4 5c0-.6.4-1 1-1z" />
+                      </svg>
+                      <span 
+                        onClick={() => {
+                          setIsDetailOpen(false);
+                          onNavigateToContact(ownerContact.id);
+                        }}
+                        className="text-[13px] text-[#0E8A5F] hover:underline cursor-pointer font-medium"
+                      >
+                        {ownerContact.full_name} · {ownerContact.phone || ownerContact.email}
+                      </span>
+                      <span className="text-[12px] text-stone-400 dark:text-stone-500">
+                        vlastník
+                      </span>
                     </div>
                   )}
                 </div>
 
-                {/* Right Column: Interested Deals */}
-                <div className="lg:col-span-5 border-t lg:border-t-0 lg:border-l border-stone-200 pt-6 lg:pt-0 lg:pl-8 space-y-6 text-left">
-                  <div className="space-y-4">
-                    <div className="flex justify-between items-center">
-                      <h3 className="font-display text-base font-semibold text-foreground">
-                        Zájemci o nemovitost
-                      </h3>
-                      <span className="text-xs font-semibold bg-stone-100 text-stone-600 px-2 py-0.5 rounded-full font-mono">
-                        {interestedDeals.length}
-                      </span>
+                {/* Right side buttons */}
+                <div className="flex gap-2 items-start ml-auto">
+                  <div className="relative">
+                    <button 
+                      onClick={() => setIsHeaderMenuOpen(!isHeaderMenuOpen)}
+                      className="w-8 h-8 rounded-lg border border-stone-200 dark:border-stone-800 flex items-center justify-center hover:bg-stone-50 dark:hover:bg-stone-800 transition text-[16px] text-[#0B1F1A] dark:text-stone-100 cursor-pointer"
+                    >
+                      <MoreHorizontal className="w-4 h-4" />
+                    </button>
+
+                    {isHeaderMenuOpen && (
+                      <>
+                        <div 
+                          className="fixed inset-0 z-40" 
+                          onClick={() => setIsHeaderMenuOpen(false)}
+                        />
+                        <div className="absolute right-0 mt-1.5 w-60 bg-white dark:bg-stone-900 border border-stone-200 dark:border-stone-800 shadow-lg rounded-xl z-50 py-1.5 text-left text-sm font-normal">
+                          <button
+                            onClick={() => {
+                              handleDuplicateProperty();
+                              setIsHeaderMenuOpen(false);
+                            }}
+                            className="w-full text-left px-4 py-2 hover:bg-stone-50 dark:hover:bg-stone-800 text-stone-700 dark:text-stone-300 font-medium transition cursor-pointer"
+                          >
+                            Duplikovat nemovitost
+                          </button>
+                          <div className="h-px bg-stone-100 dark:bg-stone-800 my-1" />
+                          <button
+                            onClick={() => {
+                              setIsHeaderMenuOpen(false);
+                              handleDeletePropertyClick();
+                            }}
+                            className="w-full text-left px-4 py-2 hover:bg-rose-50 dark:hover:bg-rose-950/30 text-rose-600 font-medium transition flex flex-col items-start cursor-pointer"
+                          >
+                            <span>Odstranit nemovitost...</span>
+                            <span className="text-[11px] text-stone-400 dark:text-stone-500 font-normal mt-0.5">
+                              Odstranění vyžaduje potvrzení
+                            </span>
+                          </button>
+                        </div>
+                      </>
+                    )}
+                  </div>
+
+                  <button 
+                    onClick={() => setIsDetailOpen(false)}
+                    className="w-8 h-8 rounded-lg border border-stone-200 dark:border-stone-800 flex items-center justify-center hover:bg-stone-50 dark:hover:bg-stone-800 transition cursor-pointer text-[#0B1F1A] dark:text-stone-100"
+                  >
+                    <X className="w-3.5 h-3.5" />
+                  </button>
+                </div>
+              </div>
+
+              {/* TABS SELECTOR */}
+              <div className="flex gap-[26px] px-6 border-b border-stone-200/60 dark:border-stone-800 bg-white dark:bg-stone-900 overflow-x-auto scrollbar-none flex-none">
+                {(['prehled', 'informace', 'zajemci', 'ekonomika'] as const).map((tab) => {
+                  const label = 
+                    tab === 'prehled' ? 'Přehled' :
+                    tab === 'informace' ? 'Informace' :
+                    tab === 'zajemci' ? `Zájemci · ${propertyDeals.length}` :
+                    'Ekonomika';
+
+                  const active = activeDetailTab === tab;
+                  return (
+                    <button
+                      key={tab}
+                      onClick={() => setActiveDetailTab(tab)}
+                      className="py-3 text-[14px] font-medium transition cursor-pointer border-b-2 text-left whitespace-nowrap"
+                      style={{
+                        color: active ? '#0B1F1A' : 'rgba(11, 31, 26, 0.55)',
+                        borderColor: active ? '#00D991' : 'transparent'
+                      }}
+                    >
+                      {label}
+                    </button>
+                  );
+                })}
+              </div>
+
+              {/* DETAIL CONTENT BODY (SCROLLABLE) */}
+              <div className="overflow-y-auto flex-1 px-6 pt-3.5 pb-6 space-y-4">
+                
+                {/* 1. TAB: PŘEHLED */}
+                {activeDetailTab === 'prehled' && (
+                  <div className="grid grid-cols-1 lg:grid-cols-[1fr_360px] gap-6 items-start">
+                    
+                    {/* Left side details cards */}
+                    <div className="space-y-4">
+                      
+                      {/* Subcard 1: Základní parametry */}
+                      <div className="bg-white dark:bg-stone-950 rounded-xl border border-stone-200/60 dark:border-stone-800 p-5">
+                        <div className="flex justify-between items-baseline mb-4">
+                          <span className="text-xs font-semibold text-stone-400 dark:text-stone-500 uppercase tracking-wider">
+                            Základní parametry
+                          </span>
+                          <button 
+                            onClick={() => setActiveDetailTab('informace')} 
+                            className="text-xs font-medium text-[#0E8A5F] hover:underline"
+                          >
+                            Vše →
+                          </button>
+                        </div>
+                        <div className="grid grid-cols-2 sm:grid-cols-3 gap-y-4 gap-x-6">
+                          <div>
+                            <span className="text-xs text-stone-400 dark:text-stone-500">Dispozice</span>
+                            <div className="text-[14.5px] font-medium text-stone-900 dark:text-stone-100 mt-0.5">
+                              {selectedProperty.kind === 'byt' ? selectedProperty.flat_layout || '—' : selectedProperty.house_layout || '—'}
+                            </div>
+                          </div>
+                          <div>
+                            <span className="text-xs text-stone-400 dark:text-stone-500">Užitná plocha</span>
+                            <div className="text-[14.5px] font-medium text-stone-900 dark:text-stone-100 mt-0.5 tabular-nums">
+                              {selectedProperty.kind === 'byt' ? selectedProperty.flat_area || '—' : selectedProperty.house_area || '—'} m²
+                            </div>
+                          </div>
+                          <div>
+                            <span className="text-xs text-stone-400 dark:text-stone-500">Patro / podlaží</span>
+                            <div className="text-[14.5px] font-medium text-stone-900 dark:text-stone-100 mt-0.5">
+                              {selectedProperty.kind === 'byt' ? selectedProperty.floor || '—' : selectedProperty.floors_count || '—'}
+                            </div>
+                          </div>
+                          <div>
+                            <span className="text-xs text-stone-400 dark:text-stone-500">Stav nemovitosti</span>
+                            <div className="text-[14.5px] font-medium text-stone-900 dark:text-stone-100 mt-0.5">
+                              {selectedProperty.kind === 'byt' ? selectedProperty.flat_condition || '—' : selectedProperty.house_condition || '—'}
+                            </div>
+                          </div>
+                          <div>
+                            <span className="text-xs text-stone-400 dark:text-stone-500">PENB</span>
+                            <div className="text-[14.5px] font-medium text-stone-900 dark:text-stone-100 mt-0.5">
+                              {selectedProperty.kind === 'byt' ? selectedProperty.flat_penb || '—' : selectedProperty.house_penb || '—'}
+                            </div>
+                          </div>
+                          <div>
+                            <span className="text-xs text-stone-400 dark:text-stone-500">Vlastnictví</span>
+                            <div className="text-[14.5px] font-medium text-stone-900 dark:text-stone-100 mt-0.5">
+                              {selectedProperty.ownership || '—'}
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Subcard 2: Zájemci summary */}
+                      <div className="bg-white dark:bg-stone-950 rounded-xl border border-stone-200/60 dark:border-stone-800 p-5">
+                        <div className="flex justify-between items-baseline mb-4">
+                          <span className="text-xs font-semibold text-stone-400 dark:text-stone-500 uppercase tracking-wider">
+                            Aktivní zájemci
+                          </span>
+                          <button 
+                            onClick={() => setActiveDetailTab('zajemci')} 
+                            className="text-xs font-medium text-[#0E8A5F] hover:underline"
+                          >
+                            Všichni {propertyDeals.length} →
+                          </button>
+                        </div>
+                        {propertyDeals.length === 0 ? (
+                          <div className="text-sm text-stone-500 dark:text-stone-400 py-3 italic">
+                            Zatím žádní aktivní zájemci.
+                          </div>
+                        ) : (
+                          <div className="divide-y divide-stone-100 dark:divide-stone-900">
+                            {propertyDeals.slice(0, 3).map((deal) => {
+                              const buyerContact = contacts.find((c) => c.id === deal.buyer_id);
+                              const isHorky = deal.temperature?.includes('horký');
+                              const isVlazny = deal.temperature?.includes('vlažný');
+                              return (
+                                <div key={deal.id} className="py-3 first:pt-0 last:pb-0">
+                                  <div className="flex justify-between items-center">
+                                    <button
+                                      onClick={() => {
+                                        setIsDetailOpen(false);
+                                        if (buyerContact) onNavigateToContact(buyerContact.id);
+                                      }}
+                                      className="text-[14.5px] font-medium text-stone-900 dark:text-stone-100 hover:text-[#0E8A5F] hover:underline"
+                                    >
+                                      {buyerContact?.full_name || 'Neznámý zájemce'}
+                                    </button>
+                                    <span 
+                                      className={`text-[10px] font-medium px-2 py-0.5 rounded-[4px] uppercase tracking-wider ${
+                                        isHorky 
+                                          ? 'bg-rose-50 dark:bg-rose-950/30 text-rose-700 dark:text-rose-400 border border-rose-100 dark:border-rose-900' 
+                                          : isVlazny 
+                                          ? 'bg-amber-50 dark:bg-amber-950/30 text-amber-700 dark:text-amber-400 border border-amber-100 dark:border-amber-900' 
+                                          : 'bg-stone-50 dark:bg-stone-800 text-stone-600 dark:text-stone-400'
+                                      }`}
+                                    >
+                                      {isHorky ? 'Horký' : isVlazny ? 'Vlažný' : 'Studený'}
+                                    </span>
+                                  </div>
+                                  <div className="flex items-center gap-4 mt-2">
+                                    {renderProgressBar(deal.stage)}
+                                    <span className="text-[12px] text-stone-500 dark:text-stone-400 font-medium">
+                                      {deal.stage}
+                                    </span>
+                                  </div>
+                                </div>
+                              );
+                            })}
+                            {propertyDeals.length > 3 && (
+                              <div className="text-xs text-stone-400 dark:text-stone-500 pt-3">
+                                + {propertyDeals.length - 3} další zájemce(i)
+                              </div>
+                            )}
+                          </div>
+                        )}
+                      </div>
+
+                      {/* Subcard 3: Finance summary */}
+                      <div className="bg-white dark:bg-stone-950 rounded-xl border border-stone-200/60 dark:border-stone-800 p-5">
+                        <div className="flex justify-between items-baseline mb-4">
+                          <span className="text-xs font-semibold text-stone-400 dark:text-stone-500 uppercase tracking-wider">
+                            Finance a provize
+                          </span>
+                          <button 
+                            onClick={() => setActiveDetailTab('ekonomika')} 
+                            className="text-xs font-medium text-[#0E8A5F] hover:underline"
+                          >
+                            Detail →
+                          </button>
+                        </div>
+                        <div className="space-y-3">
+                          <div className="flex justify-between items-center text-sm">
+                            <span className="text-stone-500 dark:text-stone-400 flex items-center gap-1.5">
+                              Provize {selectedProperty.commission_pct ? `(${selectedProperty.commission_pct} %)` : ''}
+                              <span className={`text-[10px] font-medium px-1.5 py-0.5 rounded-[4px] uppercase tracking-wider ${
+                                commissionStatus === 'potvrzená' 
+                                  ? 'bg-[#DCF5E7] text-[#0B5C3D] border border-green-200' 
+                                  : 'bg-amber-50 text-amber-700 border border-amber-100'
+                              }`}>
+                                {commissionStatus}
+                              </span>
+                            </span>
+                            <span className="font-medium text-stone-900 dark:text-stone-100 tabular-nums">
+                              {commValNum.toLocaleString('cs-CZ')} Kč
+                            </span>
+                          </div>
+                          <div className="flex justify-between items-center text-sm pt-2 border-t border-stone-100 dark:border-stone-900">
+                            <span className="text-stone-500 dark:text-stone-400">Náklady celkem</span>
+                            <span className="font-medium text-stone-900 dark:text-stone-100 tabular-nums">
+                              {totalExpenses > 0 ? `-${totalExpenses.toLocaleString('cs-CZ')}` : '0'} Kč
+                            </span>
+                          </div>
+                          <div className="flex justify-between items-center bg-[#DCF5E7] dark:bg-green-950/20 rounded-lg p-3 mt-2">
+                            <span className="text-xs font-semibold text-[#0B5C3D] dark:text-green-400">Čistá provize</span>
+                            <span className="text-lg font-bold text-[#0B5C3D] dark:text-green-300 tabular-nums">
+                              {netCommission.toLocaleString('cs-CZ')} Kč
+                            </span>
+                          </div>
+                        </div>
+                      </div>
+
                     </div>
 
-                    {interestedDeals.length === 0 ? (
-                      <p className="text-xs text-muted-foreground italic">Žádní aktivní zájemci o tuto nemovitost.</p>
-                    ) : (
-                      <div className="divide-y divide-stone-150 border border-stone-200 rounded-md overflow-hidden bg-white">
-                        {interestedDeals.map((deal) => {
-                          const nextStepText = deal.next_step 
-                            ? deal.next_step 
-                            : deal.stage;
+                    {/* Right side: Co dál a timeline */}
+                    <div className="bg-white dark:bg-stone-950 rounded-xl border border-stone-200/60 dark:border-stone-800 p-5 self-stretch">
+                      <span className="text-xs font-semibold text-stone-400 dark:text-stone-500 uppercase tracking-wider block mb-4">
+                        Co dál a aktivita
+                      </span>
 
-                          const isNextStepOverdue = deal.next_step_date && new Date(deal.next_step_date) < new Date() && deal.stage !== 'podpis' && deal.stage !== 'prohráno';
+                      {/* Reminders section */}
+                      <div className="space-y-4">
+                        {pendingReminders.length === 0 && pastEvents.length === 0 ? (
+                          <div className="text-sm text-stone-400 dark:text-stone-500 italic py-4 text-center">
+                            Zatím žádné úkoly ani historie.
+                          </div>
+                        ) : (
+                          <>
+                            {/* Pending reminders */}
+                            {pendingReminders.map((act) => {
+                              const isOverdue = new Date(act.when).getTime() < new Date().setHours(0,0,0,0);
+                              return (
+                                <div key={act.id} className="flex gap-3">
+                                  <div className="w-4 flex flex-col items-center flex-none">
+                                    <div className={`w-2.5 h-2.5 rounded-full flex-none mt-1.5 ${
+                                      isOverdue ? 'bg-red-500 shadow-[0_0_8px_rgba(239,68,68,0.5)]' : 'bg-amber-500'
+                                    }`} />
+                                    <div className="w-[1px] flex-1 bg-stone-200 dark:bg-stone-800 mt-2" />
+                                  </div>
+                                  <div className="pb-3 flex-1 min-width-0">
+                                    <div className="text-xs font-semibold text-stone-900 dark:text-stone-100 leading-snug">
+                                      {act.content}
+                                    </div>
+                                    <div className="text-[11px] text-stone-400 dark:text-stone-500 mt-0.5 flex items-center gap-1.5">
+                                      <Calendar className="w-3 h-3" />
+                                      {isOverdue ? 'Zpožděno' : 'Termín'}: {new Date(act.when).toLocaleDateString('cs-CZ')}
+                                    </div>
+                                  </div>
+                                </div>
+                              );
+                            })}
+
+                            {/* Missing documents indicator */}
+                            {(!selectedProperty.attachments || selectedProperty.attachments.length === 0) && (
+                              <div className="flex gap-3">
+                                <div className="w-4 flex flex-col items-center flex-none">
+                                  <div className="w-2.5 h-2.5 rounded-full bg-amber-500 flex-none mt-1.5" />
+                                  <div className="w-[1px] flex-1 bg-stone-200 dark:bg-stone-800 mt-2" />
+                                </div>
+                                <div className="pb-3 flex-1">
+                                  <div className="text-xs font-semibold text-stone-900 dark:text-stone-100 leading-snug">
+                                    Chybí dokumenty (LV / PENB)
+                                  </div>
+                                  <div className="text-[11px] text-stone-400 dark:text-stone-500 mt-0.5">
+                                    Potřeba k uzavření smlouvy
+                                  </div>
+                                </div>
+                              </div>
+                            )}
+
+                            {/* Divider to Past events */}
+                            {pastEvents.length > 0 && (
+                              <div className="text-[11px] font-semibold text-stone-400 dark:text-stone-500 uppercase tracking-wider py-2 border-t border-stone-100 dark:border-stone-900">
+                                Proběhlo
+                              </div>
+                            )}
+
+                            {/* Past events */}
+                            {pastEvents.map((act) => (
+                              <div key={act.id} className="flex gap-3">
+                                <div className="w-4 flex flex-col items-center flex-none">
+                                  <div className="w-2.5 h-2.5 rounded-full bg-[#00D991] flex-none mt-1.5" />
+                                  <div className="w-[1px] flex-1 bg-stone-200 dark:bg-stone-800 mt-2 last:hidden" />
+                                </div>
+                                <div className="pb-3 flex-1 min-width-0">
+                                  <div className="text-xs text-stone-800 dark:text-stone-200">
+                                    {act.content}
+                                  </div>
+                                  <div className="text-[11px] text-stone-400 dark:text-stone-500 mt-0.5">
+                                    {new Date(act.when).toLocaleDateString('cs-CZ')}
+                                  </div>
+                                </div>
+                              </div>
+                            ))}
+                          </>
+                        )}
+                      </div>
+                    </div>
+
+                  </div>
+                )}
+
+                {/* 2. TAB: INFORMACE */}
+                {activeDetailTab === 'informace' && (
+                  <div className="space-y-6">
+                    
+                    {/* Section 1: Obecné parametry */}
+                    <div className="bg-white dark:bg-stone-950 rounded-xl border border-stone-200/60 dark:border-stone-800 p-5">
+                      <div className="flex justify-between items-baseline mb-4">
+                        <span className="text-xs font-semibold text-stone-400 dark:text-stone-500 uppercase tracking-wider">
+                          Obecné parametry
+                        </span>
+                        {!isEditingGeneral ? (
+                          <button 
+                            onClick={() => setIsEditingGeneral(true)} 
+                            className="text-xs font-semibold text-[#0E8A5F] flex items-center gap-1 hover:underline cursor-pointer"
+                          >
+                            ✎ Upravit
+                          </button>
+                        ) : (
+                          <div className="flex gap-2">
+                            <button 
+                              onClick={() => {
+                                setIsEditingGeneral(false);
+                                // reset values
+                                setEditOwnerId(selectedProperty.owner_id);
+                                setEditTransaction(selectedProperty.transaction);
+                                setEditOfferStatus(selectedProperty.offer_status);
+                                setEditPrice(selectedProperty.price.toString());
+                                setEditAddress(selectedProperty.address);
+                              }} 
+                              className="text-xs font-medium text-stone-500 hover:text-stone-700 border border-stone-200 rounded-md px-2.5 py-1"
+                            >
+                              Zrušit
+                            </button>
+                            <button 
+                              onClick={handleSaveGeneral} 
+                              className="text-xs font-semibold bg-[#00D991] text-[#00221F] rounded-md px-3 py-1 hover:bg-[#00c583]"
+                            >
+                              Uložit
+                            </button>
+                          </div>
+                        )}
+                      </div>
+
+                      {!isEditingGeneral ? (
+                        <div className="grid grid-cols-2 md:grid-cols-4 gap-y-4 gap-x-6">
+                          <div>
+                            <span className="text-xs text-stone-400 dark:text-stone-500">Vlastník</span>
+                            <div className="text-[14.5px] font-semibold text-[#0E8A5F] dark:text-green-400 mt-0.5 hover:underline cursor-pointer">
+                              {ownerContact ? (
+                                <span onClick={() => {
+                                  setIsDetailOpen(false);
+                                  onNavigateToContact(ownerContact.id);
+                                }}>
+                                  {ownerContact.full_name} · {ownerContact.phone || ownerContact.email}
+                                </span>
+                              ) : 'Neznámý'}
+                            </div>
+                          </div>
+                          <div>
+                            <span className="text-xs text-stone-400 dark:text-stone-500">Transakce</span>
+                            <div className="text-[14.5px] font-semibold text-stone-900 dark:text-stone-100 mt-0.5 capitalize">
+                              {selectedProperty.transaction}
+                            </div>
+                          </div>
+                          <div>
+                            <span className="text-xs text-stone-400 dark:text-stone-500">Stav nabídky</span>
+                            <div className="text-[14.5px] font-semibold text-stone-900 dark:text-stone-100 mt-0.5">
+                              {selectedProperty.offer_status}
+                            </div>
+                          </div>
+                          <div>
+                            <span className="text-xs text-stone-400 dark:text-stone-500">Cena</span>
+                            <div className="text-[14.5px] font-semibold text-stone-900 dark:text-stone-100 mt-0.5 tabular-nums flex items-center gap-1.5 flex-wrap">
+                              <span>{selectedProperty.price.toLocaleString('cs-CZ')} Kč</span>
+                              {selectedProperty.kind === 'byt' && selectedProperty.flat_area && (
+                                <>
+                                  <span className="text-stone-300 dark:text-stone-700 font-normal">·</span>
+                                  <span className="text-xs text-stone-500 dark:text-stone-400 font-normal">
+                                    {Math.round(selectedProperty.price / selectedProperty.flat_area).toLocaleString('cs-CZ')} Kč/m²
+                                  </span>
+                                </>
+                              )}
+                            </div>
+                          </div>
+                          <div className="col-span-2 md:col-span-4">
+                            <span className="text-xs text-stone-400 dark:text-stone-500">Adresa</span>
+                            <div className="text-[14.5px] font-semibold text-stone-900 dark:text-stone-100 mt-0.5">
+                              {selectedProperty.address}
+                            </div>
+                          </div>
+                        </div>
+                      ) : (
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                          <div className="space-y-1.5">
+                            <Label>Vlastník *</Label>
+                            <Select value={editOwnerId} onValueChange={setEditOwnerId}>
+                              <SelectTrigger className="w-full h-9 text-xs">
+                                <SelectValue placeholder="Vyberte vlastníka" />
+                              </SelectTrigger>
+                              <SelectContent>
+                                {contacts.map((c) => (
+                                  <SelectItem key={c.id} value={c.id}>
+                                    {c.full_name} ({c.roles.join(', ')})
+                                  </SelectItem>
+                                ))}
+                              </SelectContent>
+                            </Select>
+                          </div>
+                          <div className="space-y-1.5">
+                            <Label>Transakce *</Label>
+                            <Select value={editTransaction} onValueChange={(v) => setEditTransaction(v as any)}>
+                              <SelectTrigger className="w-full h-9 text-xs">
+                                <SelectValue />
+                              </SelectTrigger>
+                              <SelectContent>
+                                <SelectItem value="prodej">Prodej</SelectItem>
+                                <SelectItem value="pronájem">Pronájem</SelectItem>
+                              </SelectContent>
+                            </Select>
+                          </div>
+                          <div className="space-y-1.5">
+                            <Label>Stav nabídky *</Label>
+                            <Select value={editOfferStatus} onValueChange={(v) => setEditOfferStatus(v as any)}>
+                              <SelectTrigger className="w-full h-9 text-xs">
+                                <SelectValue />
+                              </SelectTrigger>
+                              <SelectContent>
+                                {OFFER_STATUS_OPTIONS.map((opt) => (
+                                  <SelectItem key={opt} value={opt}>{opt}</SelectItem>
+                                ))}
+                              </SelectContent>
+                            </Select>
+                          </div>
+                          <div className="space-y-1.5">
+                            <Label>Cena *</Label>
+                            <Input 
+                              type="number" 
+                              value={editPrice} 
+                              onChange={(e) => setEditPrice(e.target.value)} 
+                              className="h-9 text-xs" 
+                            />
+                          </div>
+                          <div className="sm:col-span-2 space-y-1.5">
+                            <Label>Adresa *</Label>
+                            <Input 
+                              value={editAddress} 
+                              onChange={(e) => setEditAddress(e.target.value)} 
+                              className="h-9 text-xs" 
+                            />
+                          </div>
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Section 2: Specifické parametry Byt / Dům */}
+                    <div className={cn(
+                      "bg-white dark:bg-stone-950 rounded-xl transition-all p-5 border",
+                      isEditingSpecifics ? "border-[#00D991] shadow-sm" : "border-stone-200/60 dark:border-stone-800"
+                    )}>
+                      <div className="flex justify-between items-baseline mb-4">
+                        <span className="text-[14.5px] font-semibold text-stone-900 dark:text-stone-100">
+                          {isEditingSpecifics 
+                            ? `Parametry ${editKind === 'byt' ? 'bytu' : 'domu'} — úprava` 
+                            : `Parametry ${editKind === 'byt' ? 'bytu' : 'domu'}`}
+                        </span>
+                        {!isEditingSpecifics ? (
+                          ((editKind === 'byt' && flatLayout && flatArea) || (editKind === 'dům' && houseLayout && houseArea)) && (
+                            <button 
+                              onClick={() => setIsEditingSpecifics(true)} 
+                              className="text-xs font-semibold text-[#0E8A5F] hover:underline cursor-pointer"
+                            >
+                              ✎ Upravit
+                            </button>
+                          )
+                        ) : (
+                          <div className="flex gap-2">
+                            <button 
+                              onClick={() => {
+                                setIsEditingSpecifics(false);
+                                if (selectedProperty) {
+                                  setFlatLayout(selectedProperty.flat_layout || '');
+                                  setFlatArea(selectedProperty.flat_area ? selectedProperty.flat_area.toString() : '');
+                                  setFlatFloor(selectedProperty.floor || '');
+                                  setFlatOwnership(selectedProperty.ownership || '');
+                                  setFlatConstruction(selectedProperty.construction || '');
+                                  setFlatCondition(selectedProperty.flat_condition || '');
+                                  setFlatFeatures(selectedProperty.flat_features || []);
+                                  setFlatPenb(selectedProperty.flat_penb || '');
+                                  setFlatParking(selectedProperty.comm_parking_entrance || '');
+
+                                  setHouseLayout(selectedProperty.house_layout || '');
+                                  setHouseArea(selectedProperty.house_area ? selectedProperty.house_area.toString() : '');
+                                  setLandArea(selectedProperty.land_area ? selectedProperty.land_area.toString() : '');
+                                  setHouseType(selectedProperty.house_type || '');
+                                  setHouseFloors(selectedProperty.floors_count ? selectedProperty.floors_count.toString() : '');
+                                  setHouseFeatures(selectedProperty.house_features || []);
+                                  setHouseCondition(selectedProperty.house_condition || '');
+                                  setHousePenb(selectedProperty.house_penb || '');
+                                }
+                              }} 
+                              className="text-xs font-medium text-stone-500 hover:text-stone-700 border border-stone-200 rounded-md px-2.5 py-1 cursor-pointer"
+                            >
+                              Zrušit
+                            </button>
+                            <button 
+                              onClick={handleSaveSpecifics} 
+                              className="text-xs font-semibold bg-[#00D991] text-[#00221F] rounded-md px-3 py-1 hover:bg-[#00c583] cursor-pointer"
+                            >
+                              Uložit
+                            </button>
+                          </div>
+                        )}
+                      </div>
+
+                      {/* Condition 1: Empty state / Unset values */}
+                      {!isEditingSpecifics && !(editKind === 'byt' && flatLayout && flatArea) && !(editKind === 'dům' && houseLayout && houseArea) ? (
+                        <div className="border border-dashed border-stone-250 dark:border-stone-800 rounded-xl p-5 flex justify-between items-center bg-white dark:bg-stone-950">
+                          <div className="text-left">
+                            <div className="text-[14.5px] font-semibold text-stone-900 dark:text-stone-100">
+                              Doplň parametry {editKind === 'byt' ? 'bytu' : 'domu'}
+                            </div>
+                            <div className="text-xs text-stone-400 dark:text-stone-500 mt-1">
+                              AI z nich odpovídá zájemcům — dispozice, plocha, {editKind === 'byt' ? 'patro' : 'pozemek'}, PENB.
+                            </div>
+                          </div>
+                          <button 
+                            onClick={() => setIsEditingSpecifics(true)}
+                            className="text-xs font-bold text-[#0E8A5F] hover:underline cursor-pointer flex-none"
+                          >
+                            + Doplnit
+                          </button>
+                        </div>
+                      ) : !isEditingSpecifics ? (
+                        /* Read-only populated parameters */
+                        <div className="space-y-4">
+                          {editKind === 'byt' ? (
+                            <div className="grid grid-cols-2 sm:grid-cols-4 gap-y-4 gap-x-6">
+                              <div>
+                                <span className="text-xs text-stone-400 dark:text-stone-500">Dispozice</span>
+                                <div className="text-[14.5px] font-semibold text-stone-900 dark:text-stone-100 mt-0.5">{flatLayout}</div>
+                              </div>
+                              <div>
+                                <span className="text-xs text-stone-400 dark:text-stone-500">Užitná plocha</span>
+                                <div className="text-[14.5px] font-semibold text-stone-900 dark:text-stone-100 mt-0.5 tabular-nums">{flatArea} m²</div>
+                              </div>
+                              <div>
+                                <span className="text-xs text-stone-400 dark:text-stone-500">Patro</span>
+                                <div className="text-[14.5px] font-semibold text-stone-900 dark:text-stone-100 mt-0.5">{flatFloor || '—'}</div>
+                              </div>
+                              <div>
+                                <span className="text-xs text-stone-400 dark:text-stone-500">Vlastnictví</span>
+                                <div className="text-[14.5px] font-semibold text-stone-900 dark:text-stone-100 mt-0.5">{flatOwnership || '—'}</div>
+                              </div>
+                              <div>
+                                <span className="text-xs text-stone-400 dark:text-stone-500">Konstrukce</span>
+                                <div className="text-[14.5px] font-semibold text-stone-900 dark:text-stone-100 mt-0.5 capitalize">{flatConstruction || '—'}</div>
+                              </div>
+                              <div>
+                                <span className="text-xs text-stone-400 dark:text-stone-500">Stav bytu</span>
+                                <div className="text-[14.5px] font-semibold text-stone-900 dark:text-stone-100 mt-0.5">{flatCondition || '—'}</div>
+                              </div>
+                              <div>
+                                <span className="text-xs text-stone-400 dark:text-stone-500">PENB</span>
+                                <div className="text-[14.5px] font-semibold text-stone-900 dark:text-stone-100 mt-0.5">{flatPenb || '—'}</div>
+                              </div>
+                              <div>
+                                <span className="text-xs text-stone-400 dark:text-stone-500">Parkování</span>
+                                <div className="text-[14.5px] font-semibold text-stone-900 dark:text-stone-100 mt-0.5">{flatParking || '—'}</div>
+                              </div>
+                            </div>
+                          ) : (
+                            <div className="grid grid-cols-2 sm:grid-cols-4 gap-y-4 gap-x-6">
+                              <div>
+                                <span className="text-xs text-stone-400 dark:text-stone-500">Dispozice / pokoje</span>
+                                <div className="text-[14.5px] font-semibold text-stone-900 dark:text-stone-100 mt-0.5">{houseLayout}</div>
+                              </div>
+                              <div>
+                                <span className="text-xs text-stone-400 dark:text-stone-500">Užitná plocha</span>
+                                <div className="text-[14.5px] font-semibold text-stone-900 dark:text-stone-100 mt-0.5 tabular-nums">{houseArea} m²</div>
+                              </div>
+                              <div>
+                                <span className="text-xs text-stone-400 dark:text-stone-500">Plocha pozemku</span>
+                                <div className="text-[14.5px] font-semibold text-stone-900 dark:text-stone-100 mt-0.5 tabular-nums">{landArea} m²</div>
+                              </div>
+                              <div>
+                                <span className="text-xs text-stone-400 dark:text-stone-500">Typ domu</span>
+                                <div className="text-[14.5px] font-semibold text-stone-900 dark:text-stone-100 mt-0.5">{houseType || '—'}</div>
+                              </div>
+                              <div>
+                                <span className="text-xs text-stone-400 dark:text-stone-500">Počet podlaží</span>
+                                <div className="text-[14.5px] font-semibold text-stone-900 dark:text-stone-100 mt-0.5">{houseFloors || '—'}</div>
+                              </div>
+                              <div>
+                                <span className="text-xs text-stone-400 dark:text-stone-500">Stav domu</span>
+                                <div className="text-[14.5px] font-semibold text-stone-900 dark:text-stone-100 mt-0.5">{houseCondition || '—'}</div>
+                              </div>
+                              <div>
+                                <span className="text-xs text-stone-400 dark:text-stone-500">PENB</span>
+                                <div className="text-[14.5px] font-semibold text-stone-900 dark:text-stone-100 mt-0.5">{housePenb || '—'}</div>
+                              </div>
+                              <div>
+                                <span className="text-xs text-stone-400 dark:text-stone-500">Parkování</span>
+                                <div className="text-[14.5px] font-semibold text-stone-900 dark:text-stone-100 mt-0.5">{flatParking || '—'}</div>
+                              </div>
+                            </div>
+                          )}
+
+                          {/* Features Badges row */}
+                          {editKind === 'byt' && flatFeatures && flatFeatures.length > 0 && (
+                            <div className="flex gap-2 flex-wrap pt-2">
+                              {flatFeatures.map((f) => (
+                                <span key={f} className="text-xs bg-[#F3F2EC] dark:bg-stone-800 text-[#0B1F1A] dark:text-stone-200 px-3 py-1.5 rounded-full font-medium">
+                                  {f.charAt(0).toUpperCase() + f.slice(1)}
+                                </span>
+                              ))}
+                            </div>
+                          )}
+                          {editKind === 'dům' && houseFeatures && houseFeatures.length > 0 && (
+                            <div className="flex gap-2 flex-wrap pt-2">
+                              {houseFeatures.map((f) => (
+                                <span key={f} className="text-xs bg-[#F3F2EC] dark:bg-stone-800 text-[#0B1F1A] dark:text-stone-200 px-3 py-1.5 rounded-full font-medium">
+                                  {f.charAt(0).toUpperCase() + f.slice(1)}
+                                </span>
+                              ))}
+                            </div>
+                          )}
+                        </div>
+                      ) : (
+                        /* Specific edits input form */
+                        <div className="space-y-4">
+                          {editKind === 'byt' ? (
+                            <>
+                              <div className="grid grid-cols-1 sm:grid-cols-4 gap-4">
+                                <div className="space-y-1.5">
+                                  <Label className="text-xs font-semibold text-stone-400 dark:text-stone-500">Dispozice *</Label>
+                                  <Select value={flatLayout} onValueChange={setFlatLayout}>
+                                    <SelectTrigger className="h-9 text-xs">
+                                      <SelectValue />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                      {FLAT_LAYOUT_OPTIONS.map((opt) => (
+                                        <SelectItem key={opt} value={opt}>{opt}</SelectItem>
+                                      ))}
+                                    </SelectContent>
+                                  </Select>
+                                </div>
+                                <div className="space-y-1.5">
+                                  <Label className="text-xs font-semibold text-stone-400 dark:text-stone-500">Užitná plocha (m²) *</Label>
+                                  <Input 
+                                    type="number" 
+                                    value={flatArea} 
+                                    onChange={(e) => setFlatArea(e.target.value)} 
+                                    className="h-9 text-xs" 
+                                  />
+                                </div>
+                                <div className="space-y-1.5">
+                                  <Label className="text-xs font-semibold text-stone-400 dark:text-stone-500">Patro / z pater</Label>
+                                  <Input 
+                                    value={flatFloor} 
+                                    onChange={(e) => setFlatFloor(e.target.value)} 
+                                    placeholder="např. 6. ze 6" 
+                                    className="h-9 text-xs" 
+                                  />
+                                </div>
+                                <div className="space-y-1.5">
+                                  <Label className="text-xs font-semibold text-stone-400 dark:text-stone-500">Vlastnictví</Label>
+                                  <Select value={flatOwnership} onValueChange={setFlatOwnership}>
+                                    <SelectTrigger className="h-9 text-xs">
+                                      <SelectValue placeholder="Vyberte" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                      {OWNERSHIP_OPTIONS.map((opt) => (
+                                        <SelectItem key={opt} value={opt}>{opt}</SelectItem>
+                                      ))}
+                                    </SelectContent>
+                                  </Select>
+                                </div>
+                              </div>
+                              <div className="grid grid-cols-1 sm:grid-cols-4 gap-4">
+                                <div className="space-y-1.5">
+                                  <Label className="text-xs font-semibold text-stone-400 dark:text-stone-500">Konstrukce</Label>
+                                  <Select value={flatConstruction} onValueChange={setFlatConstruction}>
+                                    <SelectTrigger className="h-9 text-xs">
+                                      <SelectValue placeholder="Vyberte" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                      {CONSTRUCTION_OPTIONS.map((opt) => (
+                                        <SelectItem key={opt} value={opt}>{opt}</SelectItem>
+                                      ))}
+                                    </SelectContent>
+                                  </Select>
+                                </div>
+                                <div className="space-y-1.5">
+                                  <Label className="text-xs font-semibold text-stone-400 dark:text-stone-500">Stav bytu</Label>
+                                  <Select value={flatCondition} onValueChange={setFlatCondition}>
+                                    <SelectTrigger className="h-9 text-xs">
+                                      <SelectValue placeholder="Vyberte" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                      {FLAT_CONDITION_OPTIONS.map((opt) => (
+                                        <SelectItem key={opt} value={opt}>{opt}</SelectItem>
+                                      ))}
+                                    </SelectContent>
+                                  </Select>
+                                </div>
+                                <div className="space-y-1.5">
+                                  <Label className="text-xs font-semibold text-stone-400 dark:text-stone-500">PENB</Label>
+                                  <Select value={flatPenb} onValueChange={setFlatPenb}>
+                                    <SelectTrigger className="h-9 text-xs">
+                                      <SelectValue placeholder="Vyberte" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                      {PENB_OPTIONS.map((opt) => (
+                                        <SelectItem key={opt} value={opt}>{opt}</SelectItem>
+                                      ))}
+                                    </SelectContent>
+                                  </Select>
+                                </div>
+                                <div className="space-y-1.5">
+                                  <Label className="text-xs font-semibold text-stone-400 dark:text-stone-500">Parkování</Label>
+                                  <Input 
+                                    value={flatParking} 
+                                    onChange={(e) => setFlatParking(e.target.value)} 
+                                    placeholder="např. V domě, možnost garáže" 
+                                    className="h-9 text-xs" 
+                                  />
+                                </div>
+                              </div>
+                              <div className="space-y-1.5 pt-1">
+                                <div className="flex gap-6 items-center flex-wrap pt-2">
+                                  {FLAT_FEATURE_OPTIONS.map((feat) => {
+                                    const checked = flatFeatures?.includes(feat);
+                                    return (
+                                      <label key={feat} className="flex items-center gap-2 text-xs text-stone-700 dark:text-stone-300 font-medium cursor-pointer">
+                                        <div 
+                                          className={cn(
+                                            "w-4 h-4 rounded border flex items-center justify-center transition-all",
+                                            checked 
+                                              ? "bg-[#00D991] border-[#00D991] text-[#00221F]" 
+                                              : "bg-white border-stone-300 dark:bg-stone-900 dark:border-stone-700 text-transparent"
+                                          )}
+                                        >
+                                          {checked && (
+                                            <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+                                              <polyline points="20 6 9 17 4 12" />
+                                            </svg>
+                                          )}
+                                        </div>
+                                        <input 
+                                          type="checkbox" 
+                                          checked={checked} 
+                                          onChange={() => {
+                                            const updated = flatFeatures?.includes(feat)
+                                              ? flatFeatures.filter(x => x !== feat)
+                                              : [...(flatFeatures || []), feat];
+                                            setFlatFeatures(updated);
+                                          }} 
+                                          className="sr-only"
+                                        />
+                                        <span>{feat.charAt(0).toUpperCase() + feat.slice(1)}</span>
+                                      </label>
+                                    );
+                                  })}
+                                </div>
+                              </div>
+                            </>
+                          ) : (
+                            <>
+                              <div className="grid grid-cols-1 sm:grid-cols-4 gap-4">
+                                <div className="space-y-1.5">
+                                  <Label className="text-xs font-semibold text-stone-400 dark:text-stone-500">Dispozice *</Label>
+                                  <Select value={houseLayout} onValueChange={setHouseLayout}>
+                                    <SelectTrigger className="h-9 text-xs">
+                                      <SelectValue />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                      {HOUSE_LAYOUT_OPTIONS.map((opt) => (
+                                        <SelectItem key={opt} value={opt}>{opt}</SelectItem>
+                                      ))}
+                                    </SelectContent>
+                                  </Select>
+                                </div>
+                                <div className="space-y-1.5">
+                                  <Label className="text-xs font-semibold text-stone-400 dark:text-stone-500">Užitná plocha (m²) *</Label>
+                                  <Input 
+                                    type="number" 
+                                    value={houseArea} 
+                                    onChange={(e) => setHouseArea(e.target.value)} 
+                                    className="h-9 text-xs" 
+                                  />
+                                </div>
+                                <div className="space-y-1.5">
+                                  <Label className="text-xs font-semibold text-stone-400 dark:text-stone-500">Plocha pozemku (m²) *</Label>
+                                  <Input 
+                                    type="number" 
+                                    value={landArea} 
+                                    onChange={(e) => setLandArea(e.target.value)} 
+                                    className="h-9 text-xs" 
+                                  />
+                                </div>
+                                <div className="space-y-1.5">
+                                  <Label className="text-xs font-semibold text-stone-400 dark:text-stone-500">Typ domu</Label>
+                                  <Select value={houseType} onValueChange={setHouseType}>
+                                    <SelectTrigger className="h-9 text-xs">
+                                      <SelectValue placeholder="Vyberte" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                      {HOUSE_TYPE_OPTIONS.map((opt) => (
+                                        <SelectItem key={opt} value={opt}>{opt}</SelectItem>
+                                      ))}
+                                    </SelectContent>
+                                  </Select>
+                                </div>
+                              </div>
+                              <div className="grid grid-cols-1 sm:grid-cols-4 gap-4">
+                                <div className="space-y-1.5">
+                                  <Label className="text-xs font-semibold text-stone-400 dark:text-stone-500">Počet podlaží</Label>
+                                  <Input 
+                                    type="number" 
+                                    value={houseFloors} 
+                                    onChange={(e) => setHouseFloors(e.target.value)} 
+                                    className="h-9 text-xs" 
+                                  />
+                                </div>
+                                <div className="space-y-1.5">
+                                  <Label className="text-xs font-semibold text-stone-400 dark:text-stone-500">Stav domu</Label>
+                                  <Select value={houseCondition} onValueChange={setHouseCondition}>
+                                    <SelectTrigger className="h-9 text-xs">
+                                      <SelectValue placeholder="Vyberte" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                      {FLAT_CONDITION_OPTIONS.map((opt) => (
+                                        <SelectItem key={opt} value={opt}>{opt}</SelectItem>
+                                      ))}
+                                    </SelectContent>
+                                  </Select>
+                                </div>
+                                <div className="space-y-1.5">
+                                  <Label className="text-xs font-semibold text-stone-400 dark:text-stone-500">PENB</Label>
+                                  <Select value={housePenb} onValueChange={setHousePenb}>
+                                    <SelectTrigger className="h-9 text-xs">
+                                      <SelectValue placeholder="Vyberte" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                      {PENB_OPTIONS.map((opt) => (
+                                        <SelectItem key={opt} value={opt}>{opt}</SelectItem>
+                                      ))}
+                                    </SelectContent>
+                                  </Select>
+                                </div>
+                                <div className="space-y-1.5">
+                                  <Label className="text-xs font-semibold text-stone-400 dark:text-stone-500">Parkování</Label>
+                                  <Input 
+                                    value={flatParking} 
+                                    onChange={(e) => setFlatParking(e.target.value)} 
+                                    placeholder="např. V domě, možnost garáže" 
+                                    className="h-9 text-xs" 
+                                  />
+                                </div>
+                              </div>
+                              <div className="space-y-1.5 pt-1">
+                                <div className="flex gap-6 items-center flex-wrap pt-2">
+                                  {HOUSE_FEATURE_OPTIONS.map((feat) => {
+                                    const checked = houseFeatures?.includes(feat);
+                                    return (
+                                      <label key={feat} className="flex items-center gap-2 text-xs text-stone-700 dark:text-stone-300 font-medium cursor-pointer">
+                                        <div 
+                                          className={cn(
+                                            "w-4 h-4 rounded border flex items-center justify-center transition-all",
+                                            checked 
+                                              ? "bg-[#00D991] border-[#00D991] text-[#00221F]" 
+                                              : "bg-white border-stone-300 dark:bg-stone-900 dark:border-stone-700 text-transparent"
+                                          )}
+                                        >
+                                          {checked && (
+                                            <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+                                              <polyline points="20 6 9 17 4 12" />
+                                            </svg>
+                                          )}
+                                        </div>
+                                        <input 
+                                          type="checkbox" 
+                                          checked={checked} 
+                                          onChange={() => {
+                                            const updated = houseFeatures?.includes(feat)
+                                              ? houseFeatures.filter(x => x !== feat)
+                                              : [...(houseFeatures || []), feat];
+                                            setHouseFeatures(updated);
+                                          }} 
+                                          className="sr-only"
+                                        />
+                                        <span>{feat.charAt(0).toUpperCase() + feat.slice(1)}</span>
+                                      </label>
+                                    );
+                                  })}
+                                </div>
+                              </div>
+                            </>
+                          )}
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Section 3: Poznámka */}
+                    <div className="bg-white dark:bg-stone-950 rounded-xl border border-stone-200/60 dark:border-stone-800 p-5">
+                      <div className="flex justify-between items-baseline mb-4">
+                        <span className="text-[14.5px] font-semibold text-stone-900 dark:text-stone-100">
+                          Poznámka
+                        </span>
+                        {!isEditingNote ? (
+                          editFacts && (
+                            <button 
+                              onClick={() => setIsEditingNote(true)} 
+                              className="text-xs font-semibold text-[#0E8A5F] hover:underline cursor-pointer"
+                            >
+                              ✎ Upravit
+                            </button>
+                          )
+                        ) : (
+                          <div className="flex gap-2">
+                            <button 
+                              onClick={() => {
+                                setIsEditingNote(false);
+                                setEditFacts(selectedProperty.facts_for_answers || '');
+                              }} 
+                              className="text-xs font-medium text-stone-500 hover:text-stone-700 border border-stone-200 rounded-md px-2.5 py-1 cursor-pointer"
+                            >
+                              Zrušit
+                            </button>
+                            <button 
+                              onClick={handleSaveNote} 
+                              className="text-xs font-semibold bg-[#00D991] text-[#00221F] rounded-md px-3 py-1 hover:bg-[#00c583] cursor-pointer"
+                            >
+                              Uložit
+                            </button>
+                          </div>
+                        )}
+                      </div>
+
+                      {!isEditingNote ? (
+                        !editFacts ? (
+                          <div className="border border-dashed border-stone-250 dark:border-stone-800 rounded-xl p-5 flex justify-between items-center bg-white dark:bg-stone-950">
+                            <div className="text-left">
+                              <div className="text-[14.5px] font-semibold text-stone-900 dark:text-stone-100">
+                                Přidej poznámku
+                              </div>
+                              <div className="text-xs text-stone-400 dark:text-stone-500 mt-1">
+                                Popis nemovitosti pro tebe i pro inzerát.
+                              </div>
+                            </div>
+                            <button 
+                              onClick={() => setIsEditingNote(true)}
+                              className="text-xs font-bold text-[#0E8A5F] hover:underline cursor-pointer flex-none"
+                            >
+                              + Doplnit
+                            </button>
+                          </div>
+                        ) : (
+                          <div className="text-[14.5px] font-semibold text-[#141414] dark:text-stone-200 leading-relaxed whitespace-pre-wrap">
+                            {editFacts}
+                          </div>
+                        )
+                      ) : (
+                        <Textarea 
+                          value={editFacts} 
+                          onChange={(e) => setEditFacts(e.target.value)} 
+                          placeholder="Zadejte poznámku nebo fakta o nemovitosti..."
+                          rows={4}
+                          className="text-xs font-medium"
+                        />
+                      )}
+                    </div>
+
+                    {/* Section 4: Dokumenty a historie */}
+                    <div className="bg-white dark:bg-stone-950 rounded-xl border border-stone-200/60 dark:border-stone-800 p-5">
+                      <div className="flex justify-between items-baseline mb-4">
+                        <span className="text-[14.5px] font-semibold text-stone-900 dark:text-stone-100">
+                          Dokumenty a historie
+                        </span>
+                        <button 
+                          onClick={async () => {
+                            try {
+                              const updated = await updateProperty(selectedProperty.id, {
+                                attachments: ['LV.pdf', 'PENB.pdf']
+                              });
+                              setSelectedProperty(updated);
+                              onRefresh();
+                              toast.success('Simulované dokumenty LV.pdf a PENB.pdf byly nahrány.');
+                            } catch(e: any) {
+                              toast.error(e.message);
+                            }
+                          }}
+                          className="text-xs font-bold text-[#0E8A5F] hover:underline cursor-pointer"
+                        >
+                          + Nahrát
+                        </button>
+                      </div>
+
+                      <div className="space-y-4">
+                        {!selectedProperty.attachments || selectedProperty.attachments.length === 0 ? (
+                          <div className="border border-dashed border-stone-250 dark:border-stone-800 rounded-xl p-5 flex justify-between items-center bg-white dark:bg-stone-950">
+                            <div className="text-left">
+                              <div className="text-[14.5px] font-semibold text-stone-900 dark:text-stone-100">
+                                Nahraj dokumenty
+                              </div>
+                              <div className="text-xs text-stone-400 dark:text-stone-500 mt-1">
+                                LV a PENB budou potřeba k rezervační smlouvě.
+                              </div>
+                            </div>
+                            <button 
+                              onClick={async () => {
+                                try {
+                                  const updated = await updateProperty(selectedProperty.id, {
+                                    attachments: ['LV.pdf', 'PENB.pdf']
+                                  });
+                                  setSelectedProperty(updated);
+                                  onRefresh();
+                                  toast.success('Simulované dokumenty LV.pdf a PENB.pdf byly nahrány.');
+                                } catch(e: any) {
+                                  toast.error(e.message);
+                                }
+                              }}
+                              className="text-xs font-bold text-[#0E8A5F] hover:underline cursor-pointer flex-none"
+                            >
+                              + Nahrát
+                            </button>
+                          </div>
+                        ) : (
+                          <div className="space-y-3">
+                            {selectedProperty.attachments.map((file, idx) => (
+                              <div key={idx} className="flex justify-between items-center bg-stone-50/50 dark:bg-stone-900/50 border border-stone-100 dark:border-stone-800 px-4 py-3 rounded-lg text-xs">
+                                <div className="flex flex-col text-left">
+                                  <span className="text-sm font-semibold text-stone-800 dark:text-stone-200 flex items-center gap-2">
+                                    <FileText className="w-4 h-4 text-stone-400" />
+                                    {file}
+                                  </span>
+                                  <span className="text-[11px] text-stone-400 dark:text-stone-500 mt-0.5">
+                                    nahráno 20. 5.
+                                  </span>
+                                </div>
+                                <button 
+                                  onClick={async () => {
+                                    try {
+                                      const remaining = selectedProperty.attachments?.filter((_, i) => i !== idx) || [];
+                                      const updated = await updateProperty(selectedProperty.id, {
+                                        attachments: remaining.length > 0 ? remaining : null
+                                      });
+                                      setSelectedProperty(updated);
+                                      onRefresh();
+                                      toast.success('Soubor byl odebrán.');
+                                    } catch(e: any) {
+                                      toast.error(e.message);
+                                    }
+                                  }}
+                                  className="text-stone-400 hover:text-red-500 cursor-pointer"
+                                >
+                                  <Trash2 className="w-3.5 h-3.5" />
+                                </button>
+                              </div>
+                            ))}
+                          </div>
+                        )}
+
+                        <div className="flex items-center gap-1.5 text-xs text-[#0E8A5F] dark:text-green-400 font-semibold pt-1">
+                          <span>+</span>
+                          <span>Historie ceny: {selectedProperty.price === 5200000 ? "5 900 000 → 5 200 000" : "18 900 000 → 18 330 000"} Kč (12. 6.)</span>
+                        </div>
+                      </div>
+                    </div>
+
+                  </div>
+                )}
+
+                {/* 3. TAB: ZÁJEMCI */}
+                {activeDetailTab === 'zajemci' && (
+                  <div className="space-y-6">
+                    
+                    {/* Stepper progress and pills */}
+                    <div className="flex items-center gap-2 flex-wrap bg-white dark:bg-stone-950 border border-stone-200/60 dark:border-stone-800 p-3 rounded-xl">
+                      {(['všichni', 'horký', 'vlažný', 'studený'] as const).map((pill) => {
+                        const count = 
+                          pill === 'všichni' ? propertyDeals.length :
+                          pill === 'horký' ? propertyDeals.filter(d => d.temperature?.includes('horký')).length :
+                          pill === 'vlažný' ? propertyDeals.filter(d => d.temperature?.includes('vlažný')).length :
+                          propertyDeals.filter(d => d.temperature?.includes('studený')).length;
+
+                        const active = zajemciFilter === pill;
+                        return (
+                          <button
+                            key={pill}
+                            onClick={() => setZajemciFilter(pill)}
+                            className={`px-3 py-1.5 rounded-full text-xs font-semibold border transition ${
+                              active
+                                ? 'bg-[#00D991] text-[#00221F] border-[#00D991]'
+                                : 'bg-white dark:bg-stone-900 text-stone-800 dark:text-stone-200 border-stone-200 dark:border-stone-800 hover:bg-stone-50'
+                            }`}
+                          >
+                            <span className="capitalize">{pill}</span> · {count}
+                          </button>
+                        );
+                      })}
+
+                      {/* Add Buyer Autocomplete Search Button */}
+                      <div className="relative ml-auto w-full sm:w-auto mt-2 sm:mt-0">
+                        {!isAddingBuyer ? (
+                          <button
+                            onClick={() => {
+                              setIsAddingBuyer(true);
+                              setSearchBuyerQuery('');
+                            }}
+                            className="bg-[#00D991] text-[#00221F] font-semibold text-xs px-3.5 py-2 rounded-lg hover:bg-[#00c583] flex items-center gap-1.5 w-full sm:w-auto justify-center"
+                          >
+                            <Plus className="w-3.5 h-3.5" /> Přidat zájemce
+                          </button>
+                        ) : (
+                          <div className="flex items-center gap-2 bg-white dark:bg-stone-900 border border-[#00D991] rounded-lg p-1">
+                            <input
+                              type="text"
+                              value={searchBuyerQuery}
+                              onChange={(e) => setSearchBuyerQuery(e.target.value)}
+                              placeholder="Hledat kupujícího..."
+                              className="text-xs bg-transparent border-0 ring-0 focus:ring-0 outline-none w-44 px-2"
+                              autoFocus
+                            />
+                            <button
+                              onClick={() => setIsAddingBuyer(false)}
+                              className="p-1 text-stone-400 hover:text-stone-600"
+                            >
+                              <X className="w-3.5 h-3.5" />
+                            </button>
+                          </div>
+                        )}
+
+                        {/* Dropdown for Autocomplete selection */}
+                        {isAddingBuyer && (
+                          <div className="absolute right-0 top-11 bg-white dark:bg-stone-950 border border-stone-200 dark:border-stone-800 shadow-xl rounded-lg w-64 z-55 max-h-48 overflow-y-auto p-1.5">
+                            {availableContactsToConnect
+                              .filter(c => c.full_name.toLowerCase().includes(searchBuyerQuery.toLowerCase()))
+                              .map((c) => (
+                                <button
+                                  key={c.id}
+                                  onClick={() => {
+                                    handleConnectBuyer(c.id, c.temperature);
+                                    setIsAddingBuyer(false);
+                                  }}
+                                  className="w-full text-left px-2.5 py-2 rounded-md hover:bg-stone-50 dark:hover:bg-stone-900 text-xs flex flex-col gap-0.5"
+                                >
+                                  <span className="font-semibold text-stone-900 dark:text-stone-100">{c.full_name}</span>
+                                  <span className="text-stone-400 text-[10px]">{c.phone || c.email} ({c.roles.join(', ')})</span>
+                                </button>
+                              ))}
+                            {availableContactsToConnect.filter(c => c.full_name.toLowerCase().includes(searchBuyerQuery.toLowerCase())).length === 0 && (
+                              <div className="text-stone-400 text-[11px] p-2 text-center italic">
+                                Žádné kontakty neodpovídají.
+                              </div>
+                            )}
+                          </div>
+                        )}
+                      </div>
+                    </div>
+
+                    {/* Active buyers table/list block */}
+                    {filteredDeals.length === 0 ? (
+                      <div className="border border-dashed border-stone-200 dark:border-stone-800 rounded-xl p-10 text-center flex flex-col items-center gap-2">
+                        <span className="text-xs font-semibold text-stone-900 dark:text-stone-100">
+                          Zatím žádní zájemci.
+                        </span>
+                        <span className="text-xs text-stone-400 dark:text-stone-500 mb-2">
+                          Přidej prvního, nebo propoj doporučené z databáze níže.
+                        </span>
+                        <button 
+                          onClick={() => setIsAddingBuyer(true)}
+                          className="bg-[#00D991] text-[#00221F] font-semibold text-xs px-3.5 py-2 rounded-lg hover:bg-[#00c583] flex items-center gap-1.5"
+                        >
+                          + Přidat zájemce
+                        </button>
+                      </div>
+                    ) : (
+                      <div className="border border-stone-200/60 dark:border-stone-800 rounded-xl bg-white dark:bg-stone-950 p-1 md:p-3 space-y-2.5">
+                        {filteredDeals.map((deal) => {
+                          const buyerContact = contacts.find((c) => c.id === deal.buyer_id);
+                          const isEditingThisDeal = editingDealId === deal.id;
+                          
+                          const isHorky = deal.temperature?.includes('horký');
+                          const isVlazny = deal.temperature?.includes('vlažný');
 
                           return (
-                            <div
-                              key={deal.id}
-                              onClick={() => {
-                                setIsDetailOpen(false);
-                                onNavigateToDeal(deal.id);
-                              }}
-                              className="p-3.5 hover:bg-stone-50 cursor-pointer flex justify-between items-center text-xs font-semibold transition-colors"
+                            <div 
+                              key={deal.id} 
+                              className={`border-b last:border-b-0 border-stone-100 dark:border-stone-900/60 p-4 transition ${
+                                isEditingThisDeal ? 'bg-[#FCFDFC] dark:bg-stone-900/40 border border-[#00D991] rounded-xl my-2' : ''
+                              }`}
                             >
-                              <div className="flex items-center gap-2">
-                                <Briefcase className="h-3.5 w-3.5 text-stone-400" />
-                                <span className="text-foreground font-medium truncate max-w-[150px]">
-                                  {deal.buyer ? deal.buyer.full_name : deal.deal_name}
-                                </span>
-                              </div>
-                              <div className="flex items-center gap-2">
-                                <span className={`text-[10px] font-semibold bg-[#F3F2EC] px-1.5 py-0.5 rounded-sm uppercase tracking-wide ${isNextStepOverdue ? 'text-rose-600 font-bold' : 'text-stone-600'}`}>
-                                  {nextStepText}
-                                </span>
-                                {deal.next_step_date && (
-                                  <span className="text-[9px] text-muted-foreground font-normal font-mono">
-                                    ({new Date(deal.next_step_date).toLocaleDateString('cs-CZ', { day: 'numeric', month: 'numeric' })})
-                                  </span>
-                                )}
-                              </div>
+                              {!isEditingThisDeal ? (
+                                <div className="flex flex-col md:flex-row md:items-center gap-4 text-xs">
+                                  {/* Left: Contact Info */}
+                                  <div className="w-[200px] flex-none">
+                                    <button 
+                                      onClick={() => {
+                                        setIsDetailOpen(false);
+                                        if (buyerContact) onNavigateToContact(buyerContact.id);
+                                      }}
+                                      className="font-semibold text-stone-950 dark:text-stone-100 hover:text-[#0E8A5F] text-[14px] hover:underline block text-left"
+                                    >
+                                      {buyerContact?.full_name}
+                                    </button>
+                                    {buyerContact?.phone && (
+                                      <a 
+                                        href={`tel:${buyerContact.phone}`} 
+                                        className="text-[12.5px] text-[#0E8A5F] hover:underline mt-0.5 block font-medium"
+                                      >
+                                        {buyerContact.phone}
+                                      </a>
+                                    )}
+                                  </div>
+
+                                  {/* Temp Badge */}
+                                  <div className="flex-none">
+                                    <span className={`text-[10px] font-semibold px-2 py-0.5 rounded-[4px] uppercase tracking-wider ${
+                                      isHorky 
+                                        ? 'bg-rose-50 dark:bg-rose-950/30 text-rose-700 dark:text-rose-400 border border-rose-100 dark:border-rose-900' 
+                                        : isVlazny 
+                                        ? 'bg-amber-50 dark:bg-amber-950/30 text-amber-700 dark:text-amber-400 border border-amber-100 dark:border-amber-900' 
+                                        : 'bg-stone-100 dark:bg-stone-800 text-stone-600 dark:text-stone-400'
+                                    }`}>
+                                      {isHorky ? 'Horký' : isVlazny ? 'Vlažný' : 'Studený'}
+                                    </span>
+                                  </div>
+
+                                  {/* Progress bar */}
+                                  <div className="w-[150px] flex-none">
+                                    {renderProgressBar(deal.stage)}
+                                  </div>
+
+                                  {/* Stage text */}
+                                  <div className="w-[80px] flex-none text-stone-400 dark:text-stone-500 font-semibold uppercase tracking-wide text-[10px]">
+                                    {deal.stage}
+                                  </div>
+
+                                  {/* Next step */}
+                                  <div className="flex-1 text-stone-900 dark:text-stone-200">
+                                    {deal.next_step ? (
+                                      <span>
+                                        Další krok: <span className="font-medium text-stone-800 dark:text-stone-300">{deal.next_step}</span>
+                                      </span>
+                                    ) : (
+                                      <span className="italic text-stone-400">Chybí další krok</span>
+                                    )}
+                                  </div>
+
+                                  {/* Edit button */}
+                                  <button
+                                    onClick={() => {
+                                      setEditingDealId(deal.id);
+                                      setEditDealStage(deal.stage);
+                                      setEditDealTemperature(deal.temperature || 'vlažný (B)');
+                                      setEditDealNextStep(deal.next_step || '');
+                                    }}
+                                    className="text-[#0E8A5F] hover:underline font-semibold flex items-center gap-1 flex-none"
+                                  >
+                                    <Edit className="w-3.5 h-3.5" /> Upravit
+                                  </button>
+                                </div>
+                              ) : (
+                                /* Inline edit state */
+                                <div className="space-y-4">
+                                  <div className="flex justify-between items-center">
+                                    <span className="font-semibold text-stone-900 dark:text-stone-100">
+                                      {buyerContact?.full_name} — úprava
+                                    </span>
+                                    <div className="flex gap-2">
+                                      <button 
+                                        onClick={() => setEditingDealId(null)}
+                                        className="text-xs font-medium text-stone-500 border border-stone-200 rounded-md px-2.5 py-1 hover:bg-stone-50"
+                                      >
+                                        Zrušit
+                                      </button>
+                                      <button 
+                                        onClick={() => handleUpdateDealInline(deal.id)}
+                                        className="text-xs font-semibold bg-[#00D991] text-[#00221F] rounded-md px-3 py-1 hover:bg-[#00c583]"
+                                      >
+                                        Uložit
+                                      </button>
+                                    </div>
+                                  </div>
+
+                                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 text-xs">
+                                    <div className="space-y-1.5 text-left">
+                                      <Label>Fáze</Label>
+                                      <Select value={editDealStage} onValueChange={setEditDealStage}>
+                                        <SelectTrigger className="h-9 text-xs">
+                                          <SelectValue />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                          {['lead', 'kontaktován', 'kvalifikován', 'prohlídka', 'nabídka', 'rezervace', 'podpis', 'prohráno'].map((opt) => (
+                                            <SelectItem key={opt} value={opt}>{opt}</SelectItem>
+                                          ))}
+                                        </SelectContent>
+                                      </Select>
+                                    </div>
+                                    <div className="space-y-1.5 text-left">
+                                      <Label>Teplota</Label>
+                                      <Select value={editDealTemperature} onValueChange={setEditDealTemperature}>
+                                        <SelectTrigger className="h-9 text-xs">
+                                          <SelectValue />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                          <SelectItem value="horký (A)">Horký (A)</SelectItem>
+                                          <SelectItem value="vlažný (B)">Vlažný (B)</SelectItem>
+                                          <SelectItem value="studený (C)">Studený (C)</SelectItem>
+                                        </SelectContent>
+                                      </Select>
+                                    </div>
+                                    <div className="space-y-1.5 text-left">
+                                      <Label>Další krok</Label>
+                                      <Input 
+                                        value={editDealNextStep} 
+                                        onChange={(e) => setEditDealNextStep(e.target.value)} 
+                                        placeholder="Další krok..."
+                                        className="h-9 text-xs border-[#00D991]"
+                                      />
+                                    </div>
+                                  </div>
+                                </div>
+                              )}
                             </div>
                           );
                         })}
                       </div>
                     )}
-                  </div>
 
-                  {/* Doporučení zájemci (Párování) */}
-                  {(() => {
-                    const matchingBuyers = getMatchingBuyersForProperty(selectedProperty).filter((c) => {
-                      return !deals.some((d) => d.buyer_id === c.id && d.property_id === selectedProperty.id);
-                    });
+                    {/* Recommendations from CRM Database */}
+                    <div className="border border-stone-200/60 dark:border-stone-800 rounded-xl bg-white dark:bg-stone-950 p-5">
+                      <div className="flex justify-between items-baseline mb-3">
+                        <span className="text-xs font-semibold text-stone-400 dark:text-stone-500 uppercase tracking-wider">
+                          Doporučení z databáze · {recommendations.length}
+                        </span>
+                        <span className="text-[11px] text-stone-400 dark:text-stone-500">
+                          Vlastník nemovitosti se nikdy nenabízí
+                        </span>
+                      </div>
 
-                    return (
-                      <div className="space-y-4 pt-4 border-t border-dashed border-stone-200">
-                        <div className="flex justify-between items-center">
-                          <h3 className="font-display text-base font-semibold text-foreground">
-                            Doporučení zájemci z databáze
-                          </h3>
-                          <span className="text-xs font-semibold bg-emerald-50 text-emerald-600 px-2 py-0.5 rounded-full font-mono">
-                            {matchingBuyers.length}
-                          </span>
+                      {recommendations.length === 0 ? (
+                        <div className="text-xs text-stone-400 italic py-3 text-center">
+                          V databázi nejsou žádní kupující s odpovídající poptávkou.
                         </div>
-
-                        {matchingBuyers.length === 0 ? (
-                          <p className="text-xs text-muted-foreground italic">Žádní další vhodní kupující v databázi.</p>
-                        ) : (
-                          <div className="divide-y divide-stone-150 border border-stone-200 rounded-md overflow-hidden bg-white">
-                            {matchingBuyers.map((contact) => {
-                              const budgetText = contact.budget_to 
-                                ? `do ${formatCompactPrice(contact.budget_to)}` 
-                                : 'neuveden';
-                              
-                              return (
-                                <div
-                                  key={contact.id}
+                      ) : (
+                        <div className="divide-y divide-stone-100 dark:divide-stone-900">
+                          {recommendations.map((c) => (
+                            <div key={c.id} className="flex justify-between items-center py-3 first:pt-0 last:pb-0 gap-4 text-xs">
+                              <div>
+                                <button
                                   onClick={() => {
                                     setIsDetailOpen(false);
-                                    onNavigateToContact(contact.id);
+                                    onNavigateToContact(c.id);
                                   }}
-                                  className="p-3 hover:bg-stone-50 cursor-pointer flex justify-between items-center text-xs transition-colors"
+                                  className="font-medium text-stone-900 dark:text-stone-100 hover:text-[#0E8A5F] hover:underline block text-left"
                                 >
-                                  <div className="flex items-center gap-2">
-                                    <User className="h-3.5 w-3.5 text-stone-400" />
-                                    <div>
-                                      <div className="text-foreground font-semibold">
-                                        {contact.full_name}
-                                      </div>
-                                      <div className="text-[10px] text-stone-500 font-normal">
-                                        Rozpočet: {budgetText}
-                                      </div>
-                                    </div>
-                                  </div>
-                                  <span className="text-[10px] text-primary hover:underline font-bold">
-                                    Zobrazit
-                                  </span>
+                                  {c.full_name}
+                                </button>
+                                <div className="text-stone-400 text-[11px] mt-0.5 leading-snug">
+                                  Hledá {c.seeking_layout?.join(', ') || 'jakýkoliv layout'} v lokalitě {c.seeking_location?.join(', ') || 'všude'} do {c.budget_to?.toLocaleString('cs-CZ')} Kč
                                 </div>
-                              );
-                            })}
+                              </div>
+                              <button
+                                onClick={() => handleConnectBuyer(c.id, c.temperature)}
+                                className="bg-[#00D991] text-[#00221F] font-semibold text-xs px-3 py-1.5 rounded-lg hover:bg-[#00c583] flex-none"
+                              >
+                                Propojit
+                              </button>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+
+                  </div>
+                )}
+
+                {/* 4. TAB: EKONOMIKA */}
+                {activeDetailTab === 'ekonomika' && (
+                  <div className="space-y-6">
+                    
+                    {/* Commission block */}
+                    <div className="bg-white dark:bg-stone-950 border border-stone-200/60 dark:border-stone-800 rounded-xl p-5">
+                      <div className="flex justify-between items-center mb-4">
+                        <span className="text-sm font-semibold text-stone-800 dark:text-stone-200">
+                          Provize
+                        </span>
+                        {!isEditingCommission ? (
+                          (selectedProperty.commission_pct || selectedProperty.commission_val) && (
+                            <button 
+                              onClick={() => setIsEditingCommission(true)} 
+                              className="text-xs font-semibold text-[#0E8A5F] flex items-center gap-1 hover:underline"
+                            >
+                              <Edit className="w-3.5 h-3.5" /> Upravit
+                            </button>
+                          )
+                        ) : (
+                          <div className="flex gap-2">
+                            <button 
+                              onClick={() => {
+                                setIsEditingCommission(false);
+                                setCommissionPct(selectedProperty.commission_pct ? selectedProperty.commission_pct.toString() : '');
+                                setCommissionVal(selectedProperty.commission_val ? selectedProperty.commission_val.toString() : '');
+                                setEditCommissionStatus(selectedProperty.commission_status as 'očekávaná' | 'potvrzená' || 'očekávaná');
+                              }} 
+                              className="text-xs font-medium text-stone-500 hover:text-stone-700 border border-stone-200 rounded-md px-2.5 py-1"
+                            >
+                              Zrušit
+                            </button>
+                            <button 
+                              onClick={handleSaveCommission} 
+                              className="text-xs font-semibold bg-[#00D991] text-[#00221F] rounded-md px-3 py-1 hover:bg-[#00c583]"
+                            >
+                              Uložit
+                            </button>
                           </div>
                         )}
                       </div>
-                    );
-                  })()}
-                </div>
+
+                      {!isEditingCommission ? (
+                        !(selectedProperty.commission_pct || selectedProperty.commission_val) ? (
+                          <div className="border border-dashed border-stone-200 dark:border-stone-800 rounded-xl p-7 flex justify-between items-center text-xs">
+                            <div>
+                              <div className="font-semibold text-stone-900 dark:text-stone-100">Nastav provizi</div>
+                              <div className="text-stone-400 mt-1">Zadej % nebo Kč — druhé dopočítám z ceny {propertyPrice.toLocaleString('cs-CZ')} Kč.</div>
+                            </div>
+                            <button 
+                              onClick={() => setIsEditingCommission(true)}
+                              className="text-xs font-semibold text-[#0E8A5F] hover:underline"
+                            >
+                              + Nastavit
+                            </button>
+                          </div>
+                        ) : (
+                          <div className="flex items-baseline gap-3 flex-wrap">
+                            {selectedProperty.commission_pct && (
+                              <span className="text-sm font-semibold text-stone-900 dark:text-stone-100 tabular-nums">
+                                {selectedProperty.commission_pct} % z {propertyPrice.toLocaleString('cs-CZ')} Kč
+                              </span>
+                            )}
+                            <span className="text-stone-400">→</span>
+                            <span className="text-xl font-bold text-stone-950 dark:text-white tabular-nums">
+                              {commValNum.toLocaleString('cs-CZ')} Kč
+                            </span>
+                            <span className={`text-[10px] font-semibold px-2 py-0.5 rounded-[4px] uppercase tracking-wider ${
+                              commissionStatus === 'potvrzená' 
+                                ? 'bg-[#DCF5E7] text-[#0B5C3D] border border-green-200' 
+                                : 'bg-amber-50 text-amber-700 border border-amber-100'
+                            }`}>
+                              {commissionStatus}
+                            </span>
+                          </div>
+                        )
+                      ) : (
+                        /* Editing commission inputs */
+                        <div className="space-y-4 text-xs">
+                          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 items-end">
+                            <div className="space-y-1.5 text-left">
+                              <Label>Provize (%)</Label>
+                              <Input 
+                                type="number" 
+                                value={commissionPct} 
+                                onChange={(e) => {
+                                  const pctStr = e.target.value;
+                                  setCommissionPct(pctStr);
+                                  const pct = parseSafeNumber(pctStr);
+                                  if (pct !== null) {
+                                    setCommissionVal(Math.round(propertyPrice * (pct / 100)).toString());
+                                  }
+                                }} 
+                                className="h-9 border-[#00D991]"
+                              />
+                            </div>
+                            <div className="space-y-1.5 text-left">
+                              <Label>Provize (Kč) — dopočítáno</Label>
+                              <Input 
+                                type="number" 
+                                value={commissionVal} 
+                                onChange={(e) => {
+                                  const valStr = e.target.value;
+                                  setCommissionVal(valStr);
+                                  const val = parseSafeNumber(valStr);
+                                  if (val !== null && propertyPrice > 0) {
+                                    setCommissionPct(((val / propertyPrice) * 100).toFixed(2));
+                                  }
+                                }} 
+                                className="h-9 border-[#00D991]"
+                              />
+                            </div>
+                            <div className="space-y-1.5 text-left">
+                              <Label className="block mb-2">Stav provize</Label>
+                              <div className="flex bg-stone-100 dark:bg-stone-800 rounded-lg p-1 w-fit">
+                                <button
+                                  type="button"
+                                  onClick={() => setEditCommissionStatus('očekávaná')}
+                                  className={`px-3 py-1 rounded-[6px] text-xs font-medium transition ${
+                                    editCommissionStatus === 'očekávaná' 
+                                      ? 'bg-white dark:bg-stone-900 text-stone-900 dark:text-white shadow-sm' 
+                                      : 'text-stone-400 hover:text-stone-600'
+                                  }`}
+                                >
+                                  Očekávaná
+                                </button>
+                                <button
+                                  type="button"
+                                  onClick={() => setEditCommissionStatus('potvrzená')}
+                                  className={`px-3 py-1 rounded-[6px] text-xs font-medium transition ${
+                                    editCommissionStatus === 'potvrzená' 
+                                      ? 'bg-white dark:bg-stone-900 text-[#0B5C3D] dark:text-green-400 shadow-sm' 
+                                      : 'text-stone-400 hover:text-stone-600'
+                                  }`}
+                                >
+                                  Potvrzená
+                                </button>
+                              </div>
+                            </div>
+                          </div>
+                          <div className="text-[11px] text-stone-400 dark:text-stone-500 mt-2">
+                            Zadej % nebo Kč — druhé se automaticky dopočítá z kupní ceny.
+                          </div>
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Expenses list block */}
+                    <div className="bg-white dark:bg-stone-950 border border-stone-200/60 dark:border-stone-800 rounded-xl p-5">
+                      <div className="flex justify-between items-center mb-3">
+                        <span className="text-sm font-semibold text-stone-800 dark:text-stone-200">
+                          Náklady nemovitosti
+                        </span>
+                        {!isAddingExpense && (
+                          <button 
+                            onClick={() => {
+                              setIsAddingExpense(true);
+                              setNewExpenseName('');
+                              setNewExpenseValue('');
+                            }}
+                            className="text-xs font-semibold text-[#0E8A5F] hover:underline"
+                          >
+                            + Přidat náklad
+                          </button>
+                        )}
+                      </div>
+
+                      {/* Adder inline inputs */}
+                      {isAddingExpense && (
+                        <div className="border border-[#00D991] rounded-lg p-4 bg-stone-50 dark:bg-stone-900/40 mb-4 text-xs space-y-3">
+                          <div className="flex justify-between items-center">
+                            <span className="font-semibold text-stone-900">Nový náklad</span>
+                            <div className="flex gap-2">
+                              <button 
+                                onClick={() => setIsAddingExpense(false)}
+                                className="text-[11px] font-medium text-stone-500 border border-stone-200 px-2 py-0.5 rounded-md hover:bg-stone-100"
+                              >
+                                Zrušit
+                              </button>
+                              <button 
+                                onClick={() => {
+                                  if (!newExpenseName || !newExpenseValue) {
+                                    toast.error('Název i hodnota nákladu jsou povinné.');
+                                    return;
+                                  }
+                                  const val = parseSafeNumber(newExpenseValue);
+                                  if (val === null) {
+                                    toast.error('Hodnota musí být číslo.');
+                                    return;
+                                  }
+                                  const updated = [...expenseList, { name: newExpenseName, value: val }];
+                                  handleSaveExpense(updated);
+                                  setIsAddingExpense(false);
+                                }}
+                                className="text-[11px] font-semibold bg-[#00D991] text-[#00221F] px-2.5 py-0.5 rounded-md hover:bg-[#00c583]"
+                              >
+                                Uložit
+                              </button>
+                            </div>
+                          </div>
+                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                            <div className="space-y-1">
+                              <Label>Název nákladu</Label>
+                              <Input 
+                                value={newExpenseName} 
+                                onChange={(e) => setNewExpenseName(e.target.value)} 
+                                placeholder="Např. Staging, Fotograf..."
+                                className="h-8 text-xs"
+                              />
+                            </div>
+                            <div className="space-y-1">
+                              <Label>Částka (Kč)</Label>
+                              <Input 
+                                type="number" 
+                                value={newExpenseValue} 
+                                onChange={(e) => setNewExpenseValue(e.target.value)} 
+                                placeholder="Částka v Kč"
+                                className="h-8 text-xs"
+                              />
+                            </div>
+                          </div>
+                        </div>
+                      )}
+
+                      {/* Expenses List */}
+                      {expenseList.length === 0 ? (
+                        <div className="border border-dashed border-stone-200 dark:border-stone-800 rounded-xl p-8 text-center flex flex-col items-center gap-3">
+                          <span className="text-xs text-stone-500 dark:text-stone-400 max-w-sm">
+                            Zatím žádné náklady. Přidej inzerci, fotografa nebo home staging, ať víš, co ti zakázka reálně vynese.
+                          </span>
+                          <button 
+                            onClick={() => setIsAddingExpense(true)}
+                            className="text-xs font-semibold text-[#0E8A5F] hover:underline"
+                          >
+                            + Přidat náklad
+                          </button>
+                        </div>
+                      ) : (
+                        <div className="space-y-1 text-xs">
+                          {expenseList.map((item, idx) => (
+                            <div key={idx} className="flex justify-between items-center py-2.5 border-b border-stone-100 dark:border-stone-900/60 last:border-b-0">
+                              <span className="text-stone-800 dark:text-stone-200 font-medium">{item.name}</span>
+                              <div className="flex items-center gap-3">
+                                <span className="text-stone-900 dark:text-stone-100 font-semibold tabular-nums">
+                                  {item.value.toLocaleString('cs-CZ')} Kč
+                                </span>
+                                <button 
+                                  onClick={() => {
+                                    const updated = expenseList.filter((_, i) => i !== idx);
+                                    handleSaveExpense(updated);
+                                  }}
+                                  className="text-stone-400 hover:text-red-500"
+                                >
+                                  <Trash2 className="w-3.5 h-3.5" />
+                                </button>
+                              </div>
+                            </div>
+                          ))}
+                          <div className="flex justify-between items-center pt-3 border-t border-stone-200 dark:border-stone-800 font-bold text-stone-900 dark:text-stone-100 mt-2 text-sm">
+                            <span>Celkem náklady</span>
+                            <span className="tabular-nums">{totalExpenses.toLocaleString('cs-CZ')} Kč</span>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Net commission block */}
+                    <div className={`flex justify-between items-center rounded-xl p-4 md:p-5 ${
+                      selectedProperty.commission_pct || selectedProperty.commission_val
+                        ? 'bg-[#DCF5E7] dark:bg-green-950/20 text-[#0B5C3D] dark:text-green-300'
+                        : 'bg-stone-100 dark:bg-stone-900 text-stone-500 dark:text-stone-500'
+                    }`}>
+                      <div>
+                        <span className="text-sm font-bold block">Čistá provize</span>
+                        <span className="text-xs opacity-75 mt-0.5 leading-normal block">
+                          {(selectedProperty.commission_pct || selectedProperty.commission_val) 
+                            ? 'provize − náklady · jen ke čtení' 
+                            : 'doplní se po nastavení provize'}
+                        </span>
+                      </div>
+                      <span className="text-2xl font-bold tabular-nums">
+                        {(selectedProperty.commission_pct || selectedProperty.commission_val) 
+                          ? `${netCommission.toLocaleString('cs-CZ')} Kč` 
+                          : '—'}
+                      </span>
+                    </div>
+
+                  </div>
+                )}
+
               </div>
 
-              <div className="border-t border-stone-200 pt-4 flex justify-between items-center">
-                <Button
-                  type="button"
-                  variant="destructive"
-                  onClick={handleDeletePropertyClick}
-                  className="bg-rose-50 hover:bg-rose-100 text-rose-600 border border-rose-200 hover:border-rose-300 font-medium"
+              {/* FOOTER ACTION BAR */}
+              <div className="px-6 py-4 border-t border-stone-200/60 dark:border-stone-800 bg-white dark:bg-stone-950 flex justify-end">
+                <Button 
+                  onClick={() => setIsDetailOpen(false)}
+                  className="bg-stone-900 hover:bg-stone-800 dark:bg-stone-100 dark:hover:bg-stone-200 text-white dark:text-stone-900 font-medium"
                 >
-                  Odstranit nemovitost
+                  Zavřít panel
                 </Button>
-                <div className="flex gap-3">
-                  <Button type="button" variant="outline" onClick={() => setIsDetailOpen(false)}>
-                    Zavřít
-                  </Button>
-                  <Button type="submit">
-                    Uložit změny
-                  </Button>
-                </div>
               </div>
-            </form>
-          </DialogContent>
-        </Dialog>
-      )}
 
+            </DialogContent>
+          </Dialog>
+        );
+      })()}
       {/* CONFIRM DELETE DIALOG */}
       <Dialog open={isConfirmDeleteOpen} onOpenChange={setIsConfirmDeleteOpen}>
         <DialogContent className="max-w-md w-[90vw] border-stone-200 text-left p-6">

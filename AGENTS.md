@@ -13,6 +13,7 @@
 - **Build order:** (1) DB schema → (2) relations → (3) seed/test data → (4) the 4 daily views → (5) run the test walkthrough (§6) and produce a verification artifact.
 - **One concern per step.** Don't mix unrelated work in a single change. Keep changes reviewable.
 - **When unsure, ask.** A short question beats a wrong assumption. Never guess business rules.
+- **No browser subagent usage.** NEVER invoke the browser subagent (`browser_subagent` tool) under any circumstances. Do not attempt to open browser instances or visual testing agents.
 
 ---
 

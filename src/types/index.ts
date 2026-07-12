@@ -46,7 +46,7 @@ export interface Property {
   floor: string | null;
   ownership: 'osobní' | 'družstevní' | 'SVJ' | null;
   construction: 'cihla' | 'panel' | 'jiné' | null;
-  flat_features: ('výtah' | 'balkon/lodžie' | 'terasa' | 'sklep')[] | null;
+  flat_features: ('výtah' | 'balkon/lodžie' | 'terasa' | 'sklep' | 'podlahové vytápění' | 'klimatizace')[] | null;
   flat_condition: 'novostavba' | 'po rekonstrukci' | 'dobrý' | 'před rekonstrukcí' | null;
   flat_penb: 'A' | 'B' | 'C' | 'D' | 'E' | 'F' | 'G' | null;
   
@@ -79,6 +79,8 @@ export interface Property {
   rent_equipment: string | null;
   commission_pct: number | null;
   commission_val: number | null;
+  commission_status?: 'očekávaná' | 'potvrzená' | null;
+  costs?: { name: string; value: number }[] | null;
 }
 
 export interface Deal {
