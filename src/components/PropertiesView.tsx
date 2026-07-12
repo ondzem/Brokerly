@@ -1928,7 +1928,7 @@ export const PropertiesView: React.FC<PropertiesViewProps> = ({
             setIsDetailOpen(open);
             if (!open) onClearFocusProperty?.();
           }}>
-            <DialogContent showCloseButton={false} className="max-w-6xl lg:max-w-7xl w-[92vw] lg:w-full p-0 overflow-y-auto sm:overflow-hidden border border-stone-200 dark:border-stone-850 bg-white dark:bg-stone-900 rounded-[14px] max-h-[92vh] !flex !flex-col gap-0 text-left font-sans shadow-2xl mobile-scrollbar-none">
+            <DialogContent showCloseButton={false} className="max-w-6xl lg:max-w-7xl w-[92vw] lg:w-full p-0 overflow-y-auto overflow-x-hidden sm:overflow-hidden border border-stone-200 dark:border-stone-850 bg-white dark:bg-stone-900 rounded-[14px] max-h-[92vh] !flex !flex-col gap-0 text-left font-sans shadow-2xl mobile-scrollbar-none">
               
               {/* TOP HEADER BAR */}
               <div className="relative flex flex-col sm:flex-row gap-4 sm:gap-[18px] p-4 sm:p-6 pb-4.5 border-b border-stone-200/60 dark:border-stone-800 bg-white dark:bg-stone-900 items-start flex-none">
@@ -2143,7 +2143,7 @@ export const PropertiesView: React.FC<PropertiesViewProps> = ({
               </div>
 
               {/* DETAIL CONTENT BODY (SCROLLABLE) */}
-              <div className="overflow-visible sm:overflow-y-auto flex-none sm:flex-1 h-auto sm:h-full px-4 sm:px-6 pt-3 sm:pt-3.5 pb-4 sm:pb-6 space-y-4">
+              <div className="overflow-visible sm:overflow-y-auto overflow-x-hidden flex-none sm:flex-1 h-auto sm:h-full px-4 sm:px-6 pt-3 sm:pt-3.5 pb-4 sm:pb-6 space-y-4">
                 
                 {/* 1. TAB: PŘEHLED */}
                 {activeDetailTab === 'prehled' && (
@@ -2405,95 +2405,97 @@ export const PropertiesView: React.FC<PropertiesViewProps> = ({
 
                 {/* 2. TAB: INFORMACE */}
                 {activeDetailTab === 'informace' && (
-                  <div className="space-y-6">
+                  <div className="grid grid-cols-1 lg:grid-cols-[1fr_360px] gap-6 items-start">
                     
-                    {/* Section 1: Obecné parametry */}
-                    <div className="bg-white dark:bg-stone-950 rounded-xl border border-stone-200/60 dark:border-stone-800 p-5">
-                      <div className="flex justify-between items-baseline mb-4">
-                        <span className="text-xs font-semibold text-stone-400 dark:text-stone-500 uppercase tracking-wider">
-                          Obecné parametry
-                        </span>
-                        {!isEditingGeneral ? (
-                          <button 
-                            onClick={() => setIsEditingGeneral(true)} 
-                            className="text-xs font-semibold text-[#0E8A5F] flex items-center gap-1 hover:underline cursor-pointer"
-                          >
-                            ✎ Upravit
-                          </button>
-                        ) : (
-                          <div className="flex gap-2">
+                    {/* Left Column */}
+                    <div className="space-y-6">
+                      {/* Section 1: Obecné parametry */}
+                      <div className="bg-white dark:bg-stone-950 rounded-xl border border-stone-200/60 dark:border-stone-800 p-5">
+                        <div className="flex justify-between items-baseline mb-4">
+                          <span className="text-[14.5px] font-semibold text-stone-900 dark:text-stone-100">
+                            Obecné parametry
+                          </span>
+                          {!isEditingGeneral ? (
                             <button 
-                              onClick={() => {
-                                setIsEditingGeneral(false);
-                                // reset values
-                                setEditOwnerId(selectedProperty.owner_id);
-                                setEditTransaction(selectedProperty.transaction);
-                                setEditOfferStatus(selectedProperty.offer_status);
-                                setEditPrice(selectedProperty.price.toString());
-                                setEditAddress(selectedProperty.address);
-                              }} 
-                              className="text-xs font-medium text-stone-500 hover:text-stone-700 border border-stone-200 rounded-md px-2.5 py-1"
+                              onClick={() => setIsEditingGeneral(true)} 
+                              className="text-xs font-semibold text-[#0E8A5F] flex items-center gap-1 hover:underline cursor-pointer"
                             >
-                              Zrušit
+                              ✏️ Upravit
                             </button>
-                            <button 
-                              onClick={handleSaveGeneral} 
-                              className="text-xs font-semibold bg-[#00D991] text-[#00221F] rounded-md px-3 py-1 hover:bg-[#00c583]"
-                            >
-                              Uložit
-                            </button>
-                          </div>
-                        )}
-                      </div>
-
-                      {!isEditingGeneral ? (
-                        <div className="grid grid-cols-2 md:grid-cols-4 gap-y-4 gap-x-6">
-                          <div>
-                            <span className="text-xs text-stone-400 dark:text-stone-500">Vlastník</span>
-                            <div className="text-[14.5px] font-semibold text-[#0E8A5F] dark:text-green-400 mt-0.5 hover:underline cursor-pointer">
-                              {ownerContact ? (
-                                <span onClick={() => {
-                                  setIsDetailOpen(false);
-                                  onNavigateToContact(ownerContact.id);
-                                }}>
-                                  {ownerContact.full_name} · {ownerContact.phone || ownerContact.email}
-                                </span>
-                              ) : 'Neznámý'}
+                          ) : (
+                            <div className="flex gap-2">
+                              <button 
+                                onClick={() => {
+                                  setIsEditingGeneral(false);
+                                  // reset values
+                                  setEditOwnerId(selectedProperty.owner_id);
+                                  setEditTransaction(selectedProperty.transaction);
+                                  setEditOfferStatus(selectedProperty.offer_status);
+                                  setEditPrice(selectedProperty.price.toString());
+                                  setEditAddress(selectedProperty.address);
+                                }} 
+                                className="text-xs font-medium text-stone-500 hover:text-stone-700 border border-stone-200 rounded-md px-2.5 py-1"
+                              >
+                                Zrušit
+                              </button>
+                              <button 
+                                onClick={handleSaveGeneral} 
+                                className="text-xs font-semibold bg-[#00D991] text-[#00221F] rounded-md px-3 py-1 hover:bg-[#00c583]"
+                              >
+                                Uložit
+                              </button>
                             </div>
-                          </div>
-                          <div>
-                            <span className="text-xs text-stone-400 dark:text-stone-500">Transakce</span>
-                            <div className="text-[14.5px] font-semibold text-stone-900 dark:text-stone-100 mt-0.5 capitalize">
-                              {selectedProperty.transaction}
-                            </div>
-                          </div>
-                          <div>
-                            <span className="text-xs text-stone-400 dark:text-stone-500">Stav nabídky</span>
-                            <div className="text-[14.5px] font-semibold text-stone-900 dark:text-stone-100 mt-0.5">
-                              {selectedProperty.offer_status}
-                            </div>
-                          </div>
-                          <div>
-                            <span className="text-xs text-stone-400 dark:text-stone-500">Cena</span>
-                            <div className="text-[14.5px] font-semibold text-stone-900 dark:text-stone-100 mt-0.5 tabular-nums flex items-center gap-1.5 flex-wrap">
-                              <span>{selectedProperty.price.toLocaleString('cs-CZ')} Kč</span>
-                              {selectedProperty.kind === 'byt' && selectedProperty.flat_area && (
-                                <>
-                                  <span className="text-stone-300 dark:text-stone-700 font-normal">·</span>
-                                  <span className="text-xs text-stone-500 dark:text-stone-400 font-normal">
-                                    {Math.round(selectedProperty.price / selectedProperty.flat_area).toLocaleString('cs-CZ')} Kč/m²
-                                  </span>
-                                </>
-                              )}
-                            </div>
-                          </div>
-                          <div className="col-span-2 md:col-span-4">
-                            <span className="text-xs text-stone-400 dark:text-stone-500">Adresa</span>
-                            <div className="text-[14.5px] font-semibold text-stone-900 dark:text-stone-100 mt-0.5">
-                              {selectedProperty.address}
-                            </div>
-                          </div>
+                          )}
                         </div>
+
+                        {!isEditingGeneral ? (
+                          <div className="grid grid-cols-2 gap-y-4 gap-x-6">
+                            <div className="break-words whitespace-normal min-w-0">
+                              <span className="text-xs text-stone-400 dark:text-stone-500">Vlastník</span>
+                              <div className="text-[14.5px] font-semibold text-[#0E8A5F] dark:text-green-400 mt-0.5 hover:underline cursor-pointer break-words whitespace-normal leading-tight">
+                                {ownerContact ? (
+                                  <span 
+                                    onClick={() => {
+                                      setIsDetailOpen(false);
+                                      onNavigateToContact(ownerContact.id);
+                                    }}
+                                    className="break-words whitespace-normal block"
+                                  >
+                                    {ownerContact.full_name} · {ownerContact.phone || ownerContact.email}
+                                  </span>
+                                ) : 'Neznámý'}
+                              </div>
+                            </div>
+                            <div className="break-words whitespace-normal min-w-0">
+                              <span className="text-xs text-stone-400 dark:text-stone-500">Transakce</span>
+                              <div className="text-[14.5px] font-semibold text-stone-900 dark:text-stone-100 mt-0.5 capitalize">
+                                {selectedProperty.transaction}
+                              </div>
+                            </div>
+                            <div className="break-words whitespace-normal min-w-0">
+                              <span className="text-xs text-stone-400 dark:text-stone-500">Stav nabídky</span>
+                              <div className="text-[14.5px] font-semibold text-stone-900 dark:text-stone-100 mt-0.5">
+                                {selectedProperty.offer_status}
+                              </div>
+                            </div>
+                            <div className="break-words whitespace-normal min-w-0">
+                              <span className="text-xs text-stone-400 dark:text-stone-500">Cena</span>
+                              <div className="text-[14.5px] font-semibold text-stone-900 dark:text-stone-100 mt-0.5 tabular-nums">
+                                <div>{selectedProperty.price.toLocaleString('cs-CZ')} Kč</div>
+                                {selectedProperty.kind === 'byt' && selectedProperty.flat_area && (
+                                  <div className="text-[12px] text-stone-400 dark:text-stone-500 font-normal mt-0.5">
+                                    {Math.round(selectedProperty.price / selectedProperty.flat_area).toLocaleString('cs-CZ')} Kč/m²
+                                  </div>
+                                )}
+                              </div>
+                            </div>
+                            <div className="col-span-2 break-words whitespace-normal min-w-0">
+                              <span className="text-xs text-stone-400 dark:text-stone-500">Adresa</span>
+                              <div className="text-[14.5px] font-semibold text-stone-900 dark:text-stone-100 mt-0.5 break-words whitespace-normal leading-normal">
+                                {selectedProperty.address}
+                              </div>
+                            </div>
+                          </div>
                       ) : (
                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                           <div className="space-y-1.5">
@@ -2639,73 +2641,73 @@ export const PropertiesView: React.FC<PropertiesViewProps> = ({
                         /* Read-only populated parameters */
                         <div className="space-y-4">
                           {editKind === 'byt' ? (
-                            <div className="grid grid-cols-2 sm:grid-cols-4 gap-y-4 gap-x-6">
-                              <div>
+                            <div className="grid grid-cols-2 gap-y-4 gap-x-6">
+                              <div className="min-w-0">
                                 <span className="text-xs text-stone-400 dark:text-stone-500">Dispozice</span>
                                 <div className="text-[14.5px] font-semibold text-stone-900 dark:text-stone-100 mt-0.5">{flatLayout}</div>
                               </div>
-                              <div>
+                              <div className="min-w-0">
                                 <span className="text-xs text-stone-400 dark:text-stone-500">Užitná plocha</span>
                                 <div className="text-[14.5px] font-semibold text-stone-900 dark:text-stone-100 mt-0.5 tabular-nums">{flatArea} m²</div>
                               </div>
-                              <div>
+                              <div className="min-w-0">
                                 <span className="text-xs text-stone-400 dark:text-stone-500">Patro</span>
-                                <div className="text-[14.5px] font-semibold text-stone-900 dark:text-stone-100 mt-0.5">{flatFloor || '—'}</div>
+                                <div className="text-[14.5px] font-semibold text-stone-900 dark:text-stone-100 mt-0.5 break-words whitespace-normal">{flatFloor || '—'}</div>
                               </div>
-                              <div>
+                              <div className="min-w-0">
                                 <span className="text-xs text-stone-400 dark:text-stone-500">Vlastnictví</span>
-                                <div className="text-[14.5px] font-semibold text-stone-900 dark:text-stone-100 mt-0.5">{flatOwnership || '—'}</div>
+                                <div className="text-[14.5px] font-semibold text-stone-900 dark:text-stone-100 mt-0.5 break-words whitespace-normal">{flatOwnership || '—'}</div>
                               </div>
-                              <div>
+                              <div className="min-w-0">
                                 <span className="text-xs text-stone-400 dark:text-stone-500">Konstrukce</span>
-                                <div className="text-[14.5px] font-semibold text-stone-900 dark:text-stone-100 mt-0.5 capitalize">{flatConstruction || '—'}</div>
+                                <div className="text-[14.5px] font-semibold text-stone-900 dark:text-stone-100 mt-0.5 capitalize break-words whitespace-normal">{flatConstruction || '—'}</div>
                               </div>
-                              <div>
+                              <div className="min-w-0">
                                 <span className="text-xs text-stone-400 dark:text-stone-500">Stav bytu</span>
-                                <div className="text-[14.5px] font-semibold text-stone-900 dark:text-stone-100 mt-0.5">{flatCondition || '—'}</div>
+                                <div className="text-[14.5px] font-semibold text-stone-900 dark:text-stone-100 mt-0.5 break-words whitespace-normal">{flatCondition || '—'}</div>
                               </div>
-                              <div>
+                              <div className="min-w-0">
                                 <span className="text-xs text-stone-400 dark:text-stone-500">PENB</span>
                                 <div className="text-[14.5px] font-semibold text-stone-900 dark:text-stone-100 mt-0.5">{flatPenb || '—'}</div>
                               </div>
-                              <div>
+                              <div className="min-w-0">
                                 <span className="text-xs text-stone-400 dark:text-stone-500">Parkování</span>
-                                <div className="text-[14.5px] font-semibold text-stone-900 dark:text-stone-100 mt-0.5">{flatParking || '—'}</div>
+                                <div className="text-[14.5px] font-semibold text-stone-900 dark:text-stone-100 mt-0.5 break-words whitespace-normal leading-normal">{flatParking || '—'}</div>
                               </div>
                             </div>
                           ) : (
-                            <div className="grid grid-cols-2 sm:grid-cols-4 gap-y-4 gap-x-6">
-                              <div>
+                            <div className="grid grid-cols-2 gap-y-4 gap-x-6">
+                              <div className="min-w-0">
                                 <span className="text-xs text-stone-400 dark:text-stone-500">Dispozice / pokoje</span>
                                 <div className="text-[14.5px] font-semibold text-stone-900 dark:text-stone-100 mt-0.5">{houseLayout}</div>
                               </div>
-                              <div>
+                              <div className="min-w-0">
                                 <span className="text-xs text-stone-400 dark:text-stone-500">Užitná plocha</span>
                                 <div className="text-[14.5px] font-semibold text-stone-900 dark:text-stone-100 mt-0.5 tabular-nums">{houseArea} m²</div>
                               </div>
-                              <div>
+                              <div className="min-w-0">
                                 <span className="text-xs text-stone-400 dark:text-stone-500">Plocha pozemku</span>
                                 <div className="text-[14.5px] font-semibold text-stone-900 dark:text-stone-100 mt-0.5 tabular-nums">{landArea} m²</div>
                               </div>
-                              <div>
+                              <div className="min-w-0">
                                 <span className="text-xs text-stone-400 dark:text-stone-500">Typ domu</span>
-                                <div className="text-[14.5px] font-semibold text-stone-900 dark:text-stone-100 mt-0.5">{houseType || '—'}</div>
+                                <div className="text-[14.5px] font-semibold text-stone-900 dark:text-stone-100 mt-0.5 break-words whitespace-normal">{houseType || '—'}</div>
                               </div>
-                              <div>
+                              <div className="min-w-0">
                                 <span className="text-xs text-stone-400 dark:text-stone-500">Počet podlaží</span>
                                 <div className="text-[14.5px] font-semibold text-stone-900 dark:text-stone-100 mt-0.5">{houseFloors || '—'}</div>
                               </div>
-                              <div>
+                              <div className="min-w-0">
                                 <span className="text-xs text-stone-400 dark:text-stone-500">Stav domu</span>
-                                <div className="text-[14.5px] font-semibold text-stone-900 dark:text-stone-100 mt-0.5">{houseCondition || '—'}</div>
+                                <div className="text-[14.5px] font-semibold text-stone-900 dark:text-stone-100 mt-0.5 break-words whitespace-normal">{houseCondition || '—'}</div>
                               </div>
-                              <div>
+                              <div className="min-w-0">
                                 <span className="text-xs text-stone-400 dark:text-stone-500">PENB</span>
                                 <div className="text-[14.5px] font-semibold text-stone-900 dark:text-stone-100 mt-0.5">{housePenb || '—'}</div>
                               </div>
-                              <div>
+                              <div className="min-w-0">
                                 <span className="text-xs text-stone-400 dark:text-stone-500">Parkování</span>
-                                <div className="text-[14.5px] font-semibold text-stone-900 dark:text-stone-100 mt-0.5">{flatParking || '—'}</div>
+                                <div className="text-[14.5px] font-semibold text-stone-900 dark:text-stone-100 mt-0.5 break-words whitespace-normal leading-normal">{flatParking || '—'}</div>
                               </div>
                             </div>
                           )}
@@ -3005,7 +3007,10 @@ export const PropertiesView: React.FC<PropertiesViewProps> = ({
                         </div>
                       )}
                     </div>
+                  </div>
 
+                  {/* Right Column */}
+                  <div className="space-y-6">
                     {/* Section 3: Poznámka */}
                     <div className="bg-white dark:bg-stone-950 rounded-xl border border-stone-200/60 dark:border-stone-800 p-5">
                       <div className="flex justify-between items-baseline mb-4">
@@ -3061,7 +3066,7 @@ export const PropertiesView: React.FC<PropertiesViewProps> = ({
                             </button>
                           </div>
                         ) : (
-                          <div className="text-[14.5px] font-semibold text-[#141414] dark:text-stone-200 leading-relaxed whitespace-pre-wrap">
+                          <div className="text-[13.5px] font-normal leading-relaxed text-stone-700 dark:text-stone-300 whitespace-pre-wrap">
                             {editFacts}
                           </div>
                         )
@@ -3131,15 +3136,15 @@ export const PropertiesView: React.FC<PropertiesViewProps> = ({
                             </button>
                           </div>
                         ) : (
-                          <div className="space-y-3">
+                          <div className="divide-y divide-stone-100 dark:divide-stone-850">
                             {selectedProperty.attachments.map((file, idx) => (
-                              <div key={idx} className="flex justify-between items-center bg-stone-50/50 dark:bg-stone-900/50 border border-stone-100 dark:border-stone-800 px-4 py-3 rounded-lg text-xs">
-                                <div className="flex flex-col text-left">
-                                  <span className="text-sm font-semibold text-stone-800 dark:text-stone-200 flex items-center gap-2">
-                                    <FileText className="w-4 h-4 text-stone-400" />
+                              <div key={idx} className="flex justify-between items-center py-2.5 text-xs min-w-0 gap-3">
+                                <div className="flex items-center gap-2 text-left min-w-0">
+                                  <FileText className="w-3.5 h-3.5 text-stone-400 flex-none" />
+                                  <span className="text-sm font-semibold text-stone-800 dark:text-stone-200 truncate">
                                     {file}
                                   </span>
-                                  <span className="text-[11px] text-stone-400 dark:text-stone-500 mt-0.5">
+                                  <span className="text-[11px] text-stone-400 dark:text-stone-500 flex-none">
                                     nahráno 20. 5.
                                   </span>
                                 </div>
@@ -3157,7 +3162,7 @@ export const PropertiesView: React.FC<PropertiesViewProps> = ({
                                       toast.error(e.message);
                                     }
                                   }}
-                                  className="text-stone-400 hover:text-red-500 cursor-pointer"
+                                  className="text-stone-400 hover:text-red-500 cursor-pointer flex-none"
                                 >
                                   <Trash2 className="w-3.5 h-3.5" />
                                 </button>
@@ -3166,15 +3171,21 @@ export const PropertiesView: React.FC<PropertiesViewProps> = ({
                           </div>
                         )}
 
-                        <div className="flex items-center gap-1.5 text-xs text-[#0E8A5F] dark:text-green-400 font-semibold pt-1">
-                          <span>+</span>
-                          <span>Historie ceny: {selectedProperty.price === 5200000 ? "5 900 000 → 5 200 000" : "18 900 000 → 18 330 000"} Kč (12. 6.)</span>
+                        <div className="space-y-1 pt-1.5 text-xs text-[#0E8A5F] dark:text-green-400 font-semibold text-left">
+                          <div className="flex items-center gap-1 text-[13.5px]">
+                            <span>+</span>
+                            <span>Historie ceny: {selectedProperty.price === 5200000 ? "5 900 000 → 5 200 000" : "18 900 000 → 18 330 000"} Kč</span>
+                          </div>
+                          <div className="flex items-center gap-1 text-[11px] ml-3 font-medium">
+                            <span>↓</span>
+                            <span>12. 6.</span>
+                          </div>
                         </div>
                       </div>
                     </div>
-
                   </div>
-                )}
+                </div>
+              )}
 
                 {/* 3. TAB: ZÁJEMCI */}
                 {activeDetailTab === 'zajemci' && (
