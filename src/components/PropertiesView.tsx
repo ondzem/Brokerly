@@ -60,11 +60,11 @@ const RENT_EQUIPMENT_OPTIONS = ['vybaveno', 'částečně vybaveno', 'nevybaveno
 
 // Průvodce: pět otázek, jedna na obrazovku
 const WIZARD_STEPS = [
-  { key: 'druh', label: 'Druh', question: 'Co dáváš do nabídky?', hint: 'Podle druhu se zeptám na správné parametry.' },
+  { key: 'druh', label: 'Druh', question: 'Co dáváte do nabídky?', hint: 'Podle druhu se zeptám na správné parametry.' },
   { key: 'adresa', label: 'Adresa', question: 'Kde to stojí?', hint: 'Ulice a město stačí.' },
-  { key: 'parametry', label: 'Parametry', question: 'Jak je to velké?', hint: 'Jen to podstatné — zbytek doplníš kdykoli později.' },
+  { key: 'parametry', label: 'Parametry', question: 'Jak je to velké?', hint: 'Jen to podstatné — zbytek doplníte kdykoli později.' },
   { key: 'cena', label: 'Cena', question: 'Za kolik?', hint: 'Cenu za metr spočítám průběžně.' },
-  { key: 'vlastnik', label: 'Vlastník', question: 'Čí to je?', hint: 'Vyber z kontaktů, nebo rovnou založ nový.' },
+  { key: 'vlastnik', label: 'Vlastník', question: 'Čí to je?', hint: 'Vyberte z kontaktů, nebo rovnou založte nový.' },
 ] as const;
 
 const KIND_ICONS: Record<string, React.ComponentType<{ className?: string }>> = {
@@ -747,7 +747,7 @@ export const PropertiesView: React.FC<PropertiesViewProps> = ({
       // Druhy bez vlastního bloku (komerční, garáž/ostatní, pozemek) by poslaly prázdný
       // update — PostgREST na něj vrací chybu a uživatel by viděl nesmyslné hlášení.
       if (Object.keys(updateData).length === 0) {
-        toast.error(`Pro druh „${editKind}" zatím nejsou samostatné parametry — zapiš je do Faktů pro odpovědi.`);
+        toast.error(`Pro druh „${editKind}" zatím nejsou samostatné parametry — zapište je do Faktů pro odpovědi.`);
         setIsEditingSpecifics(false);
         return;
       }
@@ -1321,7 +1321,7 @@ export const PropertiesView: React.FC<PropertiesViewProps> = ({
       if (parsed.land_access) setLandAccess(parsed.land_access);
       if (parsed.land_dimensions) setLandDimensions(parsed.land_dimensions);
 
-      toast.success(`Inzerát načten jako „${parsed.kind}" — zkontroluj předvyplněná pole.`);
+      toast.success(`Inzerát načten jako „${parsed.kind}" — zkontrolujte předvyplněná pole.`);
       setImportUrl('');
     } catch (err: any) {
       console.error(err);
@@ -2574,7 +2574,7 @@ export const PropertiesView: React.FC<PropertiesViewProps> = ({
                               Parametry zatím nejsou vyplněné
                             </div>
                             <div className="text-xs text-stone-400 dark:text-stone-500 mt-0.5">
-                              Doplň je v záložce Informace — AI z nich odpovídá zájemcům.
+                              Doplňte je v záložce Informace — AI z nich odpovídá zájemcům.
                             </div>
                           </button>
                         )}
@@ -3018,7 +3018,7 @@ export const PropertiesView: React.FC<PropertiesViewProps> = ({
                             Pro druh „{editKind}" zatím nejsou samostatné parametry
                           </div>
                           <div className="text-xs text-stone-400 dark:text-stone-500 mt-1 leading-relaxed">
-                            Plochu, podtyp, vybavenost a parkování zapiš níže do pole Fakta pro odpovědi —
+                            Plochu, podtyp, vybavenost a parkování zapište níže do pole Fakta pro odpovědi —
                             AI odpovídá zájemcům právě z něj.
                           </div>
                         </div>
@@ -3027,7 +3027,7 @@ export const PropertiesView: React.FC<PropertiesViewProps> = ({
                         <div className="border border-dashed border-stone-250 dark:border-stone-800 rounded-xl p-5 flex justify-between items-center bg-white dark:bg-stone-950">
                           <div className="text-left">
                             <div className="text-[14.5px] font-semibold text-stone-900 dark:text-stone-100">
-                              Doplň parametry {specificsLabel}
+                              Doplňte parametry {specificsLabel}
                             </div>
                             <div className="text-xs text-stone-400 dark:text-stone-500 mt-1">
                               AI z nich odpovídá zájemcům —{' '}
@@ -3805,10 +3805,10 @@ export const PropertiesView: React.FC<PropertiesViewProps> = ({
                           <div className="border border-dashed border-stone-250 dark:border-stone-800 rounded-xl p-5 flex justify-between items-center bg-white dark:bg-stone-950">
                             <div className="text-left">
                               <div className="text-[14.5px] font-semibold text-stone-900 dark:text-stone-100">
-                                Přidej poznámku
+                                Přidejte poznámku
                               </div>
                               <div className="text-xs text-stone-400 dark:text-stone-500 mt-1">
-                                Popis nemovitosti pro tebe i pro inzerát.
+                                Popis nemovitosti pro vás i pro inzerát.
                               </div>
                             </div>
                             <button 
@@ -3864,7 +3864,7 @@ export const PropertiesView: React.FC<PropertiesViewProps> = ({
                           <div className="border border-dashed border-stone-250 dark:border-stone-800 rounded-xl p-5 flex justify-between items-center bg-white dark:bg-stone-950">
                             <div className="text-left">
                               <div className="text-[14.5px] font-semibold text-stone-900 dark:text-stone-100">
-                                Nahraj dokumenty
+                                Nahrajte dokumenty
                               </div>
                               <div className="text-xs text-stone-400 dark:text-stone-500 mt-1">
                                 LV a PENB budou potřeba k rezervační smlouvě.
@@ -4293,7 +4293,7 @@ export const PropertiesView: React.FC<PropertiesViewProps> = ({
                           <div className="border border-dashed border-stone-200 dark:border-stone-800 rounded-xl p-7 flex justify-between items-center text-xs">
                             <div>
                               <div className="font-semibold text-stone-900 dark:text-stone-100">Nastav provizi</div>
-                              <div className="text-stone-400 mt-1">Zadej % nebo Kč — druhé dopočítám z ceny {propertyPrice.toLocaleString('cs-CZ')} Kč.</div>
+                              <div className="text-stone-400 mt-1">Zadejte % nebo Kč — druhé dopočítám z ceny {propertyPrice.toLocaleString('cs-CZ')} Kč.</div>
                             </div>
                             <button 
                               onClick={() => setIsEditingCommission(true)}
@@ -4387,7 +4387,7 @@ export const PropertiesView: React.FC<PropertiesViewProps> = ({
                             </div>
                           </div>
                           <div className="text-[11px] text-stone-400 dark:text-stone-500 mt-2">
-                            Zadej % nebo Kč — druhé se automaticky dopočítá z kupní ceny.
+                            Zadejte % nebo Kč — druhé se automaticky dopočítá z kupní ceny.
                           </div>
                         </div>
                       )}
@@ -4591,7 +4591,7 @@ export const PropertiesView: React.FC<PropertiesViewProps> = ({
           <DialogHeader className="shrink-0 px-5 sm:px-7 pt-5 sm:pt-6 pb-4 border-b border-stone-200/80">
             <DialogTitle className="font-display text-xl sm:text-2xl font-normal text-left text-[#141414] dark:text-stone-100">Přidat nemovitost</DialogTitle>
             <DialogDescription className="text-xs text-left text-muted-foreground mt-0.5">
-              Vlož odkaz na inzerát, nebo vyplň údaje ručně.
+              Vložte odkaz na inzerát, nebo vyplňte údaje ručně.
             </DialogDescription>
           </DialogHeader>
 
@@ -4602,9 +4602,9 @@ export const PropertiesView: React.FC<PropertiesViewProps> = ({
               {createMode === 'rozcestí' && (
                 <div className="space-y-5">
                   <div>
-                    <h3 className="font-display text-[19px] font-semibold text-stone-900 dark:text-stone-100">Jak to vezmeme?</h3>
+                    <h3 className="font-display text-[19px] font-semibold text-stone-900 dark:text-stone-100">Jak budeme pokračovat?</h3>
                     <p className="text-[13px] text-stone-500 dark:text-stone-400 mt-1">
-                      Máš odkaz na inzerát? Pak nevyplňuj nic — přečtu ho za tebe.
+                      Máte odkaz na inzerát? Pak nevyplňujte nic — přečtu ho za vás.
                     </p>
                   </div>
 
@@ -4624,7 +4624,7 @@ export const PropertiesView: React.FC<PropertiesViewProps> = ({
                         </div>
                         <p className="text-[13px] text-stone-500 dark:text-stone-400 mt-1 leading-relaxed">
                           Sreality, Bezrealitky, RE/MAX… AI z něj vytáhne adresu, cenu i všechny parametry.
-                          Ty jen zkontroluješ a uložíš.
+                          Vy jen zkontrolujete a uložíte.
                         </p>
                       </div>
                       <ChevronRight className="w-4 h-4 text-stone-300 group-hover:text-[#0E8A5F] transition-colors mt-1 ml-auto flex-none" />
@@ -4664,9 +4664,9 @@ export const PropertiesView: React.FC<PropertiesViewProps> = ({
               {createMode === 'import' && (
                 <div className="space-y-5">
                   <div>
-                    <h3 className="font-display text-[19px] font-semibold text-stone-900 dark:text-stone-100">Vlož odkaz na inzerát</h3>
+                    <h3 className="font-display text-[19px] font-semibold text-stone-900 dark:text-stone-100">Vložte odkaz na inzerát</h3>
                     <p className="text-[13px] text-stone-500 dark:text-stone-400 mt-1">
-                      Zbytek nech na mně.
+                      Zbytek nechte na mně.
                     </p>
                   </div>
 
@@ -6042,7 +6042,7 @@ export const PropertiesView: React.FC<PropertiesViewProps> = ({
                 </>
               ) : (
                 <>
-                  <span className="text-xs text-stone-400">Vyber, jak chceš pokračovat</span>
+                  <span className="text-xs text-stone-400">Vyberte, jak chcete pokračovat</span>
                   <Button type="button" variant="outline" onClick={() => setIsCreateOpen(false)}>
                     Zrušit
                   </Button>
