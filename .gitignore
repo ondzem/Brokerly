@@ -44,3 +44,6 @@ next-env.d.ts
 *standalone.html
 *.woff2
 *.javascript
+
+# local AI tooling
+ruvector.db

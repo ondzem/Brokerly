@@ -43,6 +43,21 @@ const HOUSE_LAYOUT_OPTIONS = ['2+kk', '3+kk', '4+kk', '5+kk', '6 a více'] as co
 const HOUSE_TYPE_OPTIONS = ['samostatný', 'řadový', 'dvojdomek'] as const;
 const HOUSE_FEATURE_OPTIONS = ['garáž', 'zahrada', 'bazén'] as const;
 
+// Taxonomie podle kategorií Sreality (komerční prostory)
+const COMM_SUBTYPE_OPTIONS = [
+  'kancelář',
+  'obchodní prostor',
+  'sklad',
+  'výrobní prostor',
+  'restaurace / gastro',
+  'ubytování',
+  'ordinace',
+  'zemědělský objekt',
+  'činžovní dům',
+  'jiné',
+] as const;
+const RENT_EQUIPMENT_OPTIONS = ['vybaveno', 'částečně vybaveno', 'nevybaveno'] as const;
+
 const parseSafeNumber = (val: string | number | null | undefined): number | null => {
   if (val === null || val === undefined) return null;
   if (typeof val === 'number') {
@@ -164,9 +179,19 @@ export const PropertiesView: React.FC<PropertiesViewProps> = ({
   const [landAccess, setLandAccess] = useState('');
   const [landDimensions, setLandDimensions] = useState('');
 
+  // Komerční specific states
+  const [commSubtype, setCommSubtype] = useState<string>('');
+  const [commFloorArea, setCommFloorArea] = useState('');
+  const [commCondition, setCommCondition] = useState('');
+  const [commParking, setCommParking] = useState('');
+  const [commPenb, setCommPenb] = useState<string>('');
+
   // Pronájem, Provize and Photo states
   const [rentDeposit, setRentDeposit] = useState('');
   const [rentFeesUtilities, setRentFeesUtilities] = useState('');
+  const [rentDuration, setRentDuration] = useState('');
+  const [rentAvailableFrom, setRentAvailableFrom] = useState('');
+  const [rentEquipment, setRentEquipment] = useState<string>('');
   const [commissionPct, setCommissionPct] = useState('');
   const [commissionVal, setCommissionVal] = useState('');
   const [photoUrl, setPhotoUrl] = useState('');
@@ -244,9 +269,19 @@ export const PropertiesView: React.FC<PropertiesViewProps> = ({
       setLandAccess(selectedProperty.land_access || '');
       setLandDimensions(selectedProperty.land_dimensions || '');
 
+      // Komerční specific
+      setCommSubtype(selectedProperty.comm_subtype || '');
+      setCommFloorArea(selectedProperty.comm_floor_area ? selectedProperty.comm_floor_area.toString() : '');
+      setCommCondition(selectedProperty.comm_condition_equipment || '');
+      setCommParking(selectedProperty.comm_parking_entrance || '');
+      setCommPenb(selectedProperty.comm_penb || '');
+
       // Rent, Commission, and Photo
       setRentDeposit(selectedProperty.rent_deposit ? selectedProperty.rent_deposit.toString() : '');
       setRentFeesUtilities(selectedProperty.rent_fees_utilities ? selectedProperty.rent_fees_utilities.toString() : '');
+      setRentDuration(selectedProperty.rent_duration || '');
+      setRentAvailableFrom(selectedProperty.rent_available_from || '');
+      setRentEquipment(selectedProperty.rent_equipment || '');
       setCommissionPct(selectedProperty.commission_pct ? selectedProperty.commission_pct.toString() : '');
       setCommissionVal(selectedProperty.commission_val ? selectedProperty.commission_val.toString() : '');
       setPhotoUrl(selectedProperty.attachments?.[0] || '');
@@ -421,9 +456,19 @@ export const PropertiesView: React.FC<PropertiesViewProps> = ({
         land_access: editKind === 'pozemek' ? landAccess || null : null,
         land_dimensions: editKind === 'pozemek' ? landDimensions || null : null,
 
+        // Komerční details (comm_parking_entrance sdílí i byt — parkování)
+        comm_subtype: editKind === 'komerční' ? commSubtype || null : null,
+        comm_floor_area: editKind === 'komerční' && commFloorArea ? parseSafeNumber(commFloorArea) : null,
+        comm_condition_equipment: editKind === 'komerční' ? commCondition || null : null,
+        comm_parking_entrance: editKind === 'komerční' ? commParking || null : editKind === 'byt' ? flatParking || null : null,
+        comm_penb: editKind === 'komerční' ? commPenb || null : null,
+
         // Rent, Commission, and Photo
         rent_deposit: editTransaction === 'pronájem' ? parseSafeNumber(rentDeposit) : null,
         rent_fees_utilities: editTransaction === 'pronájem' ? parseSafeNumber(rentFeesUtilities) : null,
+        rent_duration: editTransaction === 'pronájem' ? rentDuration || null : null,
+        rent_available_from: editTransaction === 'pronájem' ? rentAvailableFrom || null : null,
+        rent_equipment: editTransaction === 'pronájem' ? rentEquipment || null : null,
         commission_pct: parseSafeNumber(commissionPct),
         commission_val: parseSafeNumber(commissionVal),
         attachments: photoUrl ? [photoUrl] : null,
@@ -532,6 +577,36 @@ export const PropertiesView: React.FC<PropertiesViewProps> = ({
         updateData.house_features = houseFeatures || [];
         updateData.house_condition = houseCondition as Property['house_condition'] || null;
         updateData.house_penb = housePenb as Property['house_penb'] || null;
+      } else if (editKind === 'pozemek') {
+        updateData.land_size = parseSafeNumber(landSize);
+        updateData.land_type = landType || null;
+        updateData.land_utilities = landUtilities ? landUtilities.split(',').map((s) => s.trim()).filter(Boolean) : null;
+        updateData.zoning_plan = zoningPlan || null;
+        updateData.land_access = landAccess || null;
+        updateData.land_dimensions = landDimensions || null;
+      } else if (editKind === 'komerční') {
+        updateData.comm_subtype = commSubtype || null;
+        updateData.comm_floor_area = parseSafeNumber(commFloorArea);
+        updateData.comm_condition_equipment = commCondition || null;
+        updateData.comm_parking_entrance = commParking || null;
+        updateData.comm_penb = commPenb || null;
+      }
+
+      // Pronájem — platí pro každý druh, ukládá se ze stejné karty
+      if (editTransaction === 'pronájem') {
+        updateData.rent_deposit = parseSafeNumber(rentDeposit);
+        updateData.rent_fees_utilities = parseSafeNumber(rentFeesUtilities);
+        updateData.rent_duration = rentDuration || null;
+        updateData.rent_available_from = rentAvailableFrom || null;
+        updateData.rent_equipment = rentEquipment || null;
+      }
+
+      // Druhy bez vlastního bloku (komerční, garáž/ostatní, pozemek) by poslaly prázdný
+      // update — PostgREST na něj vrací chybu a uživatel by viděl nesmyslné hlášení.
+      if (Object.keys(updateData).length === 0) {
+        toast.error(`Pro druh „${editKind}" zatím nejsou samostatné parametry — zapiš je do Faktů pro odpovědi.`);
+        setIsEditingSpecifics(false);
+        return;
       }
 
       const updated = await updateProperty(selectedProperty.id, updateData);
@@ -743,16 +818,16 @@ export const PropertiesView: React.FC<PropertiesViewProps> = ({
         land_access: newKind === 'pozemek' ? landAccess || null : null,
         land_dimensions: newKind === 'pozemek' ? landDimensions || null : null,
 
-        comm_subtype: null,
-        comm_floor_area: null,
-        comm_condition_equipment: null,
-        comm_parking_entrance: null,
-        comm_penb: null,
+        comm_subtype: newKind === 'komerční' ? commSubtype || null : null,
+        comm_floor_area: newKind === 'komerční' && commFloorArea ? parseSafeNumber(commFloorArea) : null,
+        comm_condition_equipment: newKind === 'komerční' ? commCondition || null : null,
+        comm_parking_entrance: newKind === 'komerční' ? commParking || null : null,
+        comm_penb: newKind === 'komerční' ? commPenb || null : null,
         rent_deposit: newTransaction === 'pronájem' ? parseSafeNumber(rentDeposit) : null,
         rent_fees_utilities: newTransaction === 'pronájem' ? parseSafeNumber(rentFeesUtilities) : null,
-        rent_duration: null,
-        rent_available_from: null,
-        rent_equipment: null,
+        rent_duration: newTransaction === 'pronájem' ? rentDuration || null : null,
+        rent_available_from: newTransaction === 'pronájem' ? rentAvailableFrom || null : null,
+        rent_equipment: newTransaction === 'pronájem' ? rentEquipment || null : null,
         commission_pct: parseSafeNumber(commissionPct),
         commission_val: parseSafeNumber(commissionVal),
       });
@@ -861,27 +936,46 @@ export const PropertiesView: React.FC<PropertiesViewProps> = ({
       const parser = new DOMParser();
       const doc = parser.parseFromString(html, 'text/html');
 
-      // Extract first suitable listing image from HTML DOM
-      let foundPhotoUrl = '';
-      const imgElements = Array.from(doc.querySelectorAll('img'));
-      for (const img of imgElements) {
-        const src = img.getAttribute('src') || '';
-        // Skip tiny icons, tracking pixels, or base64
-        if (src.startsWith('data:') || src.includes('icon') || src.includes('logo') || src.includes('pixel') || src.includes('spinner')) {
-          continue;
-        }
-        if (src.includes('img.sreality.cz') || src.includes('remax') || src.includes('bezrealitky') || src.includes('http')) {
-          foundPhotoUrl = src;
-          // Prepend protocol or domain if relative
-          if (foundPhotoUrl.startsWith('//')) {
-            foundPhotoUrl = 'https:' + foundPhotoUrl;
-          } else if (foundPhotoUrl.startsWith('/')) {
-            try {
-              const urlObj = new URL(normalizedUrl);
-              foundPhotoUrl = urlObj.origin + foundPhotoUrl;
-            } catch (e) {}
+      // Extract the listing photo. og:image is what every portal sets for sharing and is
+      // always a real listing photo — the <img> scan is only a fallback, because portals
+      // lazy-load gallery images and their src often points at a placeholder.
+      const absolutizeUrl = (raw: string): string => {
+        if (!raw) return '';
+        if (raw.startsWith('//')) return 'https:' + raw;
+        if (raw.startsWith('/')) {
+          try {
+            return new URL(normalizedUrl).origin + raw;
+          } catch {
+            return '';
           }
-          break;
+        }
+        return raw;
+      };
+
+      let foundPhotoUrl = absolutizeUrl(
+        doc.querySelector('meta[property="og:image"]')?.getAttribute('content') ||
+        doc.querySelector('meta[name="twitter:image"]')?.getAttribute('content') ||
+        ''
+      );
+
+      if (!foundPhotoUrl) {
+        const imgElements = Array.from(doc.querySelectorAll('img'));
+        for (const img of imgElements) {
+          // Lazy-loaded galleries keep the real photo in data-src / data-original.
+          const src =
+            img.getAttribute('src') ||
+            img.getAttribute('data-src') ||
+            img.getAttribute('data-original') ||
+            '';
+          // Skip tiny icons, tracking pixels, or base64
+          if (!src || src.startsWith('data:') || /icon|logo|pixel|spinner|placeholder|\.svg(\?|$)/i.test(src)) {
+            continue;
+          }
+          const absolute = absolutizeUrl(src);
+          if (absolute.startsWith('http')) {
+            foundPhotoUrl = absolute;
+            break;
+          }
         }
       }
 
@@ -947,8 +1041,16 @@ export const PropertiesView: React.FC<PropertiesViewProps> = ({
               zoning_plan: { type: "STRING", description: "Info z územního plánu" },
               land_access: { type: "STRING", description: "Přístup k pozemku" },
               land_dimensions: { type: "STRING", description: "Rozměry pozemku" },
+              comm_subtype: { type: "STRING", enum: ["kancelář", "obchodní prostor", "sklad", "výrobní prostor", "restaurace / gastro", "ubytování", "ordinace", "zemědělský objekt", "činžovní dům", "jiné"], description: "Podtyp komerční nemovitosti" },
+              comm_floor_area: { type: "NUMBER", description: "Podlahová/užitná plocha komerčního prostoru v m2" },
+              comm_condition_equipment: { type: "STRING", description: "Stav a vybavenost komerčního prostoru, např. 'po rekonstrukci, klimatizace, kuchyňka'" },
+              comm_parking_entrance: { type: "STRING", description: "Parkování a vjezd, např. '4 stání ve dvoře, vjezd pro dodávku'" },
+              comm_penb: { type: "STRING", enum: ["A", "B", "C", "D", "E", "F", "G"], description: "PENB komerčního prostoru" },
               rent_deposit: { type: "NUMBER", description: "Vratná kauce (jistota) v Kč, pokud jde o pronájem" },
               rent_fees_utilities: { type: "NUMBER", description: "Měsíční poplatky za služby a energie v Kč, pokud jde o pronájem" },
+              rent_duration: { type: "STRING", description: "Doba nájmu, např. '1 rok s možností prodloužení', 'na dobu neurčitou'" },
+              rent_available_from: { type: "STRING", description: "Od kdy je nemovitost dostupná k nastěhování, ve formátu YYYY-MM-DD. Vynech, pokud v textu není konkrétní datum." },
+              rent_equipment: { type: "STRING", enum: ["vybaveno", "částečně vybaveno", "nevybaveno"], description: "Vybavení pronajímané nemovitosti" },
               commission_pct: { type: "NUMBER", description: "Provize makléře / RK v procentech (např. 3)" },
               commission_val: { type: "NUMBER", description: "Provize makléře / RK v Kč (např. 150000)" },
               facts_for_answers: { type: "STRING", description: "Jakékoli další důležité poznámky k nemovitosti" }
@@ -989,13 +1091,48 @@ export const PropertiesView: React.FC<PropertiesViewProps> = ({
       if (parsed.kind) setNewKind(parsed.kind);
       if (parsed.transaction) setNewTransaction(parsed.transaction);
       if (parsed.price) setNewPrice(parsed.price.toString());
-      if (parsed.facts_for_answers) setNewFacts(parsed.facts_for_answers);
+
+      // Druhy bez vlastního bloku parametrů (garáž/ostatní) by o vytažené
+      // parametry při uložení přišly — proto je zapíšeme do faktů, ať se nic neztratí.
+      const kindHasParamBlock = ['byt', 'dům', 'pozemek', 'komerční'].includes(parsed.kind);
+      const rescuedFacts: string[] = [];
+      if (!kindHasParamBlock) {
+        const rescueMap: [string, unknown][] = [
+          ['Plocha', parsed.flat_area || parsed.house_area || parsed.comm_floor_area],
+          ['Dispozice', parsed.flat_layout || parsed.house_layout],
+          ['Patro', parsed.floor],
+          ['Stav', parsed.flat_condition || parsed.house_condition || parsed.comm_condition_equipment],
+          ['PENB', parsed.flat_penb || parsed.house_penb || parsed.comm_penb],
+          ['Vlastnictví', parsed.ownership],
+          ['Konstrukce', parsed.construction],
+          ['Pozemek', parsed.land_area || parsed.land_size],
+          ['Parkování', parsed.comm_parking_entrance],
+        ];
+        for (const [label, value] of rescueMap) {
+          if (value) rescuedFacts.push(`${label}: ${value}`);
+        }
+      }
+      const factsParts = [parsed.facts_for_answers, rescuedFacts.join(' · ')].filter(Boolean);
+      if (factsParts.length) setNewFacts(factsParts.join('\n\n'));
 
       // Rent and Commission
       if (parsed.rent_deposit) setRentDeposit(parsed.rent_deposit.toString());
       if (parsed.rent_fees_utilities) setRentFeesUtilities(parsed.rent_fees_utilities.toString());
+      if (parsed.rent_duration) setRentDuration(parsed.rent_duration);
+      // DB sloupec je DATE — vezmi jen validní YYYY-MM-DD, jinak by insert spadl
+      if (parsed.rent_available_from && /^\d{4}-\d{2}-\d{2}$/.test(parsed.rent_available_from)) {
+        setRentAvailableFrom(parsed.rent_available_from);
+      }
+      if (parsed.rent_equipment) setRentEquipment(parsed.rent_equipment);
       if (parsed.commission_pct) setCommissionPct(parsed.commission_pct.toString());
       if (parsed.commission_val) setCommissionVal(parsed.commission_val.toString());
+
+      // Komerční specific
+      if (parsed.comm_subtype) setCommSubtype(parsed.comm_subtype);
+      if (parsed.comm_floor_area) setCommFloorArea(parsed.comm_floor_area.toString());
+      if (parsed.comm_condition_equipment) setCommCondition(parsed.comm_condition_equipment);
+      if (parsed.comm_parking_entrance) setCommParking(parsed.comm_parking_entrance);
+      if (parsed.comm_penb) setCommPenb(parsed.comm_penb);
 
       // Byt specific
       if (parsed.flat_layout) setFlatLayout(parsed.flat_layout);
@@ -1025,7 +1162,14 @@ export const PropertiesView: React.FC<PropertiesViewProps> = ({
       if (parsed.land_access) setLandAccess(parsed.land_access);
       if (parsed.land_dimensions) setLandDimensions(parsed.land_dimensions);
 
-      toast.success('Inzerát byl úspěšně načten a data byla doplněna!');
+      if (!kindHasParamBlock) {
+        toast.warning(
+          `Načteno jako „${parsed.kind}" — pro tento druh zatím nejsou samostatné parametry. Vytažené údaje jsem uložil do Faktů, zkontroluj je.`,
+          { duration: 8000 }
+        );
+      } else {
+        toast.success('Inzerát byl úspěšně načten a data byla doplněna!');
+      }
       setImportUrl('');
     } catch (err: any) {
       console.error(err);
@@ -1073,7 +1217,27 @@ export const PropertiesView: React.FC<PropertiesViewProps> = ({
     setZoningPlan('');
     setLandAccess('');
     setLandDimensions('');
-    
+
+    // Tyhle stavy sdílí detail nemovitosti — bez resetu by se do nové nemovitosti
+    // propsala fotka, provize i kauce z naposledy otevřené karty.
+    setPhotoUrl('');
+    setRentDeposit('');
+    setRentFeesUtilities('');
+    setRentDuration('');
+    setRentAvailableFrom('');
+    setRentEquipment('');
+    setCommSubtype('');
+    setCommFloorArea('');
+    setCommCondition('');
+    setCommParking('');
+    setCommPenb('');
+    setCommissionPct('');
+    setCommissionVal('');
+    setImportUrl('');
+    setNewKind('byt');
+    setNewTransaction('prodej');
+    setNewOfferStatus('v nabídce');
+
     setIsCreateOpen(true);
   };
 
@@ -1504,9 +1668,9 @@ export const PropertiesView: React.FC<PropertiesViewProps> = ({
             } else if (prop.kind === 'dům') {
               displayTitle = `Dům ${prop.house_layout || ''}`;
             } else if (prop.kind === 'pozemek') {
-              displayTitle = 'Pozemek';
+              displayTitle = prop.land_type ? `Pozemek — ${prop.land_type}` : 'Pozemek';
             } else if (prop.kind === 'komerční') {
-              displayTitle = 'Komerční';
+              displayTitle = prop.comm_subtype ? `Komerční — ${prop.comm_subtype}` : 'Komerční';
             } else {
               displayTitle = 'Garáž/Ostatní';
             }
@@ -1521,10 +1685,10 @@ export const PropertiesView: React.FC<PropertiesViewProps> = ({
               detailsStr += ` · ${prop.flat_area} m²` + (prop.floor ? ` · ${prop.floor}. patro` : '');
             } else if (prop.kind === 'dům' && prop.house_area) {
               detailsStr += ` · ${prop.house_area} m²` + (prop.land_area ? ` · pozemek ${prop.land_area} m²` : '');
-            } else if (prop.kind === 'pozemek' && prop.land_area) {
-              detailsStr = `Stavební parcela · ${prop.land_area} m²`;
-            } else if (prop.kind === 'komerční' && prop.flat_area) {
-              detailsStr += ` · ${prop.flat_area} m²`;
+            } else if (prop.kind === 'pozemek' && (prop.land_size || prop.land_area)) {
+              detailsStr += ` · ${prop.land_size || prop.land_area} m²`;
+            } else if (prop.kind === 'komerční' && (prop.comm_floor_area || prop.flat_area)) {
+              detailsStr += ` · ${prop.comm_floor_area || prop.flat_area} m²`;
             }
 
             // Price suffix
@@ -1923,6 +2087,66 @@ export const PropertiesView: React.FC<PropertiesViewProps> = ({
         // Owner object
         const ownerContact = contacts.find((c) => c.id === selectedProperty.owner_id);
 
+        // Key parameters shown on the Přehled tab — driven by druh, so every kind
+        // shows the fields it actually stores instead of falling back to dům columns.
+        const keyParams: { label: string; value: string | number | null }[] = (() => {
+          const p = selectedProperty;
+          switch (p.kind) {
+            case 'byt':
+              return [
+                { label: 'Dispozice', value: p.flat_layout },
+                { label: 'Užitná plocha', value: p.flat_area ? `${p.flat_area} m²` : null },
+                { label: 'Patro', value: p.floor },
+                { label: 'Stav', value: p.flat_condition },
+                { label: 'PENB', value: p.flat_penb },
+                { label: 'Vlastnictví', value: p.ownership },
+              ];
+            case 'dům':
+              return [
+                { label: 'Dispozice', value: p.house_layout },
+                { label: 'Užitná plocha', value: p.house_area ? `${p.house_area} m²` : null },
+                { label: 'Pozemek', value: p.land_area ? `${p.land_area} m²` : null },
+                { label: 'Typ domu', value: p.house_type },
+                { label: 'Podlaží', value: p.floors_count },
+                { label: 'Stav', value: p.house_condition },
+                { label: 'PENB', value: p.house_penb },
+              ];
+            case 'pozemek':
+              return [
+                { label: 'Výměra', value: p.land_size ? `${p.land_size} m²` : null },
+                { label: 'Druh pozemku', value: p.land_type },
+                { label: 'Sítě', value: p.land_utilities?.length ? p.land_utilities.join(', ') : null },
+                { label: 'Územní plán', value: p.zoning_plan },
+                { label: 'Přístup', value: p.land_access },
+                { label: 'Rozměry', value: p.land_dimensions },
+              ];
+            default:
+              return [
+                { label: 'Podlahová plocha', value: p.comm_floor_area ? `${p.comm_floor_area} m²` : null },
+                { label: 'Podtyp', value: p.comm_subtype },
+                { label: 'Stav / vybavenost', value: p.comm_condition_equipment },
+                { label: 'Parkování / vjezd', value: p.comm_parking_entrance },
+                { label: 'PENB', value: p.comm_penb },
+              ];
+          }
+        })();
+        const keyParamsFilled = keyParams.some((p) => p.value !== null && p.value !== '');
+
+        // Druhy, pro které existuje editovatelný blok parametrů v záložce Informace.
+        const hasSpecificsForm = editKind === 'byt' || editKind === 'dům' || editKind === 'pozemek' || editKind === 'komerční';
+        const specificsLabel =
+          editKind === 'byt' ? 'bytu'
+          : editKind === 'dům' ? 'domu'
+          : editKind === 'pozemek' ? 'pozemku'
+          : editKind === 'komerční' ? 'komerčního prostoru'
+          : `– ${editKind}`;
+        const specificsEmpty =
+          editKind === 'byt' ? !(flatLayout && flatArea)
+          : editKind === 'dům' ? !(houseLayout && houseArea)
+          : editKind === 'pozemek' ? !(landSize || landType || landUtilities || zoningPlan || landAccess || landDimensions)
+          : editKind === 'komerční' ? !(commSubtype || commFloorArea || commCondition || commParking || commPenb)
+          : true;
+
         return (
           <Dialog open={isDetailOpen} onOpenChange={(open) => {
             setIsDetailOpen(open);
@@ -2010,9 +2234,9 @@ export const PropertiesView: React.FC<PropertiesViewProps> = ({
                         : selectedProperty.kind === 'dům' 
                         ? `Dům ${selectedProperty.house_layout || ''}`
                         : selectedProperty.kind === 'pozemek'
-                        ? 'Pozemek'
+                        ? (selectedProperty.land_type ? `Pozemek — ${selectedProperty.land_type}` : 'Pozemek')
                         : selectedProperty.kind === 'komerční'
-                        ? 'Komerční nemovitost'
+                        ? (selectedProperty.comm_subtype ? `Komerční — ${selectedProperty.comm_subtype}` : 'Komerční nemovitost')
                         : 'Garáž/ostatní'}
                     </span>
                     <span className="text-[12px] font-medium bg-[#00221F] text-white px-[9px] py-[2px] rounded-[6px]">
@@ -2165,44 +2389,30 @@ export const PropertiesView: React.FC<PropertiesViewProps> = ({
                             Vše →
                           </button>
                         </div>
-                        <div className="grid grid-cols-2 sm:grid-cols-3 gap-y-4 gap-x-6 text-left">
-                          <div>
-                            <span className="text-xs text-stone-400 dark:text-stone-500">Dispozice</span>
-                            <div className="text-[14.5px] font-semibold text-stone-900 dark:text-stone-100 mt-0.5">
-                              {selectedProperty.kind === 'byt' ? selectedProperty.flat_layout || '—' : selectedProperty.house_layout || '—'}
-                            </div>
+                        {keyParamsFilled ? (
+                          <div className="grid grid-cols-2 sm:grid-cols-3 gap-y-4 gap-x-6 text-left">
+                            {keyParams.map((param) => (
+                              <div key={param.label}>
+                                <span className="text-xs text-stone-400 dark:text-stone-500">{param.label}</span>
+                                <div className="text-[14.5px] font-semibold text-stone-900 dark:text-stone-100 mt-0.5 tabular-nums">
+                                  {param.value !== null && param.value !== '' ? param.value : '—'}
+                                </div>
+                              </div>
+                            ))}
                           </div>
-                          <div>
-                            <span className="text-xs text-stone-400 dark:text-stone-500">Užitná plocha</span>
-                            <div className="text-[14.5px] font-semibold text-stone-900 dark:text-stone-100 mt-0.5 tabular-nums">
-                              {selectedProperty.kind === 'byt' ? selectedProperty.flat_area || '—' : selectedProperty.house_area || '—'} m²
+                        ) : (
+                          <button
+                            onClick={() => setActiveDetailTab('informace')}
+                            className="w-full text-left rounded-lg border border-dashed border-stone-300 dark:border-stone-700 px-4 py-3.5 hover:border-[#0E8A5F] hover:bg-stone-50 dark:hover:bg-stone-900 transition cursor-pointer"
+                          >
+                            <div className="text-[13.5px] font-medium text-stone-900 dark:text-stone-100">
+                              Parametry zatím nejsou vyplněné
                             </div>
-                          </div>
-                          <div>
-                            <span className="text-xs text-stone-400 dark:text-stone-500">Patro</span>
-                            <div className="text-[14.5px] font-semibold text-stone-900 dark:text-stone-100 mt-0.5">
-                              {selectedProperty.kind === 'byt' ? selectedProperty.floor || '—' : selectedProperty.floors_count || '—'}
+                            <div className="text-xs text-stone-400 dark:text-stone-500 mt-0.5">
+                              Doplň je v záložce Informace — AI z nich odpovídá zájemcům.
                             </div>
-                          </div>
-                          <div>
-                            <span className="text-xs text-stone-400 dark:text-stone-500">Stav</span>
-                            <div className="text-[14.5px] font-semibold text-stone-900 dark:text-stone-100 mt-0.5">
-                              {selectedProperty.kind === 'byt' ? selectedProperty.flat_condition || '—' : selectedProperty.house_condition || '—'}
-                            </div>
-                          </div>
-                          <div>
-                            <span className="text-xs text-stone-400 dark:text-stone-500">PENB</span>
-                            <div className="text-[14.5px] font-semibold text-stone-900 dark:text-stone-100 mt-0.5">
-                              {selectedProperty.kind === 'byt' ? selectedProperty.flat_penb || '—' : selectedProperty.house_penb || '—'}
-                            </div>
-                          </div>
-                          <div>
-                            <span className="text-xs text-stone-400 dark:text-stone-500">Vlastnictví</span>
-                            <div className="text-[14.5px] font-semibold text-stone-900 dark:text-stone-100 mt-0.5">
-                              {selectedProperty.ownership || '—'}
-                            </div>
-                          </div>
-                        </div>
+                          </button>
+                        )}
                       </div>
 
                       {/* Subcard 2: Zájemci summary */}
@@ -2569,14 +2779,14 @@ export const PropertiesView: React.FC<PropertiesViewProps> = ({
                     )}>
                       <div className="flex justify-between items-baseline mb-4">
                         <span className="text-[14.5px] font-semibold text-stone-900 dark:text-stone-100">
-                          {isEditingSpecifics 
-                            ? `Parametry ${editKind === 'byt' ? 'bytu' : 'domu'} — úprava` 
-                            : `Parametry ${editKind === 'byt' ? 'bytu' : 'domu'}`}
+                          {isEditingSpecifics
+                            ? `Parametry ${specificsLabel} — úprava`
+                            : `Parametry ${specificsLabel}`}
                         </span>
                         {!isEditingSpecifics ? (
-                          ((editKind === 'byt' && flatLayout && flatArea) || (editKind === 'dům' && houseLayout && houseArea)) && (
-                            <button 
-                              onClick={() => setIsEditingSpecifics(true)} 
+                          hasSpecificsForm && !specificsEmpty && (
+                            <button
+                              onClick={() => setIsEditingSpecifics(true)}
                               className="text-xs font-semibold text-[#0E8A5F] hover:underline cursor-pointer"
                             >
                               ✎ Upravit
@@ -2606,8 +2816,21 @@ export const PropertiesView: React.FC<PropertiesViewProps> = ({
                                   setHouseFeatures(selectedProperty.house_features || []);
                                   setHouseCondition(selectedProperty.house_condition || '');
                                   setHousePenb(selectedProperty.house_penb || '');
+
+                                  setLandSize(selectedProperty.land_size ? selectedProperty.land_size.toString() : '');
+                                  setLandType(selectedProperty.land_type || '');
+                                  setLandUtilities(selectedProperty.land_utilities ? selectedProperty.land_utilities.join(', ') : '');
+                                  setZoningPlan(selectedProperty.zoning_plan || '');
+                                  setLandAccess(selectedProperty.land_access || '');
+                                  setLandDimensions(selectedProperty.land_dimensions || '');
+
+                                  setCommSubtype(selectedProperty.comm_subtype || '');
+                                  setCommFloorArea(selectedProperty.comm_floor_area ? selectedProperty.comm_floor_area.toString() : '');
+                                  setCommCondition(selectedProperty.comm_condition_equipment || '');
+                                  setCommParking(selectedProperty.comm_parking_entrance || '');
+                                  setCommPenb(selectedProperty.comm_penb || '');
                                 }
-                              }} 
+                              }}
                               className="text-xs font-medium text-stone-500 hover:text-stone-700 border border-stone-200 rounded-md px-2.5 py-1 cursor-pointer"
                             >
                               Zrušit
@@ -2622,15 +2845,31 @@ export const PropertiesView: React.FC<PropertiesViewProps> = ({
                         )}
                       </div>
 
-                      {/* Condition 1: Empty state / Unset values */}
-                      {!isEditingSpecifics && !(editKind === 'byt' && flatLayout && flatArea) && !(editKind === 'dům' && houseLayout && houseArea) ? (
+                      {/* Condition 0: Kind without its own parameter block — say so instead of
+                          showing the dům form and silently discarding what the user types. */}
+                      {!hasSpecificsForm ? (
+                        <div className="border border-dashed border-stone-250 dark:border-stone-800 rounded-xl p-5 bg-white dark:bg-stone-950 text-left">
+                          <div className="text-[14.5px] font-semibold text-stone-900 dark:text-stone-100">
+                            Pro druh „{editKind}" zatím nejsou samostatné parametry
+                          </div>
+                          <div className="text-xs text-stone-400 dark:text-stone-500 mt-1 leading-relaxed">
+                            Plochu, podtyp, vybavenost a parkování zapiš níže do pole Fakta pro odpovědi —
+                            AI odpovídá zájemcům právě z něj.
+                          </div>
+                        </div>
+                      ) : /* Condition 1: Empty state / Unset values */
+                      !isEditingSpecifics && specificsEmpty ? (
                         <div className="border border-dashed border-stone-250 dark:border-stone-800 rounded-xl p-5 flex justify-between items-center bg-white dark:bg-stone-950">
                           <div className="text-left">
                             <div className="text-[14.5px] font-semibold text-stone-900 dark:text-stone-100">
-                              Doplň parametry {editKind === 'byt' ? 'bytu' : 'domu'}
+                              Doplň parametry {specificsLabel}
                             </div>
                             <div className="text-xs text-stone-400 dark:text-stone-500 mt-1">
-                              AI z nich odpovídá zájemcům — dispozice, plocha, {editKind === 'byt' ? 'patro' : 'pozemek'}, PENB.
+                              AI z nich odpovídá zájemcům —{' '}
+                              {editKind === 'byt' ? 'dispozice, plocha, patro, PENB'
+                                : editKind === 'dům' ? 'dispozice, plocha, pozemek, PENB'
+                                : editKind === 'pozemek' ? 'výměra, druh, sítě, územní plán'
+                                : 'podtyp, plocha, vybavenost, parkování'}.
                             </div>
                           </div>
                           <button 
@@ -2676,6 +2915,56 @@ export const PropertiesView: React.FC<PropertiesViewProps> = ({
                               <div className="min-w-0">
                                 <span className="text-xs text-stone-400 dark:text-stone-500">Parkování</span>
                                 <div className="text-[14.5px] font-semibold text-stone-900 dark:text-stone-100 mt-0.5 break-words whitespace-normal leading-normal">{flatParking || '—'}</div>
+                              </div>
+                            </div>
+                          ) : editKind === 'pozemek' ? (
+                            <div className="grid grid-cols-2 gap-y-4 gap-x-6">
+                              <div className="min-w-0">
+                                <span className="text-xs text-stone-400 dark:text-stone-500">Výměra</span>
+                                <div className="text-[14.5px] font-semibold text-stone-900 dark:text-stone-100 mt-0.5 tabular-nums">{landSize ? `${landSize} m²` : '—'}</div>
+                              </div>
+                              <div className="min-w-0">
+                                <span className="text-xs text-stone-400 dark:text-stone-500">Druh pozemku</span>
+                                <div className="text-[14.5px] font-semibold text-stone-900 dark:text-stone-100 mt-0.5 break-words whitespace-normal">{landType || '—'}</div>
+                              </div>
+                              <div className="min-w-0">
+                                <span className="text-xs text-stone-400 dark:text-stone-500">Zasíťování</span>
+                                <div className="text-[14.5px] font-semibold text-stone-900 dark:text-stone-100 mt-0.5 break-words whitespace-normal">{landUtilities || '—'}</div>
+                              </div>
+                              <div className="min-w-0">
+                                <span className="text-xs text-stone-400 dark:text-stone-500">Územní plán</span>
+                                <div className="text-[14.5px] font-semibold text-stone-900 dark:text-stone-100 mt-0.5 break-words whitespace-normal">{zoningPlan || '—'}</div>
+                              </div>
+                              <div className="min-w-0">
+                                <span className="text-xs text-stone-400 dark:text-stone-500">Přístup</span>
+                                <div className="text-[14.5px] font-semibold text-stone-900 dark:text-stone-100 mt-0.5 break-words whitespace-normal">{landAccess || '—'}</div>
+                              </div>
+                              <div className="min-w-0">
+                                <span className="text-xs text-stone-400 dark:text-stone-500">Šířka / tvar / svažitost</span>
+                                <div className="text-[14.5px] font-semibold text-stone-900 dark:text-stone-100 mt-0.5 break-words whitespace-normal">{landDimensions || '—'}</div>
+                              </div>
+                            </div>
+                          ) : editKind === 'komerční' ? (
+                            <div className="grid grid-cols-2 gap-y-4 gap-x-6">
+                              <div className="min-w-0">
+                                <span className="text-xs text-stone-400 dark:text-stone-500">Podtyp</span>
+                                <div className="text-[14.5px] font-semibold text-stone-900 dark:text-stone-100 mt-0.5 break-words whitespace-normal">{commSubtype || '—'}</div>
+                              </div>
+                              <div className="min-w-0">
+                                <span className="text-xs text-stone-400 dark:text-stone-500">Podlahová plocha</span>
+                                <div className="text-[14.5px] font-semibold text-stone-900 dark:text-stone-100 mt-0.5 tabular-nums">{commFloorArea ? `${commFloorArea} m²` : '—'}</div>
+                              </div>
+                              <div className="min-w-0">
+                                <span className="text-xs text-stone-400 dark:text-stone-500">Stav / vybavenost</span>
+                                <div className="text-[14.5px] font-semibold text-stone-900 dark:text-stone-100 mt-0.5 break-words whitespace-normal">{commCondition || '—'}</div>
+                              </div>
+                              <div className="min-w-0">
+                                <span className="text-xs text-stone-400 dark:text-stone-500">Parkování / vjezd</span>
+                                <div className="text-[14.5px] font-semibold text-stone-900 dark:text-stone-100 mt-0.5 break-words whitespace-normal">{commParking || '—'}</div>
+                              </div>
+                              <div className="min-w-0">
+                                <span className="text-xs text-stone-400 dark:text-stone-500">PENB</span>
+                                <div className="text-[14.5px] font-semibold text-stone-900 dark:text-stone-100 mt-0.5">{commPenb || '—'}</div>
                               </div>
                             </div>
                           ) : (
@@ -2732,6 +3021,35 @@ export const PropertiesView: React.FC<PropertiesViewProps> = ({
                                   {f.charAt(0).toUpperCase() + f.slice(1)}
                                 </span>
                               ))}
+                            </div>
+                          )}
+
+                          {/* Pronájem — read-only */}
+                          {editTransaction === 'pronájem' && (
+                            <div className="border-t border-dashed border-stone-200 dark:border-stone-800 pt-4">
+                              <span className="text-xs font-semibold text-stone-400 dark:text-stone-500 uppercase tracking-wider">Pronájem</span>
+                              <div className="grid grid-cols-2 gap-y-4 gap-x-6 mt-3">
+                                <div className="min-w-0">
+                                  <span className="text-xs text-stone-400 dark:text-stone-500">Vratná kauce</span>
+                                  <div className="text-[14.5px] font-semibold text-stone-900 dark:text-stone-100 mt-0.5 tabular-nums">{rentDeposit ? `${parseInt(rentDeposit, 10).toLocaleString('cs-CZ')} Kč` : '—'}</div>
+                                </div>
+                                <div className="min-w-0">
+                                  <span className="text-xs text-stone-400 dark:text-stone-500">Měsíční poplatky</span>
+                                  <div className="text-[14.5px] font-semibold text-stone-900 dark:text-stone-100 mt-0.5 tabular-nums">{rentFeesUtilities ? `${parseInt(rentFeesUtilities, 10).toLocaleString('cs-CZ')} Kč` : '—'}</div>
+                                </div>
+                                <div className="min-w-0">
+                                  <span className="text-xs text-stone-400 dark:text-stone-500">Doba nájmu</span>
+                                  <div className="text-[14.5px] font-semibold text-stone-900 dark:text-stone-100 mt-0.5 break-words whitespace-normal">{rentDuration || '—'}</div>
+                                </div>
+                                <div className="min-w-0">
+                                  <span className="text-xs text-stone-400 dark:text-stone-500">Dostupné od</span>
+                                  <div className="text-[14.5px] font-semibold text-stone-900 dark:text-stone-100 mt-0.5">{rentAvailableFrom ? new Date(rentAvailableFrom).toLocaleDateString('cs-CZ') : '—'}</div>
+                                </div>
+                                <div className="min-w-0">
+                                  <span className="text-xs text-stone-400 dark:text-stone-500">Vybavení</span>
+                                  <div className="text-[14.5px] font-semibold text-stone-900 dark:text-stone-100 mt-0.5">{rentEquipment || '—'}</div>
+                                </div>
+                              </div>
                             </div>
                           )}
                         </div>
@@ -2874,6 +3192,129 @@ export const PropertiesView: React.FC<PropertiesViewProps> = ({
                                 </div>
                               </div>
                             </>
+                          ) : editKind === 'pozemek' ? (
+                            <>
+                              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                                <div className="space-y-1.5">
+                                  <Label className="text-xs font-semibold text-stone-400 dark:text-stone-500">Výměra (m²)</Label>
+                                  <Input
+                                    type="number"
+                                    value={landSize}
+                                    onChange={(e) => setLandSize(e.target.value)}
+                                    placeholder="m²"
+                                    className="h-9 text-xs"
+                                  />
+                                </div>
+                                <div className="space-y-1.5">
+                                  <Label className="text-xs font-semibold text-stone-400 dark:text-stone-500">Druh pozemku</Label>
+                                  <Input
+                                    value={landType}
+                                    onChange={(e) => setLandType(e.target.value)}
+                                    placeholder="např. stavební, orná půda"
+                                    className="h-9 text-xs"
+                                  />
+                                </div>
+                                <div className="space-y-1.5">
+                                  <Label className="text-xs font-semibold text-stone-400 dark:text-stone-500">Zasíťování</Label>
+                                  <Input
+                                    value={landUtilities}
+                                    onChange={(e) => setLandUtilities(e.target.value)}
+                                    placeholder="např. voda, plyn, elektřina"
+                                    className="h-9 text-xs"
+                                  />
+                                </div>
+                              </div>
+                              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                                <div className="space-y-1.5">
+                                  <Label className="text-xs font-semibold text-stone-400 dark:text-stone-500">Územní plán</Label>
+                                  <Input
+                                    value={zoningPlan}
+                                    onChange={(e) => setZoningPlan(e.target.value)}
+                                    placeholder="např. obytné území"
+                                    className="h-9 text-xs"
+                                  />
+                                </div>
+                                <div className="space-y-1.5">
+                                  <Label className="text-xs font-semibold text-stone-400 dark:text-stone-500">Přístup</Label>
+                                  <Input
+                                    value={landAccess}
+                                    onChange={(e) => setLandAccess(e.target.value)}
+                                    placeholder="např. asfaltová cesta"
+                                    className="h-9 text-xs"
+                                  />
+                                </div>
+                                <div className="space-y-1.5">
+                                  <Label className="text-xs font-semibold text-stone-400 dark:text-stone-500">Šířka / tvar / svažitost</Label>
+                                  <Input
+                                    value={landDimensions}
+                                    onChange={(e) => setLandDimensions(e.target.value)}
+                                    placeholder="např. 20×40 m, rovina"
+                                    className="h-9 text-xs"
+                                  />
+                                </div>
+                              </div>
+                            </>
+                          ) : editKind === 'komerční' ? (
+                            <>
+                              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                                <div className="space-y-1.5">
+                                  <Label className="text-xs font-semibold text-stone-400 dark:text-stone-500">Podtyp</Label>
+                                  <Select value={commSubtype} onValueChange={setCommSubtype}>
+                                    <SelectTrigger className="h-9 text-xs">
+                                      <SelectValue placeholder="Vyberte" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                      {COMM_SUBTYPE_OPTIONS.map((opt) => (
+                                        <SelectItem key={opt} value={opt}>{opt}</SelectItem>
+                                      ))}
+                                    </SelectContent>
+                                  </Select>
+                                </div>
+                                <div className="space-y-1.5">
+                                  <Label className="text-xs font-semibold text-stone-400 dark:text-stone-500">Podlahová plocha (m²)</Label>
+                                  <Input
+                                    type="number"
+                                    value={commFloorArea}
+                                    onChange={(e) => setCommFloorArea(e.target.value)}
+                                    placeholder="m²"
+                                    className="h-9 text-xs"
+                                  />
+                                </div>
+                                <div className="space-y-1.5">
+                                  <Label className="text-xs font-semibold text-stone-400 dark:text-stone-500">PENB</Label>
+                                  <Select value={commPenb} onValueChange={setCommPenb}>
+                                    <SelectTrigger className="h-9 text-xs">
+                                      <SelectValue placeholder="Vyberte" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                      {PENB_OPTIONS.map((opt) => (
+                                        <SelectItem key={opt} value={opt}>{opt}</SelectItem>
+                                      ))}
+                                    </SelectContent>
+                                  </Select>
+                                </div>
+                              </div>
+                              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                <div className="space-y-1.5">
+                                  <Label className="text-xs font-semibold text-stone-400 dark:text-stone-500">Stav / vybavenost</Label>
+                                  <Input
+                                    value={commCondition}
+                                    onChange={(e) => setCommCondition(e.target.value)}
+                                    placeholder="např. po rekonstrukci, klimatizace"
+                                    className="h-9 text-xs"
+                                  />
+                                </div>
+                                <div className="space-y-1.5">
+                                  <Label className="text-xs font-semibold text-stone-400 dark:text-stone-500">Parkování / vjezd</Label>
+                                  <Input
+                                    value={commParking}
+                                    onChange={(e) => setCommParking(e.target.value)}
+                                    placeholder="např. 4 stání ve dvoře"
+                                    className="h-9 text-xs"
+                                  />
+                                </div>
+                              </div>
+                            </>
                           ) : (
                             <>
                               <div className="grid grid-cols-1 sm:grid-cols-4 gap-4">
@@ -3006,6 +3447,66 @@ export const PropertiesView: React.FC<PropertiesViewProps> = ({
                                 </div>
                               </div>
                             </>
+                          )}
+
+                          {/* Pronájem — edit */}
+                          {editTransaction === 'pronájem' && (
+                            <div className="border-t border-dashed border-stone-200 dark:border-stone-800 pt-4 space-y-4">
+                              <span className="text-xs font-semibold text-stone-400 dark:text-stone-500 uppercase tracking-wider">Pronájem</span>
+                              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                                <div className="space-y-1.5">
+                                  <Label className="text-xs font-semibold text-stone-400 dark:text-stone-500">Vratná kauce (Kč)</Label>
+                                  <Input
+                                    type="number"
+                                    value={rentDeposit}
+                                    onChange={(e) => setRentDeposit(e.target.value)}
+                                    placeholder="Kč"
+                                    className="h-9 text-xs"
+                                  />
+                                </div>
+                                <div className="space-y-1.5">
+                                  <Label className="text-xs font-semibold text-stone-400 dark:text-stone-500">Měsíční poplatky (Kč)</Label>
+                                  <Input
+                                    type="number"
+                                    value={rentFeesUtilities}
+                                    onChange={(e) => setRentFeesUtilities(e.target.value)}
+                                    placeholder="Kč"
+                                    className="h-9 text-xs"
+                                  />
+                                </div>
+                                <div className="space-y-1.5">
+                                  <Label className="text-xs font-semibold text-stone-400 dark:text-stone-500">Doba nájmu</Label>
+                                  <Input
+                                    value={rentDuration}
+                                    onChange={(e) => setRentDuration(e.target.value)}
+                                    placeholder="např. 1 rok s prodloužením"
+                                    className="h-9 text-xs"
+                                  />
+                                </div>
+                                <div className="space-y-1.5">
+                                  <Label className="text-xs font-semibold text-stone-400 dark:text-stone-500">Dostupné od</Label>
+                                  <Input
+                                    type="date"
+                                    value={rentAvailableFrom}
+                                    onChange={(e) => setRentAvailableFrom(e.target.value)}
+                                    className="h-9 text-xs"
+                                  />
+                                </div>
+                                <div className="space-y-1.5">
+                                  <Label className="text-xs font-semibold text-stone-400 dark:text-stone-500">Vybavení</Label>
+                                  <Select value={rentEquipment} onValueChange={setRentEquipment}>
+                                    <SelectTrigger className="h-9 text-xs">
+                                      <SelectValue placeholder="Vyberte" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                      {RENT_EQUIPMENT_OPTIONS.map((opt) => (
+                                        <SelectItem key={opt} value={opt}>{opt}</SelectItem>
+                                      ))}
+                                    </SelectContent>
+                                  </Select>
+                                </div>
+                              </div>
+                            </div>
                           )}
                         </div>
                       )}
@@ -4151,6 +4652,39 @@ export const PropertiesView: React.FC<PropertiesViewProps> = ({
                         className="border-stone-200 h-9 text-xs"
                       />
                     </div>
+                    <div className="space-y-1.5">
+                      <Label htmlFor="new_rent_duration">Doba nájmu</Label>
+                      <Input
+                        id="new_rent_duration"
+                        value={rentDuration}
+                        onChange={(e) => setRentDuration(e.target.value)}
+                        placeholder="např. 1 rok s prodloužením"
+                        className="border-stone-200 h-9 text-xs"
+                      />
+                    </div>
+                    <div className="space-y-1.5">
+                      <Label htmlFor="new_rent_from">Dostupné od</Label>
+                      <Input
+                        id="new_rent_from"
+                        type="date"
+                        value={rentAvailableFrom}
+                        onChange={(e) => setRentAvailableFrom(e.target.value)}
+                        className="border-stone-200 h-9 text-xs"
+                      />
+                    </div>
+                    <div className="space-y-1.5">
+                      <Label htmlFor="new_rent_equipment">Vybavení</Label>
+                      <Select value={rentEquipment} onValueChange={(v) => setRentEquipment(v as string)}>
+                        <SelectTrigger id="new_rent_equipment" className="border-stone-200 h-9 text-xs w-full">
+                          <SelectValue placeholder="Vyberte" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {RENT_EQUIPMENT_OPTIONS.map((opt) => (
+                            <SelectItem key={opt} value={opt}>{opt}</SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
                   </div>
                 )}
 
@@ -4506,6 +5040,85 @@ export const PropertiesView: React.FC<PropertiesViewProps> = ({
                           className="border-stone-200 h-9 text-xs"
                         />
                       </div>
+                    </div>
+                  </div>
+                )}
+
+                {newKind === 'komerční' && (
+                  <div className="space-y-4 border-t border-dashed border-stone-200 pt-3">
+                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                      <div className="space-y-1.5">
+                        <Label htmlFor="comm_subtype">Podtyp</Label>
+                        <Select value={commSubtype} onValueChange={(v) => setCommSubtype(v as string)}>
+                          <SelectTrigger id="comm_subtype" className="border-stone-200 h-9 text-xs w-full">
+                            <SelectValue placeholder="Vyberte" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {COMM_SUBTYPE_OPTIONS.map((opt) => (
+                              <SelectItem key={opt} value={opt}>{opt}</SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
+                      <div className="space-y-1.5">
+                        <Label htmlFor="comm_floor_area">Podlahová plocha (m²)</Label>
+                        <Input
+                          id="comm_floor_area"
+                          type="number"
+                          value={commFloorArea}
+                          onChange={(e) => setCommFloorArea(e.target.value)}
+                          placeholder="m²"
+                          className="border-stone-200 h-9 text-xs"
+                        />
+                      </div>
+                      <div className="space-y-1.5">
+                        <Label htmlFor="comm_penb">PENB</Label>
+                        <Select value={commPenb} onValueChange={(v) => setCommPenb(v as string)}>
+                          <SelectTrigger id="comm_penb" className="border-stone-200 h-9 text-xs w-full">
+                            <SelectValue placeholder="—" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {PENB_OPTIONS.map((opt) => (
+                              <SelectItem key={opt} value={opt}>{opt}</SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
+                    </div>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                      <div className="space-y-1.5">
+                        <Label htmlFor="comm_condition">Stav / vybavenost</Label>
+                        <Input
+                          id="comm_condition"
+                          value={commCondition}
+                          onChange={(e) => setCommCondition(e.target.value)}
+                          placeholder="např. po rekonstrukci, klimatizace"
+                          className="border-stone-200 h-9 text-xs"
+                        />
+                      </div>
+                      <div className="space-y-1.5">
+                        <Label htmlFor="comm_parking">Parkování / vjezd</Label>
+                        <Input
+                          id="comm_parking"
+                          value={commParking}
+                          onChange={(e) => setCommParking(e.target.value)}
+                          placeholder="např. 4 stání ve dvoře"
+                          className="border-stone-200 h-9 text-xs"
+                        />
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {newKind === 'garáž/ostatní' && (
+                  <div className="rounded-lg border border-dashed border-stone-300 dark:border-stone-700 px-4 py-3.5">
+                    <div className="text-[13px] font-medium text-stone-900 dark:text-stone-100">
+                      Pro druh „garáž/ostatní" nejsou samostatné parametry
+                    </div>
+                    <div className="text-xs text-stone-500 dark:text-stone-400 mt-1 leading-relaxed">
+                      Uloží se společná pole (adresa, cena, stav nabídky, vlastník). Detaily zapiš do pole{' '}
+                      <span className="font-medium">Co je v ceně / fakta pro odpovědi</span> —
+                      AI odpovídá zájemcům právě z něj.
                     </div>
                   </div>
                 )}

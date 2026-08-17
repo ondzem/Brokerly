@@ -277,3 +277,25 @@ The visual identity must radiate **premium, trust and professionalism** — this
 
 ## 9. Reference
 Source of truth for scope and fields: **Brokerly — Etapa 1: Denní jádro** working document (chapters 14–17, 20 and the Part II checklist). If this Rules file and that document ever conflict, ask me — do not resolve it yourself.
+
+---
+
+## 10. Installed skills — use them
+
+Skills are installed on this machine. **Use them; do not improvise a substitute.** §8 above still wins on any conflict — the skills supply method and craft, this file supplies the brand.
+
+**Before writing or changing UI:**
+- `design-taste-frontend` — default frontend skill. Anti-generic direction, pre-flight check.
+- `high-end-visual-design` — spacing, shadows, card structure, motion; blocks cheap-looking defaults.
+- `minimalist-ui` — closest match to §8 "editorial premium minimal". Reach for this one first when in doubt.
+- `design-md-library` — 74 real DESIGN.md references. For Brokerly use `linear.app`, `notion`, `raycast` or `superhuman` as the reference; take the *system* (scale, rhythm, restraint), never the brand.
+
+**When reworking screens that already exist:** `redesign-existing-projects` (audit first, don't break functionality).
+
+**After any UI change:** `web-design-guidelines` — review the result for accessibility and interface-guideline compliance. Treat this as part of "done".
+
+**Design references from an image / mockup-first work:** `image-to-code`, `imagegen-frontend-web`, `imagegen-frontend-mobile`.
+
+Not for this project unless I ask: `industrial-brutalist-ui`, `gpt-taste`, `brandkit`, `stitch-design-taste`, `design-taste-frontend-v1` — wrong aesthetic or wrong target for Brokerly.
+
+Also still in force: `superpowers:brainstorming` before planning, `superpowers:writing-plans` for the plan artifact required by §0, and `superpowers:verification-before-completion` before you report anything done.
