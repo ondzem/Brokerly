@@ -80,6 +80,25 @@ const ZONING_PLAN_OPTIONS = [
   'nezastavitelné — les',
   'nezastavitelné — ostatní',
 ] as const;
+// Garáž / ostatní — sdílí comm_* sloupce, vlastní sadu v DB nemá
+const GARAGE_SUBTYPE_OPTIONS = [
+  'garáž',
+  'garážové stání',
+  'parkovací stání',
+  'sklad',
+  'kůlna',
+  'ostatní',
+] as const;
+const GARAGE_CONDITION_OPTIONS = [
+  'novostavba',
+  'po rekonstrukci',
+  'dobrý',
+  'před rekonstrukcí',
+] as const;
+// Garáž/ostatní ukládá své parametry do stejných comm_* sloupců jako komerční —
+// vlastní sadu sloupců v DB nemá a zakládat ji kvůli čtyřem polím by bylo zbytečné.
+const usesCommColumns = (kind: Property['kind']) => kind === 'komerční' || kind === 'garáž/ostatní';
+
 const LAND_ACCESS_OPTIONS = [
   'asfaltová cesta',
   'zpevněná cesta',
@@ -171,6 +190,36 @@ export const PropertiesView: React.FC<PropertiesViewProps> = ({
 
   // Create form: collapsed optional section (foto, provize, poznámka)
   const [showOptional, setShowOptional] = useState(false);
+  const optionalSectionRef = React.useRef<HTMLDivElement>(null);
+  const createScrollRef = React.useRef<HTMLDivElement>(null);
+
+  // Po rozbalení odroluj na sekci — jinak se obsah otevře mimo viditelnou část
+  // a uživatel nevidí, že se něco stalo. scrollIntoView uvnitř dialogu nefunguje
+  // spolehlivě, proto posouváme scroll kontejner ručně.
+  const toggleOptional = () => {
+    const next = !showOptional;
+    setShowOptional(next);
+    if (!next) return;
+    // setTimeout, ne requestAnimationFrame — rAF se neprovede, když je záložka skrytá
+    window.setTimeout(() => {
+      const scroller = createScrollRef.current;
+      const section = optionalSectionRef.current;
+      if (!scroller || !section) return;
+      // offsetTop řetěz místo getBoundingClientRect — nezávisí na velikosti viewportu
+      let top = 0;
+      let node: HTMLElement | null = section;
+      while (node && node !== scroller) {
+        top += node.offsetTop;
+        node = node.offsetParent as HTMLElement | null;
+      }
+      const target = Math.max(0, top - 12);
+      scroller.scrollTo({ top: target, behavior: 'smooth' });
+      // Plynulý scroll některé prohlížeče (a reduced-motion) ignorují — dorovnej ho.
+      window.setTimeout(() => {
+        if (Math.abs(scroller.scrollTop - target) > 4) scroller.scrollTop = target;
+      }, 350);
+    }, 0);
+  };
 
   // Edit details common states
   const [editOwnerId, setEditOwnerId] = useState('');
@@ -500,10 +549,10 @@ export const PropertiesView: React.FC<PropertiesViewProps> = ({
         land_dimensions: editKind === 'pozemek' ? landDimensions || null : null,
 
         // Komerční details (comm_parking_entrance sdílí i byt — parkování)
-        comm_subtype: editKind === 'komerční' ? commSubtype || null : null,
-        comm_floor_area: editKind === 'komerční' && commFloorArea ? parseSafeNumber(commFloorArea) : null,
-        comm_condition_equipment: editKind === 'komerční' ? commCondition || null : null,
-        comm_parking_entrance: editKind === 'komerční' ? commParking || null : editKind === 'byt' ? flatParking || null : null,
+        comm_subtype: usesCommColumns(editKind) ? commSubtype || null : null,
+        comm_floor_area: usesCommColumns(editKind) && commFloorArea ? parseSafeNumber(commFloorArea) : null,
+        comm_condition_equipment: usesCommColumns(editKind) ? commCondition || null : null,
+        comm_parking_entrance: usesCommColumns(editKind) ? commParking || null : editKind === 'byt' ? flatParking || null : null,
         comm_penb: editKind === 'komerční' ? commPenb || null : null,
 
         // Rent, Commission, and Photo
@@ -627,7 +676,7 @@ export const PropertiesView: React.FC<PropertiesViewProps> = ({
         updateData.zoning_plan = zoningPlan || null;
         updateData.land_access = landAccess || null;
         updateData.land_dimensions = landDimensions || null;
-      } else if (editKind === 'komerční') {
+      } else if (usesCommColumns(editKind)) {
         updateData.comm_subtype = commSubtype || null;
         updateData.comm_floor_area = parseSafeNumber(commFloorArea);
         updateData.comm_condition_equipment = commCondition || null;
@@ -861,10 +910,10 @@ export const PropertiesView: React.FC<PropertiesViewProps> = ({
         land_access: newKind === 'pozemek' ? landAccess || null : null,
         land_dimensions: newKind === 'pozemek' ? landDimensions || null : null,
 
-        comm_subtype: newKind === 'komerční' ? commSubtype || null : null,
-        comm_floor_area: newKind === 'komerční' && commFloorArea ? parseSafeNumber(commFloorArea) : null,
-        comm_condition_equipment: newKind === 'komerční' ? commCondition || null : null,
-        comm_parking_entrance: newKind === 'komerční' ? commParking || null : null,
+        comm_subtype: usesCommColumns(newKind) ? commSubtype || null : null,
+        comm_floor_area: usesCommColumns(newKind) && commFloorArea ? parseSafeNumber(commFloorArea) : null,
+        comm_condition_equipment: usesCommColumns(newKind) ? commCondition || null : null,
+        comm_parking_entrance: usesCommColumns(newKind) ? commParking || null : null,
         comm_penb: newKind === 'komerční' ? commPenb || null : null,
         rent_deposit: newTransaction === 'pronájem' ? parseSafeNumber(rentDeposit) : null,
         rent_fees_utilities: newTransaction === 'pronájem' ? parseSafeNumber(rentFeesUtilities) : null,
@@ -1135,28 +1184,7 @@ export const PropertiesView: React.FC<PropertiesViewProps> = ({
       if (parsed.transaction) setNewTransaction(parsed.transaction);
       if (parsed.price) setNewPrice(parsed.price.toString());
 
-      // Druhy bez vlastního bloku parametrů (garáž/ostatní) by o vytažené
-      // parametry při uložení přišly — proto je zapíšeme do faktů, ať se nic neztratí.
-      const kindHasParamBlock = ['byt', 'dům', 'pozemek', 'komerční'].includes(parsed.kind);
-      const rescuedFacts: string[] = [];
-      if (!kindHasParamBlock) {
-        const rescueMap: [string, unknown][] = [
-          ['Plocha', parsed.flat_area || parsed.house_area || parsed.comm_floor_area],
-          ['Dispozice', parsed.flat_layout || parsed.house_layout],
-          ['Patro', parsed.floor],
-          ['Stav', parsed.flat_condition || parsed.house_condition || parsed.comm_condition_equipment],
-          ['PENB', parsed.flat_penb || parsed.house_penb || parsed.comm_penb],
-          ['Vlastnictví', parsed.ownership],
-          ['Konstrukce', parsed.construction],
-          ['Pozemek', parsed.land_area || parsed.land_size],
-          ['Parkování', parsed.comm_parking_entrance],
-        ];
-        for (const [label, value] of rescueMap) {
-          if (value) rescuedFacts.push(`${label}: ${value}`);
-        }
-      }
-      const factsParts = [parsed.facts_for_answers, rescuedFacts.join(' · ')].filter(Boolean);
-      if (factsParts.length) setNewFacts(factsParts.join('\n\n'));
+      if (parsed.facts_for_answers) setNewFacts(parsed.facts_for_answers);
 
       // Rent and Commission
       if (parsed.rent_deposit) setRentDeposit(parsed.rent_deposit.toString());
@@ -1210,14 +1238,7 @@ export const PropertiesView: React.FC<PropertiesViewProps> = ({
       if (parsed.land_access) setLandAccess(parsed.land_access);
       if (parsed.land_dimensions) setLandDimensions(parsed.land_dimensions);
 
-      if (!kindHasParamBlock) {
-        toast.warning(
-          `Načteno jako „${parsed.kind}" — pro tento druh zatím nejsou samostatné parametry. Vytažené údaje jsem uložil do Faktů, zkontroluj je.`,
-          { duration: 8000 }
-        );
-      } else {
-        toast.success('Inzerát byl úspěšně načten a data byla doplněna!');
-      }
+      toast.success(`Inzerát načten jako „${parsed.kind}" — zkontroluj předvyplněná pole.`);
       setImportUrl('');
     } catch (err: any) {
       console.error(err);
@@ -2169,10 +2190,17 @@ export const PropertiesView: React.FC<PropertiesViewProps> = ({
                 { label: 'Přístup', value: p.land_access },
                 { label: 'Rozměry', value: p.land_dimensions },
               ];
+            case 'garáž/ostatní':
+              return [
+                { label: 'Typ objektu', value: p.comm_subtype },
+                { label: 'Plocha', value: p.comm_floor_area ? `${p.comm_floor_area} m²` : null },
+                { label: 'Stav', value: p.comm_condition_equipment },
+                { label: 'Vjezd / přístup', value: p.comm_parking_entrance },
+              ];
             default:
               return [
-                { label: 'Podlahová plocha', value: p.comm_floor_area ? `${p.comm_floor_area} m²` : null },
                 { label: 'Podtyp', value: p.comm_subtype },
+                { label: 'Podlahová plocha', value: p.comm_floor_area ? `${p.comm_floor_area} m²` : null },
                 { label: 'Stav / vybavenost', value: p.comm_condition_equipment },
                 { label: 'Parkování / vjezd', value: p.comm_parking_entrance },
                 { label: 'PENB', value: p.comm_penb },
@@ -2182,19 +2210,18 @@ export const PropertiesView: React.FC<PropertiesViewProps> = ({
         const keyParamsFilled = keyParams.some((p) => p.value !== null && p.value !== '');
 
         // Druhy, pro které existuje editovatelný blok parametrů v záložce Informace.
-        const hasSpecificsForm = editKind === 'byt' || editKind === 'dům' || editKind === 'pozemek' || editKind === 'komerční';
+        const hasSpecificsForm = true; // každý druh má teď svůj blok parametrů
         const specificsLabel =
           editKind === 'byt' ? 'bytu'
           : editKind === 'dům' ? 'domu'
           : editKind === 'pozemek' ? 'pozemku'
           : editKind === 'komerční' ? 'komerčního prostoru'
-          : `– ${editKind}`;
+          : 'garáže';
         const specificsEmpty =
           editKind === 'byt' ? !(flatLayout && flatArea)
           : editKind === 'dům' ? !(houseLayout && houseArea)
           : editKind === 'pozemek' ? !(landSize || landType || landUtilities || zoningPlan || landAccess || landDimensions)
-          : editKind === 'komerční' ? !(commSubtype || commFloorArea || commCondition || commParking || commPenb)
-          : true;
+          : !(commSubtype || commFloorArea || commCondition || commParking);
 
         return (
           <Dialog open={isDetailOpen} onOpenChange={(open) => {
@@ -2763,7 +2790,7 @@ export const PropertiesView: React.FC<PropertiesViewProps> = ({
                           <div className="space-y-1.5">
                             <Label>Vlastník *</Label>
                             <Select value={editOwnerId} onValueChange={setEditOwnerId}>
-                              <SelectTrigger className="w-full h-9 text-xs">
+                              <SelectTrigger className="w-full h-10 text-xs">
                                 <SelectValue placeholder="Vyberte vlastníka" />
                               </SelectTrigger>
                               <SelectContent>
@@ -2778,7 +2805,7 @@ export const PropertiesView: React.FC<PropertiesViewProps> = ({
                           <div className="space-y-1.5">
                             <Label>Transakce *</Label>
                             <Select value={editTransaction} onValueChange={(v) => setEditTransaction(v as any)}>
-                              <SelectTrigger className="w-full h-9 text-xs">
+                              <SelectTrigger className="w-full h-10 text-xs">
                                 <SelectValue />
                               </SelectTrigger>
                               <SelectContent>
@@ -2790,7 +2817,7 @@ export const PropertiesView: React.FC<PropertiesViewProps> = ({
                           <div className="space-y-1.5">
                             <Label>Stav nabídky *</Label>
                             <Select value={editOfferStatus} onValueChange={(v) => setEditOfferStatus(v as any)}>
-                              <SelectTrigger className="w-full h-9 text-xs">
+                              <SelectTrigger className="w-full h-10 text-xs">
                                 <SelectValue />
                               </SelectTrigger>
                               <SelectContent>
@@ -2806,7 +2833,7 @@ export const PropertiesView: React.FC<PropertiesViewProps> = ({
                               type="number" 
                               value={editPrice} 
                               onChange={(e) => setEditPrice(e.target.value)} 
-                              className="h-9 text-xs" 
+                              className="h-10 text-xs" 
                             />
                           </div>
                           <div className="sm:col-span-2 space-y-1.5">
@@ -2814,7 +2841,7 @@ export const PropertiesView: React.FC<PropertiesViewProps> = ({
                             <Input 
                               value={editAddress} 
                               onChange={(e) => setEditAddress(e.target.value)} 
-                              className="h-9 text-xs" 
+                              className="h-10 text-xs" 
                             />
                           </div>
                         </div>
@@ -3111,7 +3138,7 @@ export const PropertiesView: React.FC<PropertiesViewProps> = ({
                                 <div className="space-y-1.5">
                                   <Label htmlFor="ed_dispozice" className="text-xs font-semibold text-stone-400 dark:text-stone-500">Dispozice *</Label>
                                   <Select value={flatLayout} onValueChange={setFlatLayout}>
-                                    <SelectTrigger id="ed_dispozice" className="h-9 text-xs">
+                                    <SelectTrigger id="ed_dispozice" className="h-10 text-xs">
                                       <SelectValue />
                                     </SelectTrigger>
                                     <SelectContent>
@@ -3127,7 +3154,7 @@ export const PropertiesView: React.FC<PropertiesViewProps> = ({
                                     type="number" 
                                     value={flatArea} 
                                     onChange={(e) => setFlatArea(e.target.value)} 
-                                    className="h-9 text-xs" 
+                                    className="h-10 text-xs" 
                                   />
                                 </div>
                                 <div className="space-y-1.5">
@@ -3136,13 +3163,13 @@ export const PropertiesView: React.FC<PropertiesViewProps> = ({
                                     value={flatFloor} 
                                     onChange={(e) => setFlatFloor(e.target.value)} 
                                     placeholder="např. 6. ze 6" 
-                                    className="h-9 text-xs" 
+                                    className="h-10 text-xs" 
                                   />
                                 </div>
                                 <div className="space-y-1.5">
                                   <Label htmlFor="ed_vlastnictvi" className="text-xs font-semibold text-stone-400 dark:text-stone-500">Vlastnictví</Label>
                                   <Select value={flatOwnership} onValueChange={setFlatOwnership}>
-                                    <SelectTrigger id="ed_vlastnictvi" className="h-9 text-xs">
+                                    <SelectTrigger id="ed_vlastnictvi" className="h-10 text-xs">
                                       <SelectValue placeholder="Vyberte" />
                                     </SelectTrigger>
                                     <SelectContent>
@@ -3157,7 +3184,7 @@ export const PropertiesView: React.FC<PropertiesViewProps> = ({
                                 <div className="space-y-1.5">
                                   <Label htmlFor="ed_konstrukce" className="text-xs font-semibold text-stone-400 dark:text-stone-500">Konstrukce</Label>
                                   <Select value={flatConstruction} onValueChange={setFlatConstruction}>
-                                    <SelectTrigger id="ed_konstrukce" className="h-9 text-xs">
+                                    <SelectTrigger id="ed_konstrukce" className="h-10 text-xs">
                                       <SelectValue placeholder="Vyberte" />
                                     </SelectTrigger>
                                     <SelectContent>
@@ -3170,7 +3197,7 @@ export const PropertiesView: React.FC<PropertiesViewProps> = ({
                                 <div className="space-y-1.5">
                                   <Label htmlFor="ed_stav_bytu" className="text-xs font-semibold text-stone-400 dark:text-stone-500">Stav bytu</Label>
                                   <Select value={flatCondition} onValueChange={setFlatCondition}>
-                                    <SelectTrigger id="ed_stav_bytu" className="h-9 text-xs">
+                                    <SelectTrigger id="ed_stav_bytu" className="h-10 text-xs">
                                       <SelectValue placeholder="Vyberte" />
                                     </SelectTrigger>
                                     <SelectContent>
@@ -3183,7 +3210,7 @@ export const PropertiesView: React.FC<PropertiesViewProps> = ({
                                 <div className="space-y-1.5">
                                   <Label htmlFor="ed_penb" className="text-xs font-semibold text-stone-400 dark:text-stone-500">PENB</Label>
                                   <Select value={flatPenb} onValueChange={setFlatPenb}>
-                                    <SelectTrigger id="ed_penb" className="h-9 text-xs">
+                                    <SelectTrigger id="ed_penb" className="h-10 text-xs">
                                       <SelectValue placeholder="Vyberte" />
                                     </SelectTrigger>
                                     <SelectContent>
@@ -3199,7 +3226,7 @@ export const PropertiesView: React.FC<PropertiesViewProps> = ({
                                     value={flatParking} 
                                     onChange={(e) => setFlatParking(e.target.value)} 
                                     placeholder="např. V domě, možnost garáže" 
-                                    className="h-9 text-xs" 
+                                    className="h-10 text-xs" 
                                   />
                                 </div>
                               </div>
@@ -3251,13 +3278,13 @@ export const PropertiesView: React.FC<PropertiesViewProps> = ({
                                     value={landSize}
                                     onChange={(e) => setLandSize(e.target.value)}
                                     placeholder="m²"
-                                    className="h-9 text-xs"
+                                    className="h-10 text-xs"
                                   />
                                 </div>
                                 <div className="space-y-1.5">
                                   <Label htmlFor="ed_druh_pozemku" className="text-xs font-semibold text-stone-400 dark:text-stone-500">Druh pozemku</Label>
                                   <Select value={landType} onValueChange={setLandType}>
-                                    <SelectTrigger id="ed_druh_pozemku" className="h-9 text-xs w-full">
+                                    <SelectTrigger id="ed_druh_pozemku" className="h-10 text-xs w-full">
                                       <SelectValue placeholder="Vyberte" />
                                     </SelectTrigger>
                                     <SelectContent>
@@ -3270,7 +3297,7 @@ export const PropertiesView: React.FC<PropertiesViewProps> = ({
                                 <div className="space-y-1.5">
                                   <Label htmlFor="ed_uzemni_plan" className="text-xs font-semibold text-stone-400 dark:text-stone-500">Územní plán</Label>
                                   <Select value={zoningPlan} onValueChange={setZoningPlan}>
-                                    <SelectTrigger id="ed_uzemni_plan" className="h-9 text-xs w-full">
+                                    <SelectTrigger id="ed_uzemni_plan" className="h-10 text-xs w-full">
                                       <SelectValue placeholder="Vyberte" />
                                     </SelectTrigger>
                                     <SelectContent>
@@ -3285,7 +3312,7 @@ export const PropertiesView: React.FC<PropertiesViewProps> = ({
                                 <div className="space-y-1.5">
                                   <Label htmlFor="ed_pristup" className="text-xs font-semibold text-stone-400 dark:text-stone-500">Přístup</Label>
                                   <Select value={landAccess} onValueChange={setLandAccess}>
-                                    <SelectTrigger id="ed_pristup" className="h-9 text-xs w-full">
+                                    <SelectTrigger id="ed_pristup" className="h-10 text-xs w-full">
                                       <SelectValue placeholder="Vyberte" />
                                     </SelectTrigger>
                                     <SelectContent>
@@ -3301,7 +3328,7 @@ export const PropertiesView: React.FC<PropertiesViewProps> = ({
                                     value={landDimensions}
                                     onChange={(e) => setLandDimensions(e.target.value)}
                                     placeholder="např. 20×40 m, rovina"
-                                    className="h-9 text-xs"
+                                    className="h-10 text-xs"
                                   />
                                 </div>
                               </div>
@@ -3334,13 +3361,63 @@ export const PropertiesView: React.FC<PropertiesViewProps> = ({
                                 </div>
                               </div>
                             </>
+                          ) : editKind === 'garáž/ostatní' ? (
+                            <>
+                              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                                <div className="space-y-1.5">
+                                  <Label htmlFor="ed_typ_objektu" className="text-xs font-semibold text-stone-400 dark:text-stone-500">Typ objektu</Label>
+                                  <Select value={commSubtype} onValueChange={setCommSubtype}>
+                                    <SelectTrigger id="ed_typ_objektu" className="h-10 text-xs w-full">
+                                      <SelectValue placeholder="Vyberte" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                      {GARAGE_SUBTYPE_OPTIONS.map((opt) => (
+                                        <SelectItem key={opt} value={opt}>{opt}</SelectItem>
+                                      ))}
+                                    </SelectContent>
+                                  </Select>
+                                </div>
+                                <div className="space-y-1.5">
+                                  <Label htmlFor="ed_garaz_plocha" className="text-xs font-semibold text-stone-400 dark:text-stone-500">Plocha (m²)</Label>
+                                  <Input id="ed_garaz_plocha"
+                                    type="number"
+                                    value={commFloorArea}
+                                    onChange={(e) => setCommFloorArea(e.target.value)}
+                                    placeholder="m²"
+                                    className="h-10 text-xs"
+                                  />
+                                </div>
+                                <div className="space-y-1.5">
+                                  <Label htmlFor="ed_garaz_stav" className="text-xs font-semibold text-stone-400 dark:text-stone-500">Stav</Label>
+                                  <Select value={commCondition} onValueChange={setCommCondition}>
+                                    <SelectTrigger id="ed_garaz_stav" className="h-10 text-xs w-full">
+                                      <SelectValue placeholder="Vyberte" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                      {GARAGE_CONDITION_OPTIONS.map((opt) => (
+                                        <SelectItem key={opt} value={opt}>{opt}</SelectItem>
+                                      ))}
+                                    </SelectContent>
+                                  </Select>
+                                </div>
+                              </div>
+                              <div className="space-y-1.5">
+                                <Label htmlFor="ed_garaz_vjezd" className="text-xs font-semibold text-stone-400 dark:text-stone-500">Vjezd / přístup</Label>
+                                <Input id="ed_garaz_vjezd"
+                                  value={commParking}
+                                  onChange={(e) => setCommParking(e.target.value)}
+                                  placeholder="např. vrata na dálkové ovládání"
+                                  className="h-10 text-xs"
+                                />
+                              </div>
+                            </>
                           ) : editKind === 'komerční' ? (
                             <>
                               <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                                 <div className="space-y-1.5">
                                   <Label htmlFor="ed_podtyp" className="text-xs font-semibold text-stone-400 dark:text-stone-500">Podtyp</Label>
                                   <Select value={commSubtype} onValueChange={setCommSubtype}>
-                                    <SelectTrigger id="ed_podtyp" className="h-9 text-xs">
+                                    <SelectTrigger id="ed_podtyp" className="h-10 text-xs">
                                       <SelectValue placeholder="Vyberte" />
                                     </SelectTrigger>
                                     <SelectContent>
@@ -3357,13 +3434,13 @@ export const PropertiesView: React.FC<PropertiesViewProps> = ({
                                     value={commFloorArea}
                                     onChange={(e) => setCommFloorArea(e.target.value)}
                                     placeholder="m²"
-                                    className="h-9 text-xs"
+                                    className="h-10 text-xs"
                                   />
                                 </div>
                                 <div className="space-y-1.5">
                                   <Label htmlFor="ed_penb_2" className="text-xs font-semibold text-stone-400 dark:text-stone-500">PENB</Label>
                                   <Select value={commPenb} onValueChange={setCommPenb}>
-                                    <SelectTrigger id="ed_penb_2" className="h-9 text-xs">
+                                    <SelectTrigger id="ed_penb_2" className="h-10 text-xs">
                                       <SelectValue placeholder="Vyberte" />
                                     </SelectTrigger>
                                     <SelectContent>
@@ -3381,7 +3458,7 @@ export const PropertiesView: React.FC<PropertiesViewProps> = ({
                                     value={commCondition}
                                     onChange={(e) => setCommCondition(e.target.value)}
                                     placeholder="např. po rekonstrukci, klimatizace"
-                                    className="h-9 text-xs"
+                                    className="h-10 text-xs"
                                   />
                                 </div>
                                 <div className="space-y-1.5">
@@ -3390,7 +3467,7 @@ export const PropertiesView: React.FC<PropertiesViewProps> = ({
                                     value={commParking}
                                     onChange={(e) => setCommParking(e.target.value)}
                                     placeholder="např. 4 stání ve dvoře"
-                                    className="h-9 text-xs"
+                                    className="h-10 text-xs"
                                   />
                                 </div>
                               </div>
@@ -3401,7 +3478,7 @@ export const PropertiesView: React.FC<PropertiesViewProps> = ({
                                 <div className="space-y-1.5">
                                   <Label htmlFor="ed_dispozice_2" className="text-xs font-semibold text-stone-400 dark:text-stone-500">Dispozice *</Label>
                                   <Select value={houseLayout} onValueChange={setHouseLayout}>
-                                    <SelectTrigger id="ed_dispozice_2" className="h-9 text-xs">
+                                    <SelectTrigger id="ed_dispozice_2" className="h-10 text-xs">
                                       <SelectValue />
                                     </SelectTrigger>
                                     <SelectContent>
@@ -3417,7 +3494,7 @@ export const PropertiesView: React.FC<PropertiesViewProps> = ({
                                     type="number" 
                                     value={houseArea} 
                                     onChange={(e) => setHouseArea(e.target.value)} 
-                                    className="h-9 text-xs" 
+                                    className="h-10 text-xs" 
                                   />
                                 </div>
                                 <div className="space-y-1.5">
@@ -3426,13 +3503,13 @@ export const PropertiesView: React.FC<PropertiesViewProps> = ({
                                     type="number" 
                                     value={landArea} 
                                     onChange={(e) => setLandArea(e.target.value)} 
-                                    className="h-9 text-xs" 
+                                    className="h-10 text-xs" 
                                   />
                                 </div>
                                 <div className="space-y-1.5">
                                   <Label htmlFor="ed_typ_domu" className="text-xs font-semibold text-stone-400 dark:text-stone-500">Typ domu</Label>
                                   <Select value={houseType} onValueChange={setHouseType}>
-                                    <SelectTrigger id="ed_typ_domu" className="h-9 text-xs">
+                                    <SelectTrigger id="ed_typ_domu" className="h-10 text-xs">
                                       <SelectValue placeholder="Vyberte" />
                                     </SelectTrigger>
                                     <SelectContent>
@@ -3450,13 +3527,13 @@ export const PropertiesView: React.FC<PropertiesViewProps> = ({
                                     type="number" 
                                     value={houseFloors} 
                                     onChange={(e) => setHouseFloors(e.target.value)} 
-                                    className="h-9 text-xs" 
+                                    className="h-10 text-xs" 
                                   />
                                 </div>
                                 <div className="space-y-1.5">
                                   <Label htmlFor="ed_stav_domu" className="text-xs font-semibold text-stone-400 dark:text-stone-500">Stav domu</Label>
                                   <Select value={houseCondition} onValueChange={setHouseCondition}>
-                                    <SelectTrigger id="ed_stav_domu" className="h-9 text-xs">
+                                    <SelectTrigger id="ed_stav_domu" className="h-10 text-xs">
                                       <SelectValue placeholder="Vyberte" />
                                     </SelectTrigger>
                                     <SelectContent>
@@ -3469,7 +3546,7 @@ export const PropertiesView: React.FC<PropertiesViewProps> = ({
                                 <div className="space-y-1.5">
                                   <Label htmlFor="ed_penb_3" className="text-xs font-semibold text-stone-400 dark:text-stone-500">PENB</Label>
                                   <Select value={housePenb} onValueChange={setHousePenb}>
-                                    <SelectTrigger id="ed_penb_3" className="h-9 text-xs">
+                                    <SelectTrigger id="ed_penb_3" className="h-10 text-xs">
                                       <SelectValue placeholder="Vyberte" />
                                     </SelectTrigger>
                                     <SelectContent>
@@ -3485,7 +3562,7 @@ export const PropertiesView: React.FC<PropertiesViewProps> = ({
                                     value={flatParking} 
                                     onChange={(e) => setFlatParking(e.target.value)} 
                                     placeholder="např. V domě, možnost garáže" 
-                                    className="h-9 text-xs" 
+                                    className="h-10 text-xs" 
                                   />
                                 </div>
                               </div>
@@ -3541,7 +3618,7 @@ export const PropertiesView: React.FC<PropertiesViewProps> = ({
                                     value={rentDeposit}
                                     onChange={(e) => setRentDeposit(e.target.value)}
                                     placeholder="Kč"
-                                    className="h-9 text-xs"
+                                    className="h-10 text-xs"
                                   />
                                 </div>
                                 <div className="space-y-1.5">
@@ -3551,7 +3628,7 @@ export const PropertiesView: React.FC<PropertiesViewProps> = ({
                                     value={rentFeesUtilities}
                                     onChange={(e) => setRentFeesUtilities(e.target.value)}
                                     placeholder="Kč"
-                                    className="h-9 text-xs"
+                                    className="h-10 text-xs"
                                   />
                                 </div>
                                 <div className="space-y-1.5">
@@ -3560,7 +3637,7 @@ export const PropertiesView: React.FC<PropertiesViewProps> = ({
                                     value={rentDuration}
                                     onChange={(e) => setRentDuration(e.target.value)}
                                     placeholder="např. 1 rok s prodloužením"
-                                    className="h-9 text-xs"
+                                    className="h-10 text-xs"
                                   />
                                 </div>
                                 <div className="space-y-1.5">
@@ -3569,13 +3646,13 @@ export const PropertiesView: React.FC<PropertiesViewProps> = ({
                                     type="date"
                                     value={rentAvailableFrom}
                                     onChange={(e) => setRentAvailableFrom(e.target.value)}
-                                    className="h-9 text-xs"
+                                    className="h-10 text-xs"
                                   />
                                 </div>
                                 <div className="space-y-1.5">
                                   <Label htmlFor="ed_vybaveni" className="text-xs font-semibold text-stone-400 dark:text-stone-500">Vybavení</Label>
                                   <Select value={rentEquipment} onValueChange={setRentEquipment}>
-                                    <SelectTrigger id="ed_vybaveni" className="h-9 text-xs">
+                                    <SelectTrigger id="ed_vybaveni" className="h-10 text-xs">
                                       <SelectValue placeholder="Vyberte" />
                                     </SelectTrigger>
                                     <SelectContent>
@@ -3991,7 +4068,7 @@ export const PropertiesView: React.FC<PropertiesViewProps> = ({
                                     <div className="space-y-1.5 text-left">
                                       <Label>Fáze</Label>
                                       <Select value={editDealStage} onValueChange={setEditDealStage}>
-                                        <SelectTrigger className="h-9 text-xs">
+                                        <SelectTrigger className="h-10 text-xs">
                                           <SelectValue />
                                         </SelectTrigger>
                                         <SelectContent>
@@ -4004,7 +4081,7 @@ export const PropertiesView: React.FC<PropertiesViewProps> = ({
                                     <div className="space-y-1.5 text-left">
                                       <Label>Teplota</Label>
                                       <Select value={editDealTemperature} onValueChange={setEditDealTemperature}>
-                                        <SelectTrigger className="h-9 text-xs">
+                                        <SelectTrigger className="h-10 text-xs">
                                           <SelectValue />
                                         </SelectTrigger>
                                         <SelectContent>
@@ -4430,7 +4507,7 @@ export const PropertiesView: React.FC<PropertiesViewProps> = ({
           </DialogHeader>
 
           <form onSubmit={handleCreateProperty} className="text-left flex flex-col min-h-0 flex-1">
-            <div className="flex-1 min-h-0 overflow-y-auto overflow-x-hidden px-5 sm:px-7 py-5 space-y-12 lg:space-y-7">
+            <div ref={createScrollRef} className="flex-1 min-h-0 overflow-y-auto overflow-x-hidden px-5 sm:px-7 py-5 space-y-12 lg:space-y-7">
 
               {/* AI Import — the fast path, first thing on screen */}
               <div className="bg-stone-50 dark:bg-stone-900 border border-stone-200 dark:border-stone-800 p-3.5 rounded-lg space-y-2 text-left">
@@ -4446,14 +4523,14 @@ export const PropertiesView: React.FC<PropertiesViewProps> = ({
                     value={importUrl}
                     onChange={(e) => setImportUrl(e.target.value)}
                     disabled={isImporting}
-                    className="border-stone-200 h-9 text-xs bg-white dark:bg-stone-950 flex-1"
+                    className="border-stone-200 h-10 text-xs bg-white dark:bg-stone-950 w-full sm:flex-1"
                   />
                   <Button
                     type="button"
                     onClick={handleImportFromUrl}
                     disabled={isImporting || !importUrl}
                     size="sm"
-                    className="h-9 text-xs shrink-0 font-medium"
+                    className="h-10 text-xs shrink-0 font-medium"
                   >
                     {isImporting ? 'Načítám…' : 'Importovat'}
                   </Button>
@@ -4503,7 +4580,7 @@ export const PropertiesView: React.FC<PropertiesViewProps> = ({
                   <div className="space-y-2 pt-2">
                     <Label htmlFor="new_owner">Vyberte existující kontakt *</Label>
                     <Select value={newOwnerId} onValueChange={setNewOwnerId}>
-                      <SelectTrigger id="new_owner" className="w-full border-stone-200">
+                      <SelectTrigger id="new_owner" className="w-full border-stone-200 h-10 text-xs">
                         <span className={`text-xs ${newOwnerId ? "text-foreground font-medium" : "text-muted-foreground"}`}>
                           {contacts.find((c) => c.id === newOwnerId)?.full_name || "Vyberte vlastníka z kontaktů"}
                         </span>
@@ -4529,7 +4606,7 @@ export const PropertiesView: React.FC<PropertiesViewProps> = ({
                         value={newOwnerFullName}
                         onChange={(e) => setNewOwnerFullName(e.target.value)}
                         placeholder="např. Jan Novák"
-                        className="border-stone-200 h-9 text-xs"
+                        className="border-stone-200 h-10 text-xs"
                       />
                     </div>
                     
@@ -4540,7 +4617,7 @@ export const PropertiesView: React.FC<PropertiesViewProps> = ({
                         value={newOwnerPhone}
                         onChange={(e) => setNewOwnerPhone(e.target.value)}
                         placeholder="např. +420 777 888 999"
-                        className="border-stone-200 h-9 text-xs"
+                        className="border-stone-200 h-10 text-xs"
                       />
                     </div>
 
@@ -4552,7 +4629,7 @@ export const PropertiesView: React.FC<PropertiesViewProps> = ({
                         value={newOwnerEmail}
                         onChange={(e) => setNewOwnerEmail(e.target.value)}
                         placeholder="např. novak@seznam.cz"
-                        className="border-stone-200 h-9 text-xs"
+                        className="border-stone-200 h-10 text-xs"
                       />
                     </div>
 
@@ -4560,7 +4637,7 @@ export const PropertiesView: React.FC<PropertiesViewProps> = ({
                       <div className="space-y-1.5">
                         <Label htmlFor="owner_source">Odkud přišel *</Label>
                         <Select value={newOwnerSource} onValueChange={setNewOwnerSource}>
-                          <SelectTrigger id="owner_source" className="border-stone-200 h-9 text-xs w-full">
+                          <SelectTrigger id="owner_source" className="border-stone-200 h-10 text-xs w-full">
                             <SelectValue />
                           </SelectTrigger>
                           <SelectContent>
@@ -4578,7 +4655,7 @@ export const PropertiesView: React.FC<PropertiesViewProps> = ({
                       <div className="space-y-1.5">
                         <Label htmlFor="owner_status">Stav *</Label>
                         <Select value={newOwnerStatus} onValueChange={setNewOwnerStatus}>
-                          <SelectTrigger id="owner_status" className="border-stone-200 h-9 text-xs w-full">
+                          <SelectTrigger id="owner_status" className="border-stone-200 h-10 text-xs w-full">
                             <SelectValue />
                           </SelectTrigger>
                           <SelectContent>
@@ -4622,7 +4699,7 @@ export const PropertiesView: React.FC<PropertiesViewProps> = ({
                     onChange={(e) => setNewAddress(e.target.value)}
                     placeholder="např. Bory, Plzeň"
                     required
-                    className="border-stone-200 h-9 text-xs"
+                    className="border-stone-200 h-10 text-xs"
                   />
                 </div>
 
@@ -4630,7 +4707,7 @@ export const PropertiesView: React.FC<PropertiesViewProps> = ({
                   <div className="space-y-1.5">
                     <Label htmlFor="new_kind">Druh nemovitosti *</Label>
                     <Select value={newKind} onValueChange={(val: Property['kind']) => setNewKind(val)} required>
-                      <SelectTrigger id="new_kind" className="border-stone-200 h-9 text-xs w-full">
+                      <SelectTrigger id="new_kind" className="border-stone-200 h-10 text-xs w-full">
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent>
@@ -4646,7 +4723,7 @@ export const PropertiesView: React.FC<PropertiesViewProps> = ({
                   <div className="space-y-1.5">
                     <Label htmlFor="new_trans">Transakce *</Label>
                     <Select value={newTransaction} onValueChange={(val: Property['transaction']) => setNewTransaction(val)} required>
-                      <SelectTrigger id="new_trans" className="border-stone-200 h-9 text-xs w-full">
+                      <SelectTrigger id="new_trans" className="border-stone-200 h-10 text-xs w-full">
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent>
@@ -4670,14 +4747,14 @@ export const PropertiesView: React.FC<PropertiesViewProps> = ({
                       onChange={(e) => setNewPrice(e.target.value)}
                       placeholder="Kč"
                       required
-                      className="border-stone-200 h-9 text-xs"
+                      className="border-stone-200 h-10 text-xs"
                     />
                   </div>
 
                   <div className="space-y-1.5">
                     <Label htmlFor="new_status">Stav nabídky *</Label>
                     <Select value={newOfferStatus} onValueChange={(val: Property['offer_status']) => setNewOfferStatus(val)} required>
-                      <SelectTrigger id="new_status" className="border-stone-200 h-9 text-xs w-full">
+                      <SelectTrigger id="new_status" className="border-stone-200 h-10 text-xs w-full">
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent>
@@ -4701,7 +4778,7 @@ export const PropertiesView: React.FC<PropertiesViewProps> = ({
                         value={rentDeposit}
                         onChange={(e) => setRentDeposit(e.target.value)}
                         placeholder="Kč"
-                        className="border-stone-200 h-9 text-xs"
+                        className="border-stone-200 h-10 text-xs"
                       />
                     </div>
                     <div className="space-y-1.5">
@@ -4712,7 +4789,7 @@ export const PropertiesView: React.FC<PropertiesViewProps> = ({
                         value={rentFeesUtilities}
                         onChange={(e) => setRentFeesUtilities(e.target.value)}
                         placeholder="Kč"
-                        className="border-stone-200 h-9 text-xs"
+                        className="border-stone-200 h-10 text-xs"
                       />
                     </div>
                     <div className="space-y-1.5">
@@ -4722,7 +4799,7 @@ export const PropertiesView: React.FC<PropertiesViewProps> = ({
                         value={rentDuration}
                         onChange={(e) => setRentDuration(e.target.value)}
                         placeholder="např. 1 rok s prodloužením"
-                        className="border-stone-200 h-9 text-xs"
+                        className="border-stone-200 h-10 text-xs"
                       />
                     </div>
                     <div className="space-y-1.5">
@@ -4732,13 +4809,13 @@ export const PropertiesView: React.FC<PropertiesViewProps> = ({
                         type="date"
                         value={rentAvailableFrom}
                         onChange={(e) => setRentAvailableFrom(e.target.value)}
-                        className="border-stone-200 h-9 text-xs"
+                        className="border-stone-200 h-10 text-xs"
                       />
                     </div>
                     <div className="space-y-1.5">
                       <Label htmlFor="new_rent_equipment">Vybavení</Label>
                       <Select value={rentEquipment} onValueChange={(v) => setRentEquipment(v as string)}>
-                        <SelectTrigger id="new_rent_equipment" className="border-stone-200 h-9 text-xs w-full">
+                        <SelectTrigger id="new_rent_equipment" className="border-stone-200 h-10 text-xs w-full">
                           <SelectValue placeholder="Vyberte" />
                         </SelectTrigger>
                         <SelectContent>
@@ -4766,7 +4843,7 @@ export const PropertiesView: React.FC<PropertiesViewProps> = ({
                       <div className="space-y-1.5">
                         <Label htmlFor="flat_layout">Dispozice *</Label>
                         <Select value={flatLayout} onValueChange={setFlatLayout}>
-                          <SelectTrigger id="flat_layout" className="border-stone-200 h-9 text-xs w-full">
+                          <SelectTrigger id="flat_layout" className="border-stone-200 h-10 text-xs w-full">
                             <SelectValue placeholder="Vyberte" />
                           </SelectTrigger>
                           <SelectContent>
@@ -4786,7 +4863,7 @@ export const PropertiesView: React.FC<PropertiesViewProps> = ({
                           type="number"
                           value={flatArea}
                           onChange={(e) => setFlatArea(e.target.value)}
-                          className="border-stone-200 h-9 text-xs"
+                          className="border-stone-200 h-10 text-xs"
                           placeholder="m²"
                         />
                       </div>
@@ -4798,7 +4875,7 @@ export const PropertiesView: React.FC<PropertiesViewProps> = ({
                           value={flatFloor}
                           onChange={(e) => setFlatFloor(e.target.value)}
                           placeholder="Např. 3. ze 5"
-                          className="border-stone-200 h-9 text-xs"
+                          className="border-stone-200 h-10 text-xs"
                         />
                       </div>
                     </div>
@@ -4807,7 +4884,7 @@ export const PropertiesView: React.FC<PropertiesViewProps> = ({
                       <div className="space-y-1.5">
                         <Label htmlFor="flat_ownership">Vlastnictví</Label>
                         <Select value={flatOwnership} onValueChange={setFlatOwnership}>
-                          <SelectTrigger id="flat_ownership" className="border-stone-200 h-9 text-xs w-full">
+                          <SelectTrigger id="flat_ownership" className="border-stone-200 h-10 text-xs w-full">
                             <SelectValue placeholder="Vyberte" />
                           </SelectTrigger>
                           <SelectContent>
@@ -4823,7 +4900,7 @@ export const PropertiesView: React.FC<PropertiesViewProps> = ({
                       <div className="space-y-1.5">
                         <Label htmlFor="flat_const">Konstrukce</Label>
                         <Select value={flatConstruction} onValueChange={setFlatConstruction}>
-                          <SelectTrigger id="flat_const" className="border-stone-200 h-9 text-xs w-full">
+                          <SelectTrigger id="flat_const" className="border-stone-200 h-10 text-xs w-full">
                             <SelectValue placeholder="Vyberte" />
                           </SelectTrigger>
                           <SelectContent>
@@ -4839,7 +4916,7 @@ export const PropertiesView: React.FC<PropertiesViewProps> = ({
                       <div className="space-y-1.5">
                         <Label htmlFor="flat_cond">Stav bytu</Label>
                         <Select value={flatCondition} onValueChange={setFlatCondition}>
-                          <SelectTrigger id="flat_cond" className="border-stone-200 h-9 text-xs w-full">
+                          <SelectTrigger id="flat_cond" className="border-stone-200 h-10 text-xs w-full">
                             <SelectValue placeholder="Vyberte" />
                           </SelectTrigger>
                           <SelectContent>
@@ -4855,7 +4932,7 @@ export const PropertiesView: React.FC<PropertiesViewProps> = ({
                       <div className="space-y-1.5">
                         <Label htmlFor="flat_penb">PENB</Label>
                         <Select value={flatPenb} onValueChange={setFlatPenb}>
-                          <SelectTrigger id="flat_penb" className="border-stone-200 h-9 text-xs w-full">
+                          <SelectTrigger id="flat_penb" className="border-stone-200 h-10 text-xs w-full">
                             <SelectValue placeholder="Třída" />
                           </SelectTrigger>
                           <SelectContent>
@@ -4894,7 +4971,7 @@ export const PropertiesView: React.FC<PropertiesViewProps> = ({
                       <div className="space-y-1.5">
                         <Label htmlFor="house_layout">Dispozice / místnosti *</Label>
                         <Select value={houseLayout} onValueChange={setHouseLayout}>
-                          <SelectTrigger id="house_layout" className="border-stone-200 h-9 text-xs w-full">
+                          <SelectTrigger id="house_layout" className="border-stone-200 h-10 text-xs w-full">
                             <SelectValue placeholder="Vyberte" />
                           </SelectTrigger>
                           <SelectContent>
@@ -4914,7 +4991,7 @@ export const PropertiesView: React.FC<PropertiesViewProps> = ({
                           type="number"
                           value={houseArea}
                           onChange={(e) => setHouseArea(e.target.value)}
-                          className="border-stone-200 h-9 text-xs"
+                          className="border-stone-200 h-10 text-xs"
                           placeholder="m²"
                         />
                       </div>
@@ -4926,7 +5003,7 @@ export const PropertiesView: React.FC<PropertiesViewProps> = ({
                           type="number"
                           value={landArea}
                           onChange={(e) => setLandArea(e.target.value)}
-                          className="border-stone-200 h-9 text-xs"
+                          className="border-stone-200 h-10 text-xs"
                           placeholder="m²"
                         />
                       </div>
@@ -4936,7 +5013,7 @@ export const PropertiesView: React.FC<PropertiesViewProps> = ({
                       <div className="space-y-1.5">
                         <Label htmlFor="house_type">Typ domu</Label>
                         <Select value={houseType} onValueChange={setHouseType}>
-                          <SelectTrigger id="house_type" className="border-stone-200 h-9 text-xs w-full">
+                          <SelectTrigger id="house_type" className="border-stone-200 h-10 text-xs w-full">
                             <SelectValue placeholder="Vyberte" />
                           </SelectTrigger>
                           <SelectContent>
@@ -4956,14 +5033,14 @@ export const PropertiesView: React.FC<PropertiesViewProps> = ({
                           type="number"
                           value={houseFloors}
                           onChange={(e) => setHouseFloors(e.target.value)}
-                          className="border-stone-200 h-9 text-xs"
+                          className="border-stone-200 h-10 text-xs"
                         />
                       </div>
 
                       <div className="space-y-1.5">
                         <Label htmlFor="house_cond">Stav domu</Label>
                         <Select value={houseCondition} onValueChange={setHouseCondition}>
-                          <SelectTrigger id="house_cond" className="border-stone-200 h-9 text-xs w-full">
+                          <SelectTrigger id="house_cond" className="border-stone-200 h-10 text-xs w-full">
                             <SelectValue placeholder="Vyberte" />
                           </SelectTrigger>
                           <SelectContent>
@@ -4979,7 +5056,7 @@ export const PropertiesView: React.FC<PropertiesViewProps> = ({
                       <div className="space-y-1.5">
                         <Label htmlFor="house_penb">PENB</Label>
                         <Select value={housePenb} onValueChange={setHousePenb}>
-                          <SelectTrigger id="house_penb" className="border-stone-200 h-9 text-xs w-full">
+                          <SelectTrigger id="house_penb" className="border-stone-200 h-10 text-xs w-full">
                             <SelectValue placeholder="Třída" />
                           </SelectTrigger>
                           <SelectContent>
@@ -5023,14 +5100,14 @@ export const PropertiesView: React.FC<PropertiesViewProps> = ({
                           value={landSize}
                           onChange={(e) => setLandSize(e.target.value)}
                           placeholder="např. 800"
-                          className="border-stone-200 h-9 text-xs"
+                          className="border-stone-200 h-10 text-xs"
                         />
                       </div>
 
                       <div className="space-y-1.5">
                         <Label htmlFor="land_type">Druh pozemku</Label>
                         <Select value={landType} onValueChange={setLandType}>
-                          <SelectTrigger id="land_type" className="border-stone-200 h-9 text-xs w-full">
+                          <SelectTrigger id="land_type" className="border-stone-200 h-10 text-xs w-full">
                             <SelectValue placeholder="Vyberte" />
                           </SelectTrigger>
                           <SelectContent>
@@ -5044,7 +5121,7 @@ export const PropertiesView: React.FC<PropertiesViewProps> = ({
                       <div className="space-y-1.5">
                         <Label htmlFor="zoning_plan">Územní plán</Label>
                         <Select value={zoningPlan} onValueChange={setZoningPlan}>
-                          <SelectTrigger id="zoning_plan" className="border-stone-200 h-9 text-xs w-full">
+                          <SelectTrigger id="zoning_plan" className="border-stone-200 h-10 text-xs w-full">
                             <SelectValue placeholder="Vyberte" />
                           </SelectTrigger>
                           <SelectContent>
@@ -5060,7 +5137,7 @@ export const PropertiesView: React.FC<PropertiesViewProps> = ({
                       <div className="space-y-1.5">
                         <Label htmlFor="land_access">Přístup</Label>
                         <Select value={landAccess} onValueChange={setLandAccess}>
-                          <SelectTrigger id="land_access" className="border-stone-200 h-9 text-xs w-full">
+                          <SelectTrigger id="land_access" className="border-stone-200 h-10 text-xs w-full">
                             <SelectValue placeholder="Vyberte" />
                           </SelectTrigger>
                           <SelectContent>
@@ -5078,7 +5155,7 @@ export const PropertiesView: React.FC<PropertiesViewProps> = ({
                           value={landDimensions}
                           onChange={(e) => setLandDimensions(e.target.value)}
                           placeholder="např. 20×40 m, rovina"
-                          className="border-stone-200 h-9 text-xs"
+                          className="border-stone-200 h-10 text-xs"
                         />
                       </div>
                     </div>
@@ -5120,7 +5197,7 @@ export const PropertiesView: React.FC<PropertiesViewProps> = ({
                       <div className="space-y-1.5">
                         <Label htmlFor="comm_subtype">Podtyp</Label>
                         <Select value={commSubtype} onValueChange={(v) => setCommSubtype(v as string)}>
-                          <SelectTrigger id="comm_subtype" className="border-stone-200 h-9 text-xs w-full">
+                          <SelectTrigger id="comm_subtype" className="border-stone-200 h-10 text-xs w-full">
                             <SelectValue placeholder="Vyberte" />
                           </SelectTrigger>
                           <SelectContent>
@@ -5138,13 +5215,13 @@ export const PropertiesView: React.FC<PropertiesViewProps> = ({
                           value={commFloorArea}
                           onChange={(e) => setCommFloorArea(e.target.value)}
                           placeholder="m²"
-                          className="border-stone-200 h-9 text-xs"
+                          className="border-stone-200 h-10 text-xs"
                         />
                       </div>
                       <div className="space-y-1.5">
                         <Label htmlFor="comm_penb">PENB</Label>
                         <Select value={commPenb} onValueChange={(v) => setCommPenb(v as string)}>
-                          <SelectTrigger id="comm_penb" className="border-stone-200 h-9 text-xs w-full">
+                          <SelectTrigger id="comm_penb" className="border-stone-200 h-10 text-xs w-full">
                             <SelectValue placeholder="—" />
                           </SelectTrigger>
                           <SelectContent>
@@ -5163,7 +5240,7 @@ export const PropertiesView: React.FC<PropertiesViewProps> = ({
                           value={commCondition}
                           onChange={(e) => setCommCondition(e.target.value)}
                           placeholder="např. po rekonstrukci, klimatizace"
-                          className="border-stone-200 h-9 text-xs"
+                          className="border-stone-200 h-10 text-xs"
                         />
                       </div>
                       <div className="space-y-1.5">
@@ -5173,7 +5250,7 @@ export const PropertiesView: React.FC<PropertiesViewProps> = ({
                           value={commParking}
                           onChange={(e) => setCommParking(e.target.value)}
                           placeholder="např. 4 stání ve dvoře"
-                          className="border-stone-200 h-9 text-xs"
+                          className="border-stone-200 h-10 text-xs"
                         />
                       </div>
                     </div>
@@ -5181,14 +5258,55 @@ export const PropertiesView: React.FC<PropertiesViewProps> = ({
                 )}
 
                 {newKind === 'garáž/ostatní' && (
-                  <div className="rounded-lg border border-dashed border-stone-300 dark:border-stone-700 px-4 py-3.5">
-                    <div className="text-[13px] font-medium text-stone-900 dark:text-stone-100">
-                      Garáž a ostatní se zadávají jen přes společná pole
+                  <div className="space-y-4 text-left">
+                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                      <div className="space-y-1.5">
+                        <Label htmlFor="garage_subtype">Typ objektu</Label>
+                        <Select value={commSubtype} onValueChange={setCommSubtype}>
+                          <SelectTrigger id="garage_subtype" className="border-stone-200 h-10 text-xs w-full">
+                            <SelectValue placeholder="Vyberte" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {GARAGE_SUBTYPE_OPTIONS.map((opt) => (
+                              <SelectItem key={opt} value={opt}>{opt}</SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
+                      <div className="space-y-1.5">
+                        <Label htmlFor="garage_area">Plocha (m²)</Label>
+                        <Input
+                          id="garage_area"
+                          type="number"
+                          value={commFloorArea}
+                          onChange={(e) => setCommFloorArea(e.target.value)}
+                          placeholder="m²"
+                          className="border-stone-200 h-10 text-xs"
+                        />
+                      </div>
+                      <div className="space-y-1.5">
+                        <Label htmlFor="garage_condition">Stav</Label>
+                        <Select value={commCondition} onValueChange={setCommCondition}>
+                          <SelectTrigger id="garage_condition" className="border-stone-200 h-10 text-xs w-full">
+                            <SelectValue placeholder="Vyberte" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {GARAGE_CONDITION_OPTIONS.map((opt) => (
+                              <SelectItem key={opt} value={opt}>{opt}</SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
                     </div>
-                    <div className="text-xs text-stone-500 dark:text-stone-400 mt-1 leading-relaxed">
-                      Tenhle druh nemá pevnou sadu parametrů — každý objekt je jiný. Adresa, cena, stav
-                      nabídky a vlastník výše stačí; rozměry, vjezd nebo vybavení připiš do{' '}
-                      <span className="font-medium">Poznámky</span> níže. AI z ní odpovídá zájemcům.
+                    <div className="space-y-1.5">
+                      <Label htmlFor="garage_access">Vjezd / přístup</Label>
+                      <Input
+                        id="garage_access"
+                        value={commParking}
+                        onChange={(e) => setCommParking(e.target.value)}
+                        placeholder="např. vrata na dálkové ovládání, vjezd z ulice"
+                        className="border-stone-200 h-10 text-xs"
+                      />
                     </div>
                   </div>
                 )}
@@ -5196,10 +5314,10 @@ export const PropertiesView: React.FC<PropertiesViewProps> = ({
               </section>
 
               {/* Volitelné detaily — collapsed by default so the core flow stays short */}
-              <section>
+              <section ref={optionalSectionRef} className="scroll-mt-2">
                 <button
                   type="button"
-                  onClick={() => setShowOptional(!showOptional)}
+                  onClick={toggleOptional}
                   aria-expanded={showOptional}
                   className={cn(
                     'w-full flex items-center justify-between gap-3 rounded-lg border px-4 py-3 text-left transition-colors cursor-pointer',
@@ -5232,10 +5350,10 @@ export const PropertiesView: React.FC<PropertiesViewProps> = ({
                           value={photoUrl}
                           onChange={(e) => setPhotoUrl(e.target.value)}
                           placeholder="https://…"
-                          className="border-stone-200 h-9 text-xs flex-1"
+                          className="border-stone-200 h-10 text-xs flex-1"
                         />
                         {photoUrl && /^https?:\/\//i.test(photoUrl) && (
-                          <img src={photoUrl} alt="Náhled" className="h-9 w-9 rounded object-cover border border-stone-200" />
+                          <img src={photoUrl} alt="Náhled" className="h-10 w-10 rounded object-cover border border-stone-200 shrink-0" />
                         )}
                       </div>
                     </div>
@@ -5249,7 +5367,7 @@ export const PropertiesView: React.FC<PropertiesViewProps> = ({
                           value={commissionPct}
                           onChange={(e) => setCommissionPct(e.target.value)}
                           placeholder="%"
-                          className="border-stone-200 h-9 text-xs"
+                          className="border-stone-200 h-10 text-xs"
                         />
                       </div>
                       <div className="space-y-1.5">
@@ -5260,7 +5378,7 @@ export const PropertiesView: React.FC<PropertiesViewProps> = ({
                           value={commissionVal}
                           onChange={(e) => setCommissionVal(e.target.value)}
                           placeholder="Kč"
-                          className="border-stone-200 h-9 text-xs"
+                          className="border-stone-200 h-10 text-xs"
                         />
                       </div>
                     </div>
