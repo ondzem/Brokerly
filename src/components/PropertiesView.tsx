@@ -5171,7 +5171,7 @@ export const PropertiesView: React.FC<PropertiesViewProps> = ({
               </section>
             </div>
 
-            <DialogFooter className="sticky bottom-0 bg-white/95 dark:bg-stone-900/95 backdrop-blur-sm border-t border-stone-200 dark:border-stone-800 px-5 sm:px-7 py-3.5 flex flex-row justify-end gap-3">
+            <DialogFooter className="mx-0 mb-0 sticky bottom-0 bg-white/95 dark:bg-stone-900/95 backdrop-blur-sm border-t border-stone-200 dark:border-stone-800 px-5 sm:px-7 py-3.5 flex flex-row justify-end gap-3">
               <Button type="button" variant="outline" onClick={() => setIsCreateOpen(false)}>
                 Zrušit
               </Button>
