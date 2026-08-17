@@ -4359,7 +4359,7 @@ export const PropertiesView: React.FC<PropertiesViewProps> = ({
           </DialogHeader>
 
           <form onSubmit={handleCreateProperty} className="text-left">
-            <div className="px-5 sm:px-7 py-5 space-y-7">
+            <div className="px-5 sm:px-7 py-5 space-y-12 lg:space-y-7">
 
               {/* AI Import — the fast path, first thing on screen */}
               <div className="bg-stone-50 dark:bg-stone-900 border border-stone-200 dark:border-stone-800 p-3.5 rounded-lg space-y-2 text-left">
