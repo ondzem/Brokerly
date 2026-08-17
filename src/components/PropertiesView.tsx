@@ -58,6 +58,36 @@ const COMM_SUBTYPE_OPTIONS = [
 ] as const;
 const RENT_EQUIPMENT_OPTIONS = ['vybaveno', 'částečně vybaveno', 'nevybaveno'] as const;
 
+// Pozemky — druhy podle kategorií Sreality, zbytek podle běžné praxe v ČR
+const LAND_TYPE_OPTIONS = [
+  'bydlení',
+  'komerční',
+  'pole',
+  'louka',
+  'les',
+  'rybník',
+  'sady / vinice',
+  'zahrada',
+  'ostatní',
+] as const;
+const LAND_UTILITY_OPTIONS = ['elektřina', 'voda', 'plyn', 'kanalizace'] as const;
+const ZONING_PLAN_OPTIONS = [
+  'zastavitelné — bydlení',
+  'zastavitelné — smíšené obytné',
+  'zastavitelné — komerce / výroba',
+  'zastavitelné — rekreace',
+  'nezastavitelné — zemědělská půda',
+  'nezastavitelné — les',
+  'nezastavitelné — ostatní',
+] as const;
+const LAND_ACCESS_OPTIONS = [
+  'asfaltová cesta',
+  'zpevněná cesta',
+  'nezpevněná cesta',
+  'přes cizí pozemek',
+  'bez přístupu',
+] as const;
+
 const parseSafeNumber = (val: string | number | null | undefined): number | null => {
   if (val === null || val === undefined) return null;
   if (typeof val === 'number') {
@@ -383,6 +413,16 @@ export const PropertiesView: React.FC<PropertiesViewProps> = ({
     } else {
       setFlatFeatures([...target, feat]);
     }
+  };
+
+  // Zasíťování se v DB drží jako TEXT[], ve formuláři jako čárkami oddělený řetězec.
+  // Checkboxy s ním pracují přes tyhle dva helpery, aby se nic z importu neztratilo.
+  const landUtilityList = landUtilities.split(',').map((s) => s.trim()).filter(Boolean);
+  const toggleLandUtility = (util: string) => {
+    const next = landUtilityList.includes(util)
+      ? landUtilityList.filter((u) => u !== util)
+      : [...landUtilityList, util];
+    setLandUtilities(next.join(', '));
   };
 
   const handleHouseFeatureToggle = (feat: 'garáž' | 'zahrada' | 'bazén') => {
@@ -1035,14 +1075,14 @@ export const PropertiesView: React.FC<PropertiesViewProps> = ({
               house_condition: { type: "STRING", enum: ["novostavba", "po rekonstrukci", "dobrý", "před rekonstrukcí"] },
               house_penb: { type: "STRING", enum: ["A", "B", "C", "D", "E", "F", "G"] },
               land_size: { type: "NUMBER", description: "Výměra pozemku v m2" },
-              land_type: { type: "STRING", description: "Druh pozemku, např. stavební, les, orná půda" },
+              land_type: { type: "STRING", enum: ["bydlení", "komerční", "pole", "louka", "les", "rybník", "sady / vinice", "zahrada", "ostatní"], description: "Druh pozemku" },
               land_utilities: {
                 type: "ARRAY",
-                items: { type: "STRING" },
-                description: "Seznam inženýrských sítí, např. ['voda', 'elektřina']"
+                items: { type: "STRING", enum: ["elektřina", "voda", "plyn", "kanalizace"] },
+                description: "Inženýrské sítě dostupné na pozemku"
               },
-              zoning_plan: { type: "STRING", description: "Info z územního plánu" },
-              land_access: { type: "STRING", description: "Přístup k pozemku" },
+              zoning_plan: { type: "STRING", enum: ["zastavitelné — bydlení", "zastavitelné — smíšené obytné", "zastavitelné — komerce / výroba", "zastavitelné — rekreace", "nezastavitelné — zemědělská půda", "nezastavitelné — les", "nezastavitelné — ostatní"], description: "Zařazení podle územního plánu" },
+              land_access: { type: "STRING", enum: ["asfaltová cesta", "zpevněná cesta", "nezpevněná cesta", "přes cizí pozemek", "bez přístupu"], description: "Přístup k pozemku" },
               land_dimensions: { type: "STRING", description: "Rozměry pozemku" },
               comm_subtype: { type: "STRING", enum: ["kancelář", "obchodní prostor", "sklad", "výrobní prostor", "restaurace / gastro", "ubytování", "ordinace", "zemědělský objekt", "činžovní dům", "jiné"], description: "Podtyp komerční nemovitosti" },
               comm_floor_area: { type: "NUMBER", description: "Podlahová/užitná plocha komerčního prostoru v m2" },
@@ -3216,41 +3256,44 @@ export const PropertiesView: React.FC<PropertiesViewProps> = ({
                                 </div>
                                 <div className="space-y-1.5">
                                   <Label htmlFor="ed_druh_pozemku" className="text-xs font-semibold text-stone-400 dark:text-stone-500">Druh pozemku</Label>
-                                  <Input id="ed_druh_pozemku"
-                                    value={landType}
-                                    onChange={(e) => setLandType(e.target.value)}
-                                    placeholder="např. stavební, orná půda"
-                                    className="h-9 text-xs"
-                                  />
+                                  <Select value={landType} onValueChange={setLandType}>
+                                    <SelectTrigger id="ed_druh_pozemku" className="h-9 text-xs w-full">
+                                      <SelectValue placeholder="Vyberte" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                      {LAND_TYPE_OPTIONS.map((opt) => (
+                                        <SelectItem key={opt} value={opt}>{opt}</SelectItem>
+                                      ))}
+                                    </SelectContent>
+                                  </Select>
                                 </div>
-                                <div className="space-y-1.5">
-                                  <Label htmlFor="ed_zasitovani" className="text-xs font-semibold text-stone-400 dark:text-stone-500">Zasíťování</Label>
-                                  <Input id="ed_zasitovani"
-                                    value={landUtilities}
-                                    onChange={(e) => setLandUtilities(e.target.value)}
-                                    placeholder="např. voda, plyn, elektřina"
-                                    className="h-9 text-xs"
-                                  />
-                                </div>
-                              </div>
-                              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                                 <div className="space-y-1.5">
                                   <Label htmlFor="ed_uzemni_plan" className="text-xs font-semibold text-stone-400 dark:text-stone-500">Územní plán</Label>
-                                  <Input id="ed_uzemni_plan"
-                                    value={zoningPlan}
-                                    onChange={(e) => setZoningPlan(e.target.value)}
-                                    placeholder="např. obytné území"
-                                    className="h-9 text-xs"
-                                  />
+                                  <Select value={zoningPlan} onValueChange={setZoningPlan}>
+                                    <SelectTrigger id="ed_uzemni_plan" className="h-9 text-xs w-full">
+                                      <SelectValue placeholder="Vyberte" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                      {ZONING_PLAN_OPTIONS.map((opt) => (
+                                        <SelectItem key={opt} value={opt}>{opt}</SelectItem>
+                                      ))}
+                                    </SelectContent>
+                                  </Select>
                                 </div>
+                              </div>
+                              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                 <div className="space-y-1.5">
                                   <Label htmlFor="ed_pristup" className="text-xs font-semibold text-stone-400 dark:text-stone-500">Přístup</Label>
-                                  <Input id="ed_pristup"
-                                    value={landAccess}
-                                    onChange={(e) => setLandAccess(e.target.value)}
-                                    placeholder="např. asfaltová cesta"
-                                    className="h-9 text-xs"
-                                  />
+                                  <Select value={landAccess} onValueChange={setLandAccess}>
+                                    <SelectTrigger id="ed_pristup" className="h-9 text-xs w-full">
+                                      <SelectValue placeholder="Vyberte" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                      {LAND_ACCESS_OPTIONS.map((opt) => (
+                                        <SelectItem key={opt} value={opt}>{opt}</SelectItem>
+                                      ))}
+                                    </SelectContent>
+                                  </Select>
                                 </div>
                                 <div className="space-y-1.5">
                                   <Label htmlFor="ed_sirka_tvar_svazitost" className="text-xs font-semibold text-stone-400 dark:text-stone-500">Šířka / tvar / svažitost</Label>
@@ -3260,6 +3303,34 @@ export const PropertiesView: React.FC<PropertiesViewProps> = ({
                                     placeholder="např. 20×40 m, rovina"
                                     className="h-9 text-xs"
                                   />
+                                </div>
+                              </div>
+                              <div className="space-y-1.5">
+                                <Label className="text-xs font-semibold text-stone-400 dark:text-stone-500">Zasíťování</Label>
+                                <div className="flex gap-x-6 gap-y-3 items-center flex-wrap pt-1">
+                                  {Array.from(new Set([...LAND_UTILITY_OPTIONS, ...landUtilityList])).map((util) => {
+                                    const checked = landUtilityList.includes(util);
+                                    return (
+                                      <label key={util} className="flex items-center gap-2 text-xs text-stone-700 dark:text-stone-300 font-medium cursor-pointer">
+                                        <div
+                                          className={cn(
+                                            'w-4 h-4 rounded border flex items-center justify-center transition-all',
+                                            checked
+                                              ? 'bg-[#00D991] border-[#00D991] text-[#00221F]'
+                                              : 'bg-white border-stone-300 dark:bg-stone-900 dark:border-stone-700 text-transparent'
+                                          )}
+                                        >
+                                          {checked && (
+                                            <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+                                              <polyline points="20 6 9 17 4 12" />
+                                            </svg>
+                                          )}
+                                        </div>
+                                        <input type="checkbox" checked={checked} onChange={() => toggleLandUtility(util)} className="sr-only" />
+                                        <span>{util.charAt(0).toUpperCase() + util.slice(1)}</span>
+                                      </label>
+                                    );
+                                  })}
                                 </div>
                               </div>
                             </>
@@ -4350,16 +4421,16 @@ export const PropertiesView: React.FC<PropertiesViewProps> = ({
 
       {/* CREATE DIALOG */}
       <Dialog open={isCreateOpen} onOpenChange={setIsCreateOpen}>
-        <DialogContent className="max-w-2xl w-[94vw] sm:w-[90vw] max-h-[92vh] overflow-y-auto border-stone-200 p-0">
-          <DialogHeader className="px-5 sm:px-7 pt-5 sm:pt-6 pb-4 border-b border-stone-200/80">
+        <DialogContent className="max-w-2xl w-[94vw] sm:w-[90vw] max-h-[100dvh] sm:max-h-[92dvh] h-[100dvh] sm:h-auto overflow-hidden border-stone-200 p-0 flex flex-col">
+          <DialogHeader className="shrink-0 px-5 sm:px-7 pt-5 sm:pt-6 pb-4 border-b border-stone-200/80">
             <DialogTitle className="font-display text-xl sm:text-2xl font-normal text-left text-[#141414] dark:text-stone-100">Přidat nemovitost</DialogTitle>
             <DialogDescription className="text-xs text-left text-muted-foreground mt-0.5">
               Vlož odkaz na inzerát, nebo vyplň údaje ručně.
             </DialogDescription>
           </DialogHeader>
 
-          <form onSubmit={handleCreateProperty} className="text-left">
-            <div className="px-5 sm:px-7 py-5 space-y-12 lg:space-y-7">
+          <form onSubmit={handleCreateProperty} className="text-left flex flex-col min-h-0 flex-1">
+            <div className="flex-1 min-h-0 overflow-y-auto overflow-x-hidden px-5 sm:px-7 py-5 space-y-12 lg:space-y-7">
 
               {/* AI Import — the fast path, first thing on screen */}
               <div className="bg-stone-50 dark:bg-stone-900 border border-stone-200 dark:border-stone-800 p-3.5 rounded-lg space-y-2 text-left">
@@ -4958,48 +5029,46 @@ export const PropertiesView: React.FC<PropertiesViewProps> = ({
 
                       <div className="space-y-1.5">
                         <Label htmlFor="land_type">Druh pozemku</Label>
-                        <Input
-                          id="land_type"
-                          value={landType}
-                          onChange={(e) => setLandType(e.target.value)}
-                          placeholder="např. stavební"
-                          className="border-stone-200 h-9 text-xs"
-                        />
+                        <Select value={landType} onValueChange={setLandType}>
+                          <SelectTrigger id="land_type" className="border-stone-200 h-9 text-xs w-full">
+                            <SelectValue placeholder="Vyberte" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {LAND_TYPE_OPTIONS.map((opt) => (
+                              <SelectItem key={opt} value={opt}>{opt}</SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
                       </div>
 
                       <div className="space-y-1.5">
-                        <Label htmlFor="land_utilities">Zasíťování</Label>
-                        <Input
-                          id="land_utilities"
-                          value={landUtilities}
-                          onChange={(e) => setLandUtilities(e.target.value)}
-                          placeholder="např. voda, plyn"
-                          className="border-stone-200 h-9 text-xs"
-                        />
+                        <Label htmlFor="zoning_plan">Územní plán</Label>
+                        <Select value={zoningPlan} onValueChange={setZoningPlan}>
+                          <SelectTrigger id="zoning_plan" className="border-stone-200 h-9 text-xs w-full">
+                            <SelectValue placeholder="Vyberte" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {ZONING_PLAN_OPTIONS.map((opt) => (
+                              <SelectItem key={opt} value={opt}>{opt}</SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
                       </div>
                     </div>
 
-                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                      <div className="space-y-1.5">
-                        <Label htmlFor="zoning_plan">Územní plán</Label>
-                        <Input
-                          id="zoning_plan"
-                          value={zoningPlan}
-                          onChange={(e) => setZoningPlan(e.target.value)}
-                          placeholder="např. obytné území"
-                          className="border-stone-200 h-9 text-xs"
-                        />
-                      </div>
-
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                       <div className="space-y-1.5">
                         <Label htmlFor="land_access">Přístup</Label>
-                        <Input
-                          id="land_access"
-                          value={landAccess}
-                          onChange={(e) => setLandAccess(e.target.value)}
-                          placeholder="např. asfaltová cesta"
-                          className="border-stone-200 h-9 text-xs"
-                        />
+                        <Select value={landAccess} onValueChange={setLandAccess}>
+                          <SelectTrigger id="land_access" className="border-stone-200 h-9 text-xs w-full">
+                            <SelectValue placeholder="Vyberte" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {LAND_ACCESS_OPTIONS.map((opt) => (
+                              <SelectItem key={opt} value={opt}>{opt}</SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
                       </div>
 
                       <div className="space-y-1.5">
@@ -5008,9 +5077,38 @@ export const PropertiesView: React.FC<PropertiesViewProps> = ({
                           id="land_dimensions"
                           value={landDimensions}
                           onChange={(e) => setLandDimensions(e.target.value)}
-                          placeholder="např. 20x40m"
+                          placeholder="např. 20×40 m, rovina"
                           className="border-stone-200 h-9 text-xs"
                         />
+                      </div>
+                    </div>
+
+                    <div className="space-y-1.5">
+                      <Label>Zasíťování</Label>
+                      <div className="flex gap-x-6 gap-y-3 items-center flex-wrap pt-1">
+                        {Array.from(new Set([...LAND_UTILITY_OPTIONS, ...landUtilityList])).map((util) => {
+                          const checked = landUtilityList.includes(util);
+                          return (
+                            <label key={util} className="flex items-center gap-2 text-xs text-stone-700 dark:text-stone-300 font-medium cursor-pointer">
+                              <div
+                                className={cn(
+                                  'w-4 h-4 rounded border flex items-center justify-center transition-all',
+                                  checked
+                                    ? 'bg-[#00D991] border-[#00D991] text-[#00221F]'
+                                    : 'bg-white border-stone-300 dark:bg-stone-900 dark:border-stone-700 text-transparent'
+                                )}
+                              >
+                                {checked && (
+                                  <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+                                    <polyline points="20 6 9 17 4 12" />
+                                  </svg>
+                                )}
+                              </div>
+                              <input type="checkbox" checked={checked} onChange={() => toggleLandUtility(util)} className="sr-only" />
+                              <span>{util.charAt(0).toUpperCase() + util.slice(1)}</span>
+                            </label>
+                          );
+                        })}
                       </div>
                     </div>
                   </div>
@@ -5085,12 +5183,12 @@ export const PropertiesView: React.FC<PropertiesViewProps> = ({
                 {newKind === 'garáž/ostatní' && (
                   <div className="rounded-lg border border-dashed border-stone-300 dark:border-stone-700 px-4 py-3.5">
                     <div className="text-[13px] font-medium text-stone-900 dark:text-stone-100">
-                      Pro druh „garáž/ostatní" nejsou samostatné parametry
+                      Garáž a ostatní se zadávají jen přes společná pole
                     </div>
                     <div className="text-xs text-stone-500 dark:text-stone-400 mt-1 leading-relaxed">
-                      Uloží se společná pole (adresa, cena, stav nabídky, vlastník). Detaily zapiš do pole{' '}
-                      <span className="font-medium">Co je v ceně / fakta pro odpovědi</span> —
-                      AI odpovídá zájemcům právě z něj.
+                      Tenhle druh nemá pevnou sadu parametrů — každý objekt je jiný. Adresa, cena, stav
+                      nabídky a vlastník výše stačí; rozměry, vjezd nebo vybavení připiš do{' '}
+                      <span className="font-medium">Poznámky</span> níže. AI z ní odpovídá zájemcům.
                     </div>
                   </div>
                 )}
@@ -5103,16 +5201,28 @@ export const PropertiesView: React.FC<PropertiesViewProps> = ({
                   type="button"
                   onClick={() => setShowOptional(!showOptional)}
                   aria-expanded={showOptional}
-                  className="w-full flex items-center justify-between border-b border-stone-200 dark:border-stone-800 pb-2 cursor-pointer group"
+                  className={cn(
+                    'w-full flex items-center justify-between gap-3 rounded-lg border px-4 py-3 text-left transition-colors cursor-pointer',
+                    'bg-stone-50 dark:bg-stone-900 border-stone-200 dark:border-stone-800',
+                    'hover:border-[#0E8A5F]/50 hover:bg-stone-100/70 dark:hover:bg-stone-850'
+                  )}
                 >
-                  <span className="font-display text-sm font-semibold text-stone-500 dark:text-stone-400 uppercase tracking-wider group-hover:text-stone-700 dark:group-hover:text-stone-200 transition-colors">
-                    Volitelné — foto, provize, poznámka
+                  <span className="flex items-center gap-2.5 min-w-0">
+                    <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-stone-200 dark:bg-stone-800 text-[10px] font-bold text-stone-600 dark:text-stone-300">4</span>
+                    <span className="min-w-0">
+                      <span className="block font-display text-sm font-semibold text-stone-700 dark:text-stone-200 uppercase tracking-wider">
+                        Foto, provize a poznámka
+                      </span>
+                      <span className="block text-xs text-stone-400 dark:text-stone-500 mt-0.5">
+                        Volitelné — {showOptional ? 'sbalit' : 'rozbalit a doplnit'}
+                      </span>
+                    </span>
                   </span>
-                  <ChevronRight className={cn('w-4 h-4 text-stone-400 transition-transform duration-200', showOptional && 'rotate-90')} />
+                  <ChevronRight className={cn('w-4 h-4 shrink-0 text-stone-400 transition-transform duration-200', showOptional && 'rotate-90')} />
                 </button>
 
                 {showOptional && (
-                  <div className="space-y-4 pt-4">
+                  <div className="space-y-4 pt-5">
                     <div className="space-y-1.5">
                       <Label htmlFor="new_photo">Hlavní fotografie (URL)</Label>
                       <div className="flex gap-2 items-center">
@@ -5171,7 +5281,7 @@ export const PropertiesView: React.FC<PropertiesViewProps> = ({
               </section>
             </div>
 
-            <DialogFooter className="mx-0 mb-0 sticky bottom-0 bg-white/95 dark:bg-stone-900/95 backdrop-blur-sm border-t border-stone-200 dark:border-stone-800 px-5 sm:px-7 py-3.5 flex flex-row justify-end gap-3">
+            <DialogFooter className="mx-0 mb-0 shrink-0 rounded-b-none sm:rounded-b-xl bg-white dark:bg-stone-900 border-t border-stone-200 dark:border-stone-800 px-5 sm:px-7 py-3.5 pb-[max(0.875rem,env(safe-area-inset-bottom))] flex flex-row justify-end gap-3">
               <Button type="button" variant="outline" onClick={() => setIsCreateOpen(false)}>
                 Zrušit
               </Button>
