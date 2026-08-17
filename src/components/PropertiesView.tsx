@@ -10,7 +10,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Card, CardContent, CardTitle, CardDescription } from '@/components/ui/card';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { toast } from 'sonner';
-import { Search, Plus, Home, User, Briefcase, DollarSign, MapPin, LayoutGrid, List, SlidersHorizontal, FileText, CheckCircle2, Trash2, Edit, X, ChevronRight, Calendar, ArrowRight, Upload, Sparkles, FileUp, MoreHorizontal } from 'lucide-react';
+import { Search, Plus, Home, User, Briefcase, DollarSign, MapPin, LayoutGrid, List, SlidersHorizontal, FileText, CheckCircle2, Trash2, Edit, X, ChevronRight, Calendar, ArrowRight, Upload, Sparkles, FileUp, MoreHorizontal, Building2, Trees, Store, Warehouse } from 'lucide-react';
 
 const KIND_OPTIONS = [
   { id: 'byt', label: 'byt' },
@@ -57,6 +57,23 @@ const COMM_SUBTYPE_OPTIONS = [
   'jiné',
 ] as const;
 const RENT_EQUIPMENT_OPTIONS = ['vybaveno', 'částečně vybaveno', 'nevybaveno'] as const;
+
+// Průvodce: pět otázek, jedna na obrazovku
+const WIZARD_STEPS = [
+  { key: 'druh', label: 'Druh', question: 'Co dáváš do nabídky?', hint: 'Podle druhu se zeptám na správné parametry.' },
+  { key: 'adresa', label: 'Adresa', question: 'Kde to stojí?', hint: 'Ulice a město stačí.' },
+  { key: 'parametry', label: 'Parametry', question: 'Jak je to velké?', hint: 'Jen to podstatné — zbytek doplníš kdykoli později.' },
+  { key: 'cena', label: 'Cena', question: 'Za kolik?', hint: 'Cenu za metr spočítám průběžně.' },
+  { key: 'vlastnik', label: 'Vlastník', question: 'Čí to je?', hint: 'Vyber z kontaktů, nebo rovnou založ nový.' },
+] as const;
+
+const KIND_ICONS: Record<string, React.ComponentType<{ className?: string }>> = {
+  byt: Building2,
+  'dům': Home,
+  pozemek: Trees,
+  'komerční': Store,
+  'garáž/ostatní': Warehouse,
+};
 
 // Pozemky — druhy podle kategorií Sreality, zbytek podle běžné praxe v ČR
 const LAND_TYPE_OPTIONS = [
@@ -187,6 +204,15 @@ export const PropertiesView: React.FC<PropertiesViewProps> = ({
   // AI Import states
   const [importUrl, setImportUrl] = useState('');
   const [isImporting, setIsImporting] = useState(false);
+
+  // Průvodce přidáním nemovitosti: rozcestí → kroky → hotovo.
+  // 'vse' je původní formulář na jedné stránce (expertní režim).
+  type CreateMode = 'rozcestí' | 'import' | 'kroky' | 'vse' | 'hotovo';
+  const [createMode, setCreateMode] = useState<CreateMode>('rozcestí');
+  const [wizardStep, setWizardStep] = useState(0);
+  const [importLines, setImportLines] = useState<{ label: string; value: string }[]>([]);
+  const [importStage, setImportStage] = useState<string>('');
+  const [createdSummary, setCreatedSummary] = useState<Property | null>(null);
 
   // Create form: collapsed optional section (foto, provize, poznámka)
   const [showOptional, setShowOptional] = useState(false);
@@ -466,6 +492,31 @@ export const PropertiesView: React.FC<PropertiesViewProps> = ({
 
   // Zasíťování se v DB drží jako TEXT[], ve formuláři jako čárkami oddělený řetězec.
   // Checkboxy s ním pracují přes tyhle dva helpery, aby se nic z importu neztratilo.
+  // Popis nemovitosti pro nadpisy („Byt 3+kk", „Pozemek — pole")
+  const describeProperty = (p: Property) => {
+    if (p.kind === 'byt') return `Byt ${p.flat_layout || ''}`.trim();
+    if (p.kind === 'dům') return `Dům ${p.house_layout || ''}`.trim();
+    if (p.kind === 'pozemek') return p.land_type ? `Pozemek — ${p.land_type}` : 'Pozemek';
+    if (p.kind === 'komerční') return p.comm_subtype ? `Komerční — ${p.comm_subtype}` : 'Komerční prostor';
+    return p.comm_subtype || 'Garáž';
+  };
+
+  // Živý souhrn v průvodci — co už je vyplněné
+  const wizardArea = newKind === 'byt' ? flatArea : newKind === 'dům' ? houseArea : newKind === 'pozemek' ? landSize : commFloorArea;
+  const wizardSummary = [
+    newKind ? `${newKind} · ${newTransaction}` : '',
+    newAddress,
+    newKind === 'byt' ? flatLayout : newKind === 'dům' ? houseLayout : commSubtype || landType,
+    wizardArea ? `${wizardArea} m²` : '',
+    newPrice ? `${Number(newPrice).toLocaleString('cs-CZ')} Kč` : '',
+    contacts.find((c) => c.id === newOwnerId)?.full_name || (ownerMode === 'new' ? newOwnerFullName : ''),
+  ].filter(Boolean) as string[];
+
+  const pricePerM2 =
+    newPrice && wizardArea && Number(wizardArea) > 0
+      ? Math.round(Number(newPrice) / Number(wizardArea)).toLocaleString('cs-CZ')
+      : null;
+
   const landUtilityList = landUtilities.split(',').map((s) => s.trim()).filter(Boolean);
   const toggleLandUtility = (util: string) => {
     const next = landUtilityList.includes(util)
@@ -925,8 +976,8 @@ export const PropertiesView: React.FC<PropertiesViewProps> = ({
       });
 
       toast.success('Nemovitost a vlastník byli úspěšně uloženi.');
-      setIsCreateOpen(false);
-      setSelectedProperty(created);
+      setCreatedSummary(created);
+      setCreateMode('hotovo');
       onRefresh();
 
       // Reset fields
@@ -1004,7 +1055,9 @@ export const PropertiesView: React.FC<PropertiesViewProps> = ({
     }
 
     setIsImporting(true);
-    
+    setImportLines([]);
+    setImportStage('Stahuji stránku…');
+
     // Use clear separate toasts to avoid sonner-specific updating bugs
     const toastId = toast.loading('1/2: Stahuji inzerát přes proxy...');
 
@@ -1022,6 +1075,7 @@ export const PropertiesView: React.FC<PropertiesViewProps> = ({
 
       // Dismiss first toast and start second stage toast
       toast.dismiss(toastId);
+      setImportStage('Čtu text inzerátu…');
       const toastId2 = toast.loading('2/2: Analyzuji text inzerátu pomocí AI...');
 
       // 2. Parse HTML, extract image, and clean up text
@@ -1177,6 +1231,35 @@ export const PropertiesView: React.FC<PropertiesViewProps> = ({
       }
 
       const parsed = JSON.parse(rawText);
+      setImportStage('');
+
+      // Vypiš postupně, co se našlo — makléř vidí, že systém odvedl jeho práci
+      const KIND_LABEL: Record<string, string> = {
+        byt: 'byt', 'dům': 'dům', pozemek: 'pozemek', 'komerční': 'komerční', 'garáž/ostatní': 'garáž',
+      };
+      const found: { label: string; value: string }[] = [];
+      const push = (label: string, value: unknown, suffix = '') => {
+        if (value !== undefined && value !== null && value !== '') {
+          found.push({ label, value: `${Array.isArray(value) ? value.join(', ') : value}${suffix}` });
+        }
+      };
+      push('Adresa', parsed.address);
+      push('Druh', parsed.kind ? `${KIND_LABEL[parsed.kind] || parsed.kind} · ${parsed.transaction || 'prodej'}` : null);
+      push('Dispozice', parsed.flat_layout || parsed.house_layout);
+      push('Plocha', parsed.flat_area || parsed.house_area || parsed.comm_floor_area, ' m²');
+      push('Výměra', parsed.land_size, ' m²');
+      push('Patro', parsed.floor);
+      push('Cena', parsed.price ? Number(parsed.price).toLocaleString('cs-CZ') : null, parsed.price ? ' Kč' : '');
+      push('Stav', parsed.flat_condition || parsed.house_condition || parsed.comm_condition_equipment);
+      push('Konstrukce', parsed.construction);
+      push('Vlastnictví', parsed.ownership);
+      push('PENB', parsed.flat_penb || parsed.house_penb || parsed.comm_penb);
+      push('Vybavení', parsed.flat_features || parsed.house_features);
+      push('Sítě', parsed.land_utilities);
+
+      found.forEach((line, i) => {
+        window.setTimeout(() => setImportLines((prev) => [...prev, line]), i * 160);
+      });
 
       // 4. Fill form states
       if (parsed.address) setNewAddress(parsed.address);
@@ -1243,6 +1326,7 @@ export const PropertiesView: React.FC<PropertiesViewProps> = ({
     } catch (err: any) {
       console.error(err);
       toast.dismiss(toastId);
+      setImportStage('');
       toast.error(`Chyba importu: ${err.message || 'Nepodařilo se importovat data.'}`);
     } finally {
       setIsImporting(false);
@@ -1307,6 +1391,11 @@ export const PropertiesView: React.FC<PropertiesViewProps> = ({
     setNewTransaction('prodej');
     setNewOfferStatus('v nabídce');
     setShowOptional(false);
+    setCreateMode('rozcestí');
+    setWizardStep(0);
+    setImportLines([]);
+    setImportStage('');
+    setCreatedSummary(null);
 
     setIsCreateOpen(true);
   };
@@ -4509,6 +4598,501 @@ export const PropertiesView: React.FC<PropertiesViewProps> = ({
           <form onSubmit={handleCreateProperty} className="text-left flex flex-col min-h-0 flex-1">
             <div ref={createScrollRef} className="flex-1 min-h-0 overflow-y-auto overflow-x-hidden px-5 sm:px-7 py-5 space-y-12 lg:space-y-7">
 
+              {/* ───────── ROZCESTÍ ───────── */}
+              {createMode === 'rozcestí' && (
+                <div className="space-y-5">
+                  <div>
+                    <h3 className="font-display text-[19px] font-semibold text-stone-900 dark:text-stone-100">Jak to vezmeme?</h3>
+                    <p className="text-[13px] text-stone-500 dark:text-stone-400 mt-1">
+                      Máš odkaz na inzerát? Pak nevyplňuj nic — přečtu ho za tebe.
+                    </p>
+                  </div>
+
+                  <button
+                    type="button"
+                    onClick={() => setCreateMode('import')}
+                    className="w-full text-left rounded-xl border border-stone-200 dark:border-stone-800 p-5 hover:border-[#0E8A5F] hover:bg-[#0E8A5F]/[0.04] transition-colors cursor-pointer group"
+                  >
+                    <div className="flex items-start gap-4">
+                      <div className="w-10 h-10 rounded-lg bg-[#00D991] flex items-center justify-center flex-none">
+                        <Sparkles className="w-5 h-5 text-[#00221F]" />
+                      </div>
+                      <div className="min-w-0">
+                        <div className="flex items-center gap-2">
+                          <span className="font-display text-[15px] font-semibold text-stone-900 dark:text-stone-100">Mám odkaz na inzerát</span>
+                          <span className="text-[10px] font-semibold uppercase tracking-wider bg-[#00D991]/15 text-[#0E8A5F] px-1.5 py-0.5 rounded">Nejrychlejší</span>
+                        </div>
+                        <p className="text-[13px] text-stone-500 dark:text-stone-400 mt-1 leading-relaxed">
+                          Sreality, Bezrealitky, RE/MAX… AI z něj vytáhne adresu, cenu i všechny parametry.
+                          Ty jen zkontroluješ a uložíš.
+                        </p>
+                      </div>
+                      <ChevronRight className="w-4 h-4 text-stone-300 group-hover:text-[#0E8A5F] transition-colors mt-1 ml-auto flex-none" />
+                    </div>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => { setCreateMode('kroky'); setWizardStep(0); }}
+                    className="w-full text-left rounded-xl border border-stone-200 dark:border-stone-800 p-5 hover:border-[#0E8A5F] hover:bg-[#0E8A5F]/[0.04] transition-colors cursor-pointer group"
+                  >
+                    <div className="flex items-start gap-4">
+                      <div className="w-10 h-10 rounded-lg border border-stone-200 dark:border-stone-700 flex items-center justify-center flex-none">
+                        <Edit className="w-4 h-4 text-stone-500" />
+                      </div>
+                      <div className="min-w-0">
+                        <span className="font-display text-[15px] font-semibold text-stone-900 dark:text-stone-100">Zadám ručně</span>
+                        <p className="text-[13px] text-stone-500 dark:text-stone-400 mt-1 leading-relaxed">
+                          Pět otázek, jedna po druhé. Zhruba minuta.
+                        </p>
+                      </div>
+                      <ChevronRight className="w-4 h-4 text-stone-300 group-hover:text-[#0E8A5F] transition-colors mt-1 ml-auto flex-none" />
+                    </div>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => setCreateMode('vse')}
+                    className="text-[12.5px] text-stone-400 hover:text-[#0E8A5F] transition-colors cursor-pointer"
+                  >
+                    Radši vše na jedné stránce →
+                  </button>
+                </div>
+              )}
+
+              {/* ───────── IMPORT ───────── */}
+              {createMode === 'import' && (
+                <div className="space-y-5">
+                  <div>
+                    <h3 className="font-display text-[19px] font-semibold text-stone-900 dark:text-stone-100">Vlož odkaz na inzerát</h3>
+                    <p className="text-[13px] text-stone-500 dark:text-stone-400 mt-1">
+                      Zbytek nech na mně.
+                    </p>
+                  </div>
+
+                  <div className="flex flex-col sm:flex-row gap-2">
+                    <Input
+                      id="wizard_import_url"
+                      type="url"
+                      placeholder="https://www.sreality.cz/detail/…"
+                      value={importUrl}
+                      onChange={(e) => setImportUrl(e.target.value)}
+                      disabled={isImporting}
+                      className="border-stone-200 h-10 text-xs bg-white dark:bg-stone-950 w-full sm:flex-1"
+                    />
+                    <Button
+                      type="button"
+                      onClick={handleImportFromUrl}
+                      disabled={isImporting || !importUrl}
+                      className="h-10 text-xs shrink-0 font-medium"
+                    >
+                      {isImporting ? 'Načítám…' : 'Načíst inzerát'}
+                    </Button>
+                  </div>
+
+                  {importStage && (
+                    <div className="flex items-center gap-2.5 text-[13px] text-stone-500 dark:text-stone-400">
+                      <span className="w-3.5 h-3.5 rounded-full border-2 border-stone-200 dark:border-stone-700 border-t-[#0E8A5F] animate-spin" />
+                      {importStage}
+                    </div>
+                  )}
+
+                  {importLines.length > 0 && (
+                    <div className="rounded-xl border border-stone-200 dark:border-stone-800 p-4">
+                      <div className="text-[11px] font-semibold uppercase tracking-wider text-stone-400 mb-3">
+                        Načteno {importLines.length} údajů
+                      </div>
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-2.5">
+                        {importLines.map((line) => (
+                          <div key={line.label} className="flex items-start gap-2.5 text-[13px] animate-in fade-in slide-in-from-bottom-1 duration-300">
+                            <span className="w-4 h-4 rounded-full bg-[#00D991] flex items-center justify-center flex-none mt-0.5">
+                              <CheckCircle2 className="w-3 h-3 text-[#00221F]" strokeWidth={3} />
+                            </span>
+                            <span className="text-stone-500 dark:text-stone-400 min-w-0">
+                              <span className="font-semibold text-stone-900 dark:text-stone-100">{line.label}</span>{' '}
+                              {line.value}
+                            </span>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {!isImporting && importLines.length > 0 && (
+                    <div className="space-y-1.5">
+                      <Label htmlFor="wizard_owner">Vlastník *</Label>
+                      <Select value={newOwnerId} onValueChange={setNewOwnerId}>
+                        <SelectTrigger id="wizard_owner" className="w-full border-stone-200 h-10 text-xs">
+                          <span className={`text-xs ${newOwnerId ? 'text-foreground font-medium' : 'text-muted-foreground'}`}>
+                            {contacts.find((c) => c.id === newOwnerId)?.full_name || 'Vyberte vlastníka z kontaktů'}
+                          </span>
+                        </SelectTrigger>
+                        <SelectContent>
+                          {contacts.map((c) => (
+                            <SelectItem key={c.id} value={c.id}>{c.full_name}</SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {/* ───────── HOTOVO ───────── */}
+              {createMode === 'hotovo' && createdSummary && (
+                <div className="space-y-6 py-2">
+                  <div className="w-12 h-12 rounded-full bg-[#00D991] flex items-center justify-center">
+                    <CheckCircle2 className="w-6 h-6 text-[#00221F]" strokeWidth={2.5} />
+                  </div>
+                  <div>
+                    <h3 className="font-display text-[21px] font-semibold text-stone-900 dark:text-stone-100">
+                      {describeProperty(createdSummary)} je v systému
+                    </h3>
+                    <p className="text-[13px] text-stone-500 dark:text-stone-400 mt-1">
+                      {createdSummary.address} · {createdSummary.price.toLocaleString('cs-CZ')} Kč
+                    </p>
+                  </div>
+
+                  <div className="space-y-2">
+                    <div className="text-[11px] font-semibold uppercase tracking-wider text-stone-400">Co dál</div>
+                    {[
+                      { label: 'Otevřít kartu nemovitosti', hint: 'doplnit fotky, poznámky, provizi' },
+                      { label: 'Přiřadit zájemce', hint: `${getMatchingBuyersForProperty(createdSummary).length} kontaktů hledá něco podobného` },
+                    ].map((a) => (
+                      <button
+                        key={a.label}
+                        type="button"
+                        onClick={() => { setIsCreateOpen(false); setSelectedProperty(createdSummary); setIsDetailOpen(true); }}
+                        className="w-full flex items-center justify-between gap-3 rounded-lg border border-stone-200 dark:border-stone-800 px-4 py-3 text-left hover:border-[#0E8A5F] hover:bg-[#0E8A5F]/[0.04] transition-colors cursor-pointer"
+                      >
+                        <span className="min-w-0">
+                          <span className="block text-[14px] font-medium text-stone-900 dark:text-stone-100">{a.label}</span>
+                          <span className="block text-[12px] text-stone-400">{a.hint}</span>
+                        </span>
+                        <ChevronRight className="w-4 h-4 text-[#0E8A5F] flex-none" />
+                      </button>
+                    ))}
+                  </div>
+
+                  <button
+                    type="button"
+                    onClick={handleOpenCreate}
+                    className="text-[12.5px] text-stone-400 hover:text-[#0E8A5F] transition-colors cursor-pointer"
+                  >
+                    + Přidat další nemovitost
+                  </button>
+                </div>
+              )}
+
+              {/* ───────── KROKY ───────── */}
+              {createMode === 'kroky' && (
+                <div className="space-y-5">
+                  {/* postup */}
+                  <div className="flex items-center gap-1.5">
+                    {WIZARD_STEPS.map((s, i) => (
+                      <button
+                        key={s.key}
+                        type="button"
+                        onClick={() => setWizardStep(i)}
+                        title={s.label}
+                        className={cn(
+                          'h-1.5 rounded-full transition-all cursor-pointer',
+                          i === wizardStep ? 'bg-[#0E8A5F] w-8' : i < wizardStep ? 'bg-[#00D991] w-5' : 'bg-stone-200 dark:bg-stone-800 w-5'
+                        )}
+                      />
+                    ))}
+                    <span className="ml-auto text-[11px] font-medium text-stone-400 tabular-nums">
+                      {wizardStep + 1}/{WIZARD_STEPS.length}
+                    </span>
+                  </div>
+
+                  <div>
+                    <h3 className="font-display text-[19px] font-semibold text-stone-900 dark:text-stone-100">
+                      {WIZARD_STEPS[wizardStep].question}
+                    </h3>
+                    <p className="text-[13px] text-stone-500 dark:text-stone-400 mt-1">
+                      {WIZARD_STEPS[wizardStep].hint}
+                    </p>
+                  </div>
+
+                  {/* 1. Druh + transakce */}
+                  {wizardStep === 0 && (
+                    <div className="space-y-4">
+                      <div className="grid grid-cols-2 sm:grid-cols-3 gap-2.5">
+                        {KIND_OPTIONS.map((opt) => {
+                          const active = newKind === opt.id;
+                          const Icon = KIND_ICONS[opt.id];
+                          return (
+                            <button
+                              key={opt.id}
+                              type="button"
+                              onClick={() => setNewKind(opt.id as Property['kind'])}
+                              className={cn(
+                                'flex flex-col gap-2 rounded-lg border p-3.5 text-left transition-colors cursor-pointer',
+                                active
+                                  ? 'border-[#0E8A5F] bg-[#0E8A5F]/[0.06]'
+                                  : 'border-stone-200 dark:border-stone-800 hover:border-[#0E8A5F]/60'
+                              )}
+                            >
+                              <Icon className={cn('w-5 h-5', active ? 'text-[#0E8A5F]' : 'text-stone-400')} />
+                              <span className="text-[13.5px] font-medium text-stone-900 dark:text-stone-100 capitalize">{opt.label}</span>
+                            </button>
+                          );
+                        })}
+                      </div>
+                      <div className="flex gap-2">
+                        {TRANSACTION_OPTIONS.map((t) => (
+                          <button
+                            key={t}
+                            type="button"
+                            onClick={() => setNewTransaction(t as Property['transaction'])}
+                            className={cn(
+                              'px-4 h-9 rounded-full border text-[13px] font-medium transition-colors cursor-pointer capitalize',
+                              newTransaction === t
+                                ? 'border-[#0E8A5F] bg-[#0E8A5F] text-white'
+                                : 'border-stone-200 dark:border-stone-800 text-stone-500 hover:border-[#0E8A5F]/60'
+                            )}
+                          >
+                            {t}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* 2. Adresa */}
+                  {wizardStep === 1 && (
+                    <div className="space-y-1.5">
+                      <Label htmlFor="wizard_address">Adresa *</Label>
+                      <Input
+                        id="wizard_address"
+                        value={newAddress}
+                        onChange={(e) => setNewAddress(e.target.value)}
+                        placeholder="např. Kozinova, Poděbrady"
+                        className="border-stone-200 h-10 text-xs"
+                        autoFocus
+                      />
+                    </div>
+                  )}
+
+                  {/* 3. Parametry podle druhu */}
+                  {wizardStep === 2 && (
+                    <div className="space-y-4">
+                      {newKind === 'byt' && (
+                        <>
+                          <div className="space-y-1.5">
+                            <Label>Dispozice *</Label>
+                            <div className="flex flex-wrap gap-2">
+                              {FLAT_LAYOUT_OPTIONS.map((l) => (
+                                <button
+                                  key={l}
+                                  type="button"
+                                  onClick={() => setFlatLayout(l)}
+                                  className={cn(
+                                    'px-3.5 h-9 rounded-full border text-[13px] font-medium transition-colors cursor-pointer',
+                                    flatLayout === l
+                                      ? 'border-[#0E8A5F] bg-[#0E8A5F] text-white'
+                                      : 'border-stone-200 dark:border-stone-800 text-stone-500 hover:border-[#0E8A5F]/60'
+                                  )}
+                                >
+                                  {l}
+                                </button>
+                              ))}
+                            </div>
+                          </div>
+                          <div className="space-y-1.5">
+                            <Label htmlFor="wizard_flat_area">Užitná plocha (m²) *</Label>
+                            <Input id="wizard_flat_area" type="number" value={flatArea}
+                              onChange={(e) => setFlatArea(e.target.value)} placeholder="m²"
+                              className="border-stone-200 h-10 text-xs" />
+                          </div>
+                        </>
+                      )}
+                      {newKind === 'dům' && (
+                        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                          <div className="space-y-1.5">
+                            <Label htmlFor="wizard_house_layout">Dispozice *</Label>
+                            <Select value={houseLayout} onValueChange={setHouseLayout}>
+                              <SelectTrigger id="wizard_house_layout" className="border-stone-200 h-10 text-xs w-full">
+                                <SelectValue placeholder="Vyberte" />
+                              </SelectTrigger>
+                              <SelectContent>
+                                {HOUSE_LAYOUT_OPTIONS.map((o) => <SelectItem key={o} value={o}>{o}</SelectItem>)}
+                              </SelectContent>
+                            </Select>
+                          </div>
+                          <div className="space-y-1.5">
+                            <Label htmlFor="wizard_house_area">Plocha (m²) *</Label>
+                            <Input id="wizard_house_area" type="number" value={houseArea}
+                              onChange={(e) => setHouseArea(e.target.value)} placeholder="m²" className="border-stone-200 h-10 text-xs" />
+                          </div>
+                          <div className="space-y-1.5">
+                            <Label htmlFor="wizard_land_area">Pozemek (m²) *</Label>
+                            <Input id="wizard_land_area" type="number" value={landArea}
+                              onChange={(e) => setLandArea(e.target.value)} placeholder="m²" className="border-stone-200 h-10 text-xs" />
+                          </div>
+                        </div>
+                      )}
+                      {newKind === 'pozemek' && (
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                          <div className="space-y-1.5">
+                            <Label htmlFor="wizard_land_size">Výměra (m²) *</Label>
+                            <Input id="wizard_land_size" type="number" value={landSize}
+                              onChange={(e) => setLandSize(e.target.value)} placeholder="m²" className="border-stone-200 h-10 text-xs" />
+                          </div>
+                          <div className="space-y-1.5">
+                            <Label htmlFor="wizard_land_type">Druh pozemku</Label>
+                            <Select value={landType} onValueChange={setLandType}>
+                              <SelectTrigger id="wizard_land_type" className="border-stone-200 h-10 text-xs w-full">
+                                <SelectValue placeholder="Vyberte" />
+                              </SelectTrigger>
+                              <SelectContent>
+                                {LAND_TYPE_OPTIONS.map((o) => <SelectItem key={o} value={o}>{o}</SelectItem>)}
+                              </SelectContent>
+                            </Select>
+                          </div>
+                        </div>
+                      )}
+                      {(newKind === 'komerční' || newKind === 'garáž/ostatní') && (
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                          <div className="space-y-1.5">
+                            <Label htmlFor="wizard_comm_subtype">{newKind === 'komerční' ? 'Podtyp' : 'Typ objektu'}</Label>
+                            <Select value={commSubtype} onValueChange={setCommSubtype}>
+                              <SelectTrigger id="wizard_comm_subtype" className="border-stone-200 h-10 text-xs w-full">
+                                <SelectValue placeholder="Vyberte" />
+                              </SelectTrigger>
+                              <SelectContent>
+                                {(newKind === 'komerční' ? COMM_SUBTYPE_OPTIONS : GARAGE_SUBTYPE_OPTIONS).map((o) => (
+                                  <SelectItem key={o} value={o}>{o}</SelectItem>
+                                ))}
+                              </SelectContent>
+                            </Select>
+                          </div>
+                          <div className="space-y-1.5">
+                            <Label htmlFor="wizard_comm_area">Plocha (m²)</Label>
+                            <Input id="wizard_comm_area" type="number" value={commFloorArea}
+                              onChange={(e) => setCommFloorArea(e.target.value)} placeholder="m²" className="border-stone-200 h-10 text-xs" />
+                          </div>
+                        </div>
+                      )}
+                      <button
+                        type="button"
+                        onClick={() => setCreateMode('vse')}
+                        className="text-[12.5px] text-stone-400 hover:text-[#0E8A5F] transition-colors cursor-pointer"
+                      >
+                        Chci vyplnit i ostatní parametry →
+                      </button>
+                    </div>
+                  )}
+
+                  {/* 4. Cena */}
+                  {wizardStep === 3 && (
+                    <div className="space-y-3">
+                      <div className="space-y-1.5">
+                        <Label htmlFor="wizard_price">{newTransaction === 'pronájem' ? 'Nájem (Kč / měsíc) *' : 'Cena (Kč) *'}</Label>
+                        <Input id="wizard_price" type="number" value={newPrice}
+                          onChange={(e) => setNewPrice(e.target.value)} placeholder="Kč"
+                          className="border-stone-200 h-10 text-xs" autoFocus />
+                      </div>
+                      {pricePerM2 && (
+                        <div className="text-[13px] text-stone-500 dark:text-stone-400 tabular-nums">
+                          {pricePerM2} Kč/m²
+                        </div>
+                      )}
+                      <div className="space-y-1.5">
+                        <Label htmlFor="wizard_status">Stav nabídky</Label>
+                        <Select value={newOfferStatus} onValueChange={(v: Property['offer_status']) => setNewOfferStatus(v)}>
+                          <SelectTrigger id="wizard_status" className="border-stone-200 h-10 text-xs w-full">
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {OFFER_STATUS_OPTIONS.filter((o) => o !== 'prodá později').map((o) => (
+                              <SelectItem key={o} value={o}>{o}</SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* 5. Vlastník */}
+                  {wizardStep === 4 && (
+                    <div className="space-y-4">
+                      <div className="flex bg-stone-100 dark:bg-stone-850 p-0.5 rounded-md border border-stone-200 dark:border-stone-800">
+                        {(['select', 'new'] as const).map((m) => (
+                          <button
+                            key={m}
+                            type="button"
+                            onClick={() => setOwnerMode(m)}
+                            className={cn(
+                              'flex-1 py-1.5 rounded-sm text-xs font-semibold transition-all cursor-pointer',
+                              ownerMode === m ? 'bg-white dark:bg-stone-900 text-stone-900 dark:text-stone-100 shadow-xs' : 'text-stone-500'
+                            )}
+                          >
+                            {m === 'select' ? 'Vybrat z kontaktů' : 'Nový vlastník'}
+                          </button>
+                        ))}
+                      </div>
+
+                      {ownerMode === 'select' ? (
+                        <div className="space-y-1.5">
+                          <Label htmlFor="wizard_owner_sel">Vlastník *</Label>
+                          <Select value={newOwnerId} onValueChange={setNewOwnerId}>
+                            <SelectTrigger id="wizard_owner_sel" className="w-full border-stone-200 h-10 text-xs">
+                              <span className={`text-xs ${newOwnerId ? 'text-foreground font-medium' : 'text-muted-foreground'}`}>
+                                {contacts.find((c) => c.id === newOwnerId)?.full_name || 'Vyberte vlastníka z kontaktů'}
+                              </span>
+                            </SelectTrigger>
+                            <SelectContent>
+                              {contacts.map((c) => (
+                                <SelectItem key={c.id} value={c.id}>{c.full_name} ({c.roles.join(', ')})</SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                        </div>
+                      ) : (
+                        <div className="space-y-4">
+                          <div className="space-y-1.5">
+                            <Label htmlFor="wizard_owner_name">Jméno a příjmení *</Label>
+                            <Input id="wizard_owner_name" value={newOwnerFullName}
+                              onChange={(e) => setNewOwnerFullName(e.target.value)}
+                              placeholder="např. Jan Novák" className="border-stone-200 h-10 text-xs" />
+                          </div>
+                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                            <div className="space-y-1.5">
+                              <Label htmlFor="wizard_owner_phone">Telefon *</Label>
+                              <Input id="wizard_owner_phone" value={newOwnerPhone}
+                                onChange={(e) => setNewOwnerPhone(e.target.value)}
+                                placeholder="+420 777 888 999" className="border-stone-200 h-10 text-xs" />
+                            </div>
+                            <div className="space-y-1.5">
+                              <Label htmlFor="wizard_owner_email">E-mail</Label>
+                              <Input id="wizard_owner_email" type="email" value={newOwnerEmail}
+                                onChange={(e) => setNewOwnerEmail(e.target.value)}
+                                placeholder="novak@seznam.cz" className="border-stone-200 h-10 text-xs" />
+                            </div>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  )}
+
+                  {/* živý souhrn */}
+                  {wizardSummary.length > 0 && (
+                    <div className="rounded-lg border border-dashed border-stone-200 dark:border-stone-800 px-4 py-3">
+                      <div className="text-[11px] font-semibold uppercase tracking-wider text-stone-400 mb-2">Vzniká nabídka</div>
+                      <div className="flex flex-wrap gap-x-4 gap-y-1.5">
+                        {wizardSummary.map((s) => (
+                          <span key={s} className="text-[12.5px] text-stone-600 dark:text-stone-300">{s}</span>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {createMode === 'vse' && (
+              <div className="space-y-12 lg:space-y-7">
               {/* AI Import — the fast path, first thing on screen */}
               <div className="bg-stone-50 dark:bg-stone-900 border border-stone-200 dark:border-stone-800 p-3.5 rounded-lg space-y-2 text-left">
                 <Label htmlFor="import_url" className="text-xs font-semibold text-stone-700 dark:text-stone-300 flex items-center gap-1.5">
@@ -5397,15 +5981,73 @@ export const PropertiesView: React.FC<PropertiesViewProps> = ({
                   </div>
                 )}
               </section>
+              </div>
+              )}
             </div>
 
-            <DialogFooter className="mx-0 mb-0 shrink-0 rounded-b-none sm:rounded-b-xl bg-white dark:bg-stone-900 border-t border-stone-200 dark:border-stone-800 px-5 sm:px-7 py-3.5 pb-[max(0.875rem,env(safe-area-inset-bottom))] flex flex-row justify-end gap-3">
-              <Button type="button" variant="outline" onClick={() => setIsCreateOpen(false)}>
-                Zrušit
-              </Button>
-              <Button type="submit">
-                Vytvořit nemovitost
-              </Button>
+            <DialogFooter className="mx-0 mb-0 shrink-0 rounded-b-none sm:rounded-b-xl bg-white dark:bg-stone-900 border-t border-stone-200 dark:border-stone-800 px-5 sm:px-7 py-3.5 pb-[max(0.875rem,env(safe-area-inset-bottom))] flex flex-row items-center justify-between gap-3">
+              {createMode === 'kroky' ? (
+                <>
+                  <button
+                    type="button"
+                    onClick={() => (wizardStep === 0 ? setCreateMode('rozcestí') : setWizardStep(wizardStep - 1))}
+                    className="text-xs font-medium text-stone-500 hover:text-stone-800 dark:hover:text-stone-200 cursor-pointer"
+                  >
+                    ← Zpět
+                  </button>
+                  {wizardStep < WIZARD_STEPS.length - 1 ? (
+                    <Button type="button" onClick={() => setWizardStep(wizardStep + 1)}>
+                      Pokračovat
+                    </Button>
+                  ) : (
+                    <Button type="submit">Uložit nemovitost</Button>
+                  )}
+                </>
+              ) : createMode === 'vse' ? (
+                <>
+                  <button
+                    type="button"
+                    onClick={() => setCreateMode('rozcestí')}
+                    className="text-xs font-medium text-stone-500 hover:text-stone-800 dark:hover:text-stone-200 cursor-pointer"
+                  >
+                    ← Zpět na rozcestí
+                  </button>
+                  <div className="flex gap-3">
+                    <Button type="button" variant="outline" onClick={() => setIsCreateOpen(false)}>
+                      Zrušit
+                    </Button>
+                    <Button type="submit">Vytvořit nemovitost</Button>
+                  </div>
+                </>
+              ) : createMode === 'import' ? (
+                <>
+                  <button
+                    type="button"
+                    onClick={() => setCreateMode('rozcestí')}
+                    className="text-xs font-medium text-stone-500 hover:text-stone-800 dark:hover:text-stone-200 cursor-pointer"
+                  >
+                    ← Zpět
+                  </button>
+                  <div className="flex gap-3">
+                    <Button type="button" variant="outline" onClick={() => setCreateMode('vse')} disabled={isImporting}>
+                      Zkontrolovat vše
+                    </Button>
+                    <Button type="submit" disabled={isImporting || !newAddress}>Uložit nemovitost</Button>
+                  </div>
+                </>
+              ) : createMode === 'hotovo' ? (
+                <>
+                  <span className="text-xs text-stone-400">Uloženo do databáze</span>
+                  <Button type="button" onClick={() => setIsCreateOpen(false)}>Zavřít</Button>
+                </>
+              ) : (
+                <>
+                  <span className="text-xs text-stone-400">Vyber, jak chceš pokračovat</span>
+                  <Button type="button" variant="outline" onClick={() => setIsCreateOpen(false)}>
+                    Zrušit
+                  </Button>
+                </>
+              )}
             </DialogFooter>
           </form>
         </DialogContent>
