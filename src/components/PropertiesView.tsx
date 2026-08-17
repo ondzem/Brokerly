@@ -139,6 +139,9 @@ export const PropertiesView: React.FC<PropertiesViewProps> = ({
   const [importUrl, setImportUrl] = useState('');
   const [isImporting, setIsImporting] = useState(false);
 
+  // Create form: collapsed optional section (foto, provize, poznámka)
+  const [showOptional, setShowOptional] = useState(false);
+
   // Edit details common states
   const [editOwnerId, setEditOwnerId] = useState('');
   const [editKind, setEditKind] = useState<Property['kind']>('byt');
@@ -1134,6 +1137,11 @@ export const PropertiesView: React.FC<PropertiesViewProps> = ({
       if (parsed.comm_parking_entrance) setCommParking(parsed.comm_parking_entrance);
       if (parsed.comm_penb) setCommPenb(parsed.comm_penb);
 
+      // Import naplnil i volitelná pole — rozbal je, ať uživatel vidí, co se doplnilo
+      if (foundPhotoUrl || parsed.commission_pct || parsed.commission_val || parsed.facts_for_answers) {
+        setShowOptional(true);
+      }
+
       // Byt specific
       if (parsed.flat_layout) setFlatLayout(parsed.flat_layout);
       if (parsed.flat_area) setFlatArea(parsed.flat_area.toString());
@@ -1237,6 +1245,7 @@ export const PropertiesView: React.FC<PropertiesViewProps> = ({
     setNewKind('byt');
     setNewTransaction('prodej');
     setNewOfferStatus('v nabídce');
+    setShowOptional(false);
 
     setIsCreateOpen(true);
   };
@@ -4341,22 +4350,53 @@ export const PropertiesView: React.FC<PropertiesViewProps> = ({
 
       {/* CREATE DIALOG */}
       <Dialog open={isCreateOpen} onOpenChange={setIsCreateOpen}>
-        <DialogContent className="max-w-5xl lg:max-w-6xl w-[90vw] md:w-[92vw] lg:w-full max-h-[90vh] overflow-y-auto border-stone-200 p-6 md:p-8">
-          <DialogHeader className="border-b border-stone-250 pb-4 mb-4">
-            <DialogTitle className="font-display text-2xl font-normal text-left text-[#141414]">Přidat nemovitost</DialogTitle>
-            <DialogDescription className="text-xs text-left text-muted-foreground mt-1">
-              Vyplňte základní údaje o nemovitosti a přiřaďte nebo rovnou vytvořte jejího vlastníka na jednom místě.
+        <DialogContent className="max-w-2xl w-[94vw] sm:w-[90vw] max-h-[92vh] overflow-y-auto border-stone-200 p-0">
+          <DialogHeader className="px-5 sm:px-7 pt-5 sm:pt-6 pb-4 border-b border-stone-200/80">
+            <DialogTitle className="font-display text-xl sm:text-2xl font-normal text-left text-[#141414] dark:text-stone-100">Přidat nemovitost</DialogTitle>
+            <DialogDescription className="text-xs text-left text-muted-foreground mt-0.5">
+              Vlož odkaz na inzerát, nebo vyplň údaje ručně.
             </DialogDescription>
           </DialogHeader>
 
-          <form onSubmit={handleCreateProperty} className="space-y-6 text-left">
-            <div className="grid grid-cols-1 md:grid-cols-12 gap-8 items-start">
-              
-              {/* Left Column: Vlastník nemovitosti (col-span-5) */}
-              <div className="md:col-span-5 space-y-5">
-                <h3 className="font-display text-sm font-semibold text-stone-700 uppercase tracking-wider border-b border-stone-200 pb-2 flex items-center gap-2">
-                  <span className="flex h-5 w-5 items-center justify-center rounded-full bg-stone-100 text-[10px] font-bold text-stone-600">1</span>
-                  Vlastník nemovitosti
+          <form onSubmit={handleCreateProperty} className="text-left">
+            <div className="px-5 sm:px-7 py-5 space-y-7">
+
+              {/* AI Import — the fast path, first thing on screen */}
+              <div className="bg-stone-50 dark:bg-stone-900 border border-stone-200 dark:border-stone-800 p-3.5 rounded-lg space-y-2 text-left">
+                <Label htmlFor="import_url" className="text-xs font-semibold text-stone-700 dark:text-stone-300 flex items-center gap-1.5">
+                  <span className="h-1.5 w-1.5 rounded-full bg-[#16a34a] animate-pulse" />
+                  Bleskový import inzerátu pomocí AI
+                </Label>
+                <div className="flex flex-col sm:flex-row gap-2">
+                  <Input
+                    id="import_url"
+                    type="url"
+                    placeholder="Vložte odkaz (Sreality, Bezrealitky…)"
+                    value={importUrl}
+                    onChange={(e) => setImportUrl(e.target.value)}
+                    disabled={isImporting}
+                    className="border-stone-200 h-9 text-xs bg-white dark:bg-stone-950 flex-1"
+                  />
+                  <Button
+                    type="button"
+                    onClick={handleImportFromUrl}
+                    disabled={isImporting || !importUrl}
+                    size="sm"
+                    className="h-9 text-xs shrink-0 font-medium"
+                  >
+                    {isImporting ? 'Načítám…' : 'Importovat'}
+                  </Button>
+                </div>
+                <p className="text-[10px] text-stone-400">
+                  Stáhne inzerát a předvyplní všechna pole níže.
+                </p>
+              </div>
+
+              {/* Section 1: Vlastník */}
+              <section className="space-y-4">
+                <h3 className="font-display text-sm font-semibold text-stone-700 dark:text-stone-300 uppercase tracking-wider border-b border-stone-200 dark:border-stone-800 pb-2 flex items-center gap-2">
+                  <span className="flex h-5 w-5 items-center justify-center rounded-full bg-stone-100 dark:bg-stone-800 text-[10px] font-bold text-stone-600 dark:text-stone-300">1</span>
+                  Vlastník
                 </h3>
 
                 {/* Owner selection mode toggle */}
@@ -4449,7 +4489,7 @@ export const PropertiesView: React.FC<PropertiesViewProps> = ({
                       <div className="space-y-1.5">
                         <Label htmlFor="owner_source">Odkud přišel *</Label>
                         <Select value={newOwnerSource} onValueChange={setNewOwnerSource}>
-                          <SelectTrigger id="owner_source" className="border-stone-200 h-9 text-xs">
+                          <SelectTrigger id="owner_source" className="border-stone-200 h-9 text-xs w-full">
                             <SelectValue />
                           </SelectTrigger>
                           <SelectContent>
@@ -4467,7 +4507,7 @@ export const PropertiesView: React.FC<PropertiesViewProps> = ({
                       <div className="space-y-1.5">
                         <Label htmlFor="owner_status">Stav *</Label>
                         <Select value={newOwnerStatus} onValueChange={setNewOwnerStatus}>
-                          <SelectTrigger id="owner_status" className="border-stone-200 h-9 text-xs">
+                          <SelectTrigger id="owner_status" className="border-stone-200 h-9 text-xs w-full">
                             <SelectValue />
                           </SelectTrigger>
                           <SelectContent>
@@ -4494,45 +4534,14 @@ export const PropertiesView: React.FC<PropertiesViewProps> = ({
                     </div>
                   </div>
                 )}
-              </div>
+              </section>
 
-              {/* Right Column: Údaje nemovitosti (col-span-7) */}
-              <div className="md:col-span-7 space-y-5 md:border-l md:border-stone-200 md:pl-8">
-                <h3 className="font-display text-sm font-semibold text-stone-700 uppercase tracking-wider border-b border-stone-200 pb-2 flex items-center gap-2">
-                  <span className="flex h-5 w-5 items-center justify-center rounded-full bg-stone-100 text-[10px] font-bold text-stone-600">2</span>
-                  Údaje nemovitosti
+              {/* Section 2: Nemovitost */}
+              <section className="space-y-4">
+                <h3 className="font-display text-sm font-semibold text-stone-700 dark:text-stone-300 uppercase tracking-wider border-b border-stone-200 dark:border-stone-800 pb-2 flex items-center gap-2">
+                  <span className="flex h-5 w-5 items-center justify-center rounded-full bg-stone-100 dark:bg-stone-800 text-[10px] font-bold text-stone-600 dark:text-stone-300">2</span>
+                  Nemovitost
                 </h3>
-
-                {/* AI Import Bar */}
-                <div className="bg-stone-50 border border-stone-200 p-3.5 rounded-lg space-y-2 text-left">
-                  <Label htmlFor="import_url" className="text-xs font-semibold text-stone-700 flex items-center gap-1.5">
-                    <span className="h-1.5 w-1.5 rounded-full bg-[#16a34a] animate-pulse" />
-                    Bleskový import inzerátu pomocí AI
-                  </Label>
-                  <div className="flex gap-2">
-                    <Input
-                      id="import_url"
-                      type="url"
-                      placeholder="Vložte odkaz (Sreality, Bezrealitky...)"
-                      value={importUrl}
-                      onChange={(e) => setImportUrl(e.target.value)}
-                      disabled={isImporting}
-                      className="border-stone-200 h-9 text-xs bg-white flex-1"
-                    />
-                    <Button
-                      type="button"
-                      onClick={handleImportFromUrl}
-                      disabled={isImporting || !importUrl}
-                      size="sm"
-                      className="h-9 text-xs shrink-0 font-medium"
-                    >
-                      {isImporting ? 'Načítám...' : 'Importovat'}
-                    </Button>
-                  </div>
-                  <p className="text-[10px] text-stone-400">
-                    Stáhne data ze zadaného webu a automaticky předvyplní všechna pole níže.
-                  </p>
-                </div>
 
                 <div className="space-y-1.5">
                   <Label htmlFor="new_address">Přesná adresa nemovitosti *</Label>
@@ -4550,7 +4559,7 @@ export const PropertiesView: React.FC<PropertiesViewProps> = ({
                   <div className="space-y-1.5">
                     <Label htmlFor="new_kind">Druh nemovitosti *</Label>
                     <Select value={newKind} onValueChange={(val: Property['kind']) => setNewKind(val)} required>
-                      <SelectTrigger id="new_kind" className="border-stone-200 h-9 text-xs">
+                      <SelectTrigger id="new_kind" className="border-stone-200 h-9 text-xs w-full">
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent>
@@ -4566,7 +4575,7 @@ export const PropertiesView: React.FC<PropertiesViewProps> = ({
                   <div className="space-y-1.5">
                     <Label htmlFor="new_trans">Transakce *</Label>
                     <Select value={newTransaction} onValueChange={(val: Property['transaction']) => setNewTransaction(val)} required>
-                      <SelectTrigger id="new_trans" className="border-stone-200 h-9 text-xs">
+                      <SelectTrigger id="new_trans" className="border-stone-200 h-9 text-xs w-full">
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent>
@@ -4597,7 +4606,7 @@ export const PropertiesView: React.FC<PropertiesViewProps> = ({
                   <div className="space-y-1.5">
                     <Label htmlFor="new_status">Stav nabídky *</Label>
                     <Select value={newOfferStatus} onValueChange={(val: Property['offer_status']) => setNewOfferStatus(val)} required>
-                      <SelectTrigger id="new_status" className="border-stone-200 h-9 text-xs">
+                      <SelectTrigger id="new_status" className="border-stone-200 h-9 text-xs w-full">
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent>
@@ -4608,23 +4617,6 @@ export const PropertiesView: React.FC<PropertiesViewProps> = ({
                         ))}
                       </SelectContent>
                     </Select>
-                  </div>
-                </div>
-
-                <div className="space-y-1.5">
-                  <Label htmlFor="new_photo">Hlavní fotografie (URL)</Label>
-                  <div className="flex gap-2 items-center">
-                    <Input
-                      id="new_photo"
-                      type="text"
-                      value={photoUrl}
-                      onChange={(e) => setPhotoUrl(e.target.value)}
-                      placeholder="https://..."
-                      className="border-stone-200 h-9 text-xs flex-1"
-                    />
-                    {photoUrl && /^https?:\/\//i.test(photoUrl) && (
-                      <img src={photoUrl} alt="Náhled" className="h-9 w-9 rounded object-cover border border-stone-200" />
-                    )}
                   </div>
                 </div>
 
@@ -4688,35 +4680,17 @@ export const PropertiesView: React.FC<PropertiesViewProps> = ({
                   </div>
                 )}
 
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 border-t border-dashed border-stone-200 pt-3">
-                  <div className="space-y-1.5">
-                    <Label htmlFor="new_commission_pct">Provize makléře (%)</Label>
-                    <Input
-                      id="new_commission_pct"
-                      type="number"
-                      value={commissionPct}
-                      onChange={(e) => setCommissionPct(e.target.value)}
-                      placeholder="%"
-                      className="border-stone-200 h-9 text-xs"
-                    />
-                  </div>
-                  <div className="space-y-1.5">
-                    <Label htmlFor="new_commission_val">Provize makléře (Kč)</Label>
-                    <Input
-                      id="new_commission_val"
-                      type="number"
-                      value={commissionVal}
-                      onChange={(e) => setCommissionVal(e.target.value)}
-                      placeholder="Kč"
-                      className="border-stone-200 h-9 text-xs"
-                    />
-                  </div>
-                </div>
+              </section>
 
-                {/* Specific layouts based on kind selection */}
+              {/* Section 3: Parametry podle druhu */}
+              <section className="space-y-4">
+                <h3 className="font-display text-sm font-semibold text-stone-700 dark:text-stone-300 uppercase tracking-wider border-b border-stone-200 dark:border-stone-800 pb-2 flex items-center gap-2">
+                  <span className="flex h-5 w-5 items-center justify-center rounded-full bg-stone-100 dark:bg-stone-800 text-[10px] font-bold text-stone-600 dark:text-stone-300">3</span>
+                  Parametry — {newKind}
+                </h3>
+
                 {newKind === 'byt' && (
-                  <div className="border-t border-stone-200 pt-4 space-y-4 text-left">
-                    <h4 className="font-display text-xs font-semibold text-stone-700 uppercase tracking-wider">Specifické parametry pro BYT</h4>
+                  <div className="space-y-4 text-left">
                     <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                       <div className="space-y-1.5">
                         <Label htmlFor="flat_layout">Dispozice *</Label>
@@ -4844,8 +4818,7 @@ export const PropertiesView: React.FC<PropertiesViewProps> = ({
                 )}
 
                 {newKind === 'dům' && (
-                  <div className="border-t border-stone-200 pt-4 space-y-4 text-left">
-                    <h4 className="font-display text-xs font-semibold text-stone-700 uppercase tracking-wider">Specifické parametry pro DŮM</h4>
+                  <div className="space-y-4 text-left">
                     <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                       <div className="space-y-1.5">
                         <Label htmlFor="house_layout">Dispozice / místnosti *</Label>
@@ -4969,8 +4942,7 @@ export const PropertiesView: React.FC<PropertiesViewProps> = ({
                 )}
 
                 {newKind === 'pozemek' && (
-                  <div className="border-t border-stone-200 pt-4 space-y-4 text-left">
-                    <h4 className="font-display text-xs font-semibold text-stone-700 uppercase tracking-wider">Specifické parametry pro POZEMEK</h4>
+                  <div className="space-y-4 text-left">
                     <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                       <div className="space-y-1.5">
                         <Label htmlFor="land_size">Výměra (m²) *</Label>
@@ -5045,7 +5017,7 @@ export const PropertiesView: React.FC<PropertiesViewProps> = ({
                 )}
 
                 {newKind === 'komerční' && (
-                  <div className="space-y-4 border-t border-dashed border-stone-200 pt-3">
+                  <div className="space-y-4 text-left">
                     <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                       <div className="space-y-1.5">
                         <Label htmlFor="comm_subtype">Podtyp</Label>
@@ -5123,22 +5095,83 @@ export const PropertiesView: React.FC<PropertiesViewProps> = ({
                   </div>
                 )}
 
-                <div className="space-y-1.5 pt-2">
-                  <Label htmlFor="new_facts">Poznámka</Label>
-                  <Textarea
-                    id="new_facts"
-                    rows={3}
-                    value={newFacts}
-                    onChange={(e) => setNewFacts(e.target.value)}
-                    placeholder="Poznámka k nemovitosti..."
-                    className="border-stone-200 text-xs"
-                  />
-                </div>
-              </div>
+              </section>
 
+              {/* Volitelné detaily — collapsed by default so the core flow stays short */}
+              <section>
+                <button
+                  type="button"
+                  onClick={() => setShowOptional(!showOptional)}
+                  aria-expanded={showOptional}
+                  className="w-full flex items-center justify-between border-b border-stone-200 dark:border-stone-800 pb-2 cursor-pointer group"
+                >
+                  <span className="font-display text-sm font-semibold text-stone-500 dark:text-stone-400 uppercase tracking-wider group-hover:text-stone-700 dark:group-hover:text-stone-200 transition-colors">
+                    Volitelné — foto, provize, poznámka
+                  </span>
+                  <ChevronRight className={cn('w-4 h-4 text-stone-400 transition-transform duration-200', showOptional && 'rotate-90')} />
+                </button>
+
+                {showOptional && (
+                  <div className="space-y-4 pt-4">
+                    <div className="space-y-1.5">
+                      <Label htmlFor="new_photo">Hlavní fotografie (URL)</Label>
+                      <div className="flex gap-2 items-center">
+                        <Input
+                          id="new_photo"
+                          type="text"
+                          value={photoUrl}
+                          onChange={(e) => setPhotoUrl(e.target.value)}
+                          placeholder="https://…"
+                          className="border-stone-200 h-9 text-xs flex-1"
+                        />
+                        {photoUrl && /^https?:\/\//i.test(photoUrl) && (
+                          <img src={photoUrl} alt="Náhled" className="h-9 w-9 rounded object-cover border border-stone-200" />
+                        )}
+                      </div>
+                    </div>
+
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                      <div className="space-y-1.5">
+                        <Label htmlFor="new_commission_pct">Provize makléře (%)</Label>
+                        <Input
+                          id="new_commission_pct"
+                          type="number"
+                          value={commissionPct}
+                          onChange={(e) => setCommissionPct(e.target.value)}
+                          placeholder="%"
+                          className="border-stone-200 h-9 text-xs"
+                        />
+                      </div>
+                      <div className="space-y-1.5">
+                        <Label htmlFor="new_commission_val">Provize makléře (Kč)</Label>
+                        <Input
+                          id="new_commission_val"
+                          type="number"
+                          value={commissionVal}
+                          onChange={(e) => setCommissionVal(e.target.value)}
+                          placeholder="Kč"
+                          className="border-stone-200 h-9 text-xs"
+                        />
+                      </div>
+                    </div>
+
+                    <div className="space-y-1.5">
+                      <Label htmlFor="new_facts">Poznámka</Label>
+                      <Textarea
+                        id="new_facts"
+                        rows={3}
+                        value={newFacts}
+                        onChange={(e) => setNewFacts(e.target.value)}
+                        placeholder="Poznámka k nemovitosti…"
+                        className="border-stone-200 text-xs"
+                      />
+                    </div>
+                  </div>
+                )}
+              </section>
             </div>
 
-            <DialogFooter className="pt-4 border-t border-stone-200 mt-6 flex justify-end gap-3">
+            <DialogFooter className="sticky bottom-0 bg-white/95 dark:bg-stone-900/95 backdrop-blur-sm border-t border-stone-200 dark:border-stone-800 px-5 sm:px-7 py-3.5 flex flex-row justify-end gap-3">
               <Button type="button" variant="outline" onClick={() => setIsCreateOpen(false)}>
                 Zrušit
               </Button>
