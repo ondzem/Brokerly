@@ -214,16 +214,13 @@ export const PropertiesView: React.FC<PropertiesViewProps> = ({
   const [importStage, setImportStage] = useState<string>('');
   const [createdSummary, setCreatedSummary] = useState<Property | null>(null);
 
-  // Krok 1 vyžaduje vědomou volbu — výchozí hodnoty samy o sobě nestačí
-  const [kindPicked, setKindPicked] = useState(false);
-  const [dealPicked, setDealPicked] = useState(false);
-
   // Našeptávač adres (Photon nad daty OpenStreetMap — zdarma, bez klíče)
   type AddrSuggestion = { label: string; detail: string };
   const [addrSuggestions, setAddrSuggestions] = useState<AddrSuggestion[]>([]);
   const [addrLoading, setAddrLoading] = useState(false);
   const [addrOpen, setAddrOpen] = useState(false);
   const addrPickedRef = React.useRef(false);
+  const addrListRef = React.useRef<HTMLDivElement>(null);
 
   // Create form: collapsed optional section (foto, provize, poznámka)
   const [showOptional, setShowOptional] = useState(false);
@@ -537,6 +534,16 @@ export const PropertiesView: React.FC<PropertiesViewProps> = ({
         }
         setAddrSuggestions(items);
         setAddrOpen(items.length > 0);
+        // Seznam je v toku stránky — odroluj, aby nebyl schovaný pod patičkou dialogu
+        if (items.length > 0) {
+          window.setTimeout(() => {
+            const scroller = createScrollRef.current;
+            const list = addrListRef.current;
+            if (!scroller || !list) return;
+            const overflow = list.getBoundingClientRect().bottom - scroller.getBoundingClientRect().bottom;
+            if (overflow > 0) scroller.scrollTop += overflow + 16;
+          }, 60);
+        }
       } catch {
         if (!cancelled) setAddrSuggestions([]);
       } finally {
@@ -559,7 +566,7 @@ export const PropertiesView: React.FC<PropertiesViewProps> = ({
     if (createMode !== 'kroky') return true;
     switch (wizardStep) {
       case 0:
-        return kindPicked && dealPicked;
+        return Boolean(newKind && newTransaction);
       case 1:
         return newAddress.trim().length > 2;
       case 2:
@@ -1479,8 +1486,6 @@ export const PropertiesView: React.FC<PropertiesViewProps> = ({
     setShowOptional(false);
     setCreateMode('rozcestí');
     setWizardStep(0);
-    setKindPicked(false);
-    setDealPicked(false);
     setAddrSuggestions([]);
     setAddrOpen(false);
     setImportLines([]);
@@ -4916,7 +4921,7 @@ export const PropertiesView: React.FC<PropertiesViewProps> = ({
                             <button
                               key={opt.id}
                               type="button"
-                              onClick={() => { setNewKind(opt.id as Property['kind']); setKindPicked(true); }}
+                              onClick={() => setNewKind(opt.id as Property['kind'])}
                               className={cn(
                                 'flex flex-col gap-2 rounded-lg border p-3.5 text-left transition-colors cursor-pointer',
                                 active
@@ -4935,7 +4940,7 @@ export const PropertiesView: React.FC<PropertiesViewProps> = ({
                           <button
                             key={t}
                             type="button"
-                            onClick={() => { setNewTransaction(t as Property['transaction']); setDealPicked(true); }}
+                            onClick={() => setNewTransaction(t as Property['transaction'])}
                             className={cn(
                               'px-4 h-9 rounded-full border text-[13px] font-medium transition-colors cursor-pointer capitalize',
                               newTransaction === t
@@ -4952,7 +4957,7 @@ export const PropertiesView: React.FC<PropertiesViewProps> = ({
 
                   {/* 2. Adresa */}
                   {wizardStep === 1 && (
-                    <div className="space-y-1.5 relative">
+                    <div className="space-y-1.5">
                       <Label htmlFor="wizard_address">Adresa *</Label>
                       <Input
                         id="wizard_address"
@@ -4973,19 +4978,25 @@ export const PropertiesView: React.FC<PropertiesViewProps> = ({
                       )}
 
                       {addrOpen && addrSuggestions.length > 0 && (
-                        <div className="absolute z-20 left-0 right-0 top-full mt-1 rounded-lg border border-stone-200 dark:border-stone-800 bg-white dark:bg-stone-950 shadow-lg overflow-hidden">
+                        <div ref={addrListRef} className="rounded-lg border border-stone-200 dark:border-stone-800 overflow-hidden mt-2">
+                          <div className="px-3.5 py-2 bg-stone-50 dark:bg-stone-900 border-b border-stone-200 dark:border-stone-800 text-[11px] font-semibold uppercase tracking-wider text-stone-400">
+                            Nalezené adresy — vyberte
+                          </div>
                           {addrSuggestions.map((sug) => (
                             <button
                               key={sug.label + sug.detail}
                               type="button"
                               onClick={() => pickAddress(sug.label)}
-                              className="w-full text-left px-3.5 py-2.5 hover:bg-[#0E8A5F]/[0.06] transition-colors cursor-pointer flex items-start gap-2.5 border-b border-stone-100 dark:border-stone-850 last:border-b-0"
+                              className="w-full text-left px-3.5 py-3 hover:bg-[#0E8A5F]/[0.06] transition-colors cursor-pointer flex items-center gap-3 border-b border-stone-100 dark:border-stone-850 last:border-b-0"
                             >
-                              <MapPin className="w-3.5 h-3.5 text-[#0E8A5F] mt-0.5 flex-none" />
-                              <span className="min-w-0">
-                                <span className="block text-[13px] font-medium text-stone-900 dark:text-stone-100">{sug.label}</span>
-                                {sug.detail && <span className="block text-[11.5px] text-stone-400">{sug.detail}</span>}
+                              <span className="w-7 h-7 rounded-md bg-[#0E8A5F]/10 flex items-center justify-center flex-none">
+                                <MapPin className="w-3.5 h-3.5 text-[#0E8A5F]" />
                               </span>
+                              <span className="min-w-0">
+                                <span className="block text-[14px] font-medium text-stone-900 dark:text-stone-100">{sug.label}</span>
+                                {sug.detail && <span className="block text-[12px] text-stone-400">{sug.detail}</span>}
+                              </span>
+                              <ChevronRight className="w-4 h-4 text-stone-300 ml-auto flex-none" />
                             </button>
                           ))}
                         </div>
