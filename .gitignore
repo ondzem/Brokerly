@@ -47,3 +47,6 @@ next-env.d.ts
 
 # local AI tooling
 ruvector.db
+
+# graphify — generovaný znalostní graf
+graphify-out/

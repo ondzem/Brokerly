@@ -278,6 +278,34 @@ The visual identity must radiate **premium, trust and professionalism** — this
 ## 9. Reference
 Source of truth for scope and fields: **Brokerly — Etapa 1: Denní jádro** working document (chapters 14–17, 20 and the Part II checklist). If this Rules file and that document ever conflict, ask me — do not resolve it yourself.
 
+
+---
+
+## 9a. graphify — query the graph before reading files
+
+The repo is mapped into a knowledge graph at `graphify-out/` (git-ignored, rebuilt
+locally, no API cost). **Reach for it before grepping or opening files blind** — that
+is the whole point of it being here.
+
+| Need | Command |
+|---|---|
+| What is X and what touches it? | `graphify explain "PropertiesView"` |
+| How does A reach B? | `graphify path "PropertiesView" "createProperty"` |
+| Refresh after code changes | `graphify update .` (~2 s, tree-sitter only) |
+| Visual map | open `graphify-out/graph.html` |
+| Highlights, hubs, suggested questions | `graphify-out/GRAPH_REPORT.md` |
+
+Rules:
+- `PropertiesView.tsx` is over 5 000 lines. Do **not** read it whole to answer a
+  structural question — `explain` and `path` give the answer for a fraction of the
+  context.
+- The graph is only as fresh as the last `graphify update .`. A post-commit hook
+  refreshes it automatically; after uncommitted edits, re-run it yourself.
+- Every edge is tagged `EXTRACTED` (read from source) or `INFERRED` (resolved by
+  graphify). Treat `INFERRED` as a lead to verify, not as fact.
+- Code is parsed locally with tree-sitter — nothing leaves the machine and no model
+  is called. Only docs/PDF/image passes would use an LLM; we do not run those.
+
 ---
 
 ## 10. Installed skills — use them
