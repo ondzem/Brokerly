@@ -10,6 +10,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Card, CardContent, CardTitle, CardDescription } from '@/components/ui/card';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { toast } from 'sonner';
+import { PhotoUploader } from '@/components/PhotoUploader';
 import { Search, Plus, Home, User, Briefcase, DollarSign, MapPin, LayoutGrid, List, SlidersHorizontal, FileText, CheckCircle2, Trash2, Edit, X, ChevronRight, Calendar, ArrowRight, Upload, Sparkles, FileUp, MoreHorizontal, Building2, Trees, Store, Warehouse } from 'lucide-react';
 
 const KIND_OPTIONS = [
@@ -5415,66 +5416,12 @@ export const PropertiesView: React.FC<PropertiesViewProps> = ({
 
                   {/* 4. Cena */}
                   {WIZARD_STEPS[wizardStep].key === 'fotky' && (
-                    <div className="space-y-4">
-                      {photoUrls.length > 0 ? (
-                        <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
-                          {photoUrls.map((url, i) => (
-                            <div key={url} className="relative">
-                              <img src={url} alt={`Fotka ${i + 1}`}
-                                className="h-24 w-full rounded-lg object-cover border border-stone-200 dark:border-stone-800" />
-                              {i === 0 && (
-                                <span className="absolute bottom-0 left-0 right-0 bg-[#00221F]/85 text-[10px] font-medium text-white text-center py-1 rounded-b-lg">
-                                  hlavní fotka
-                                </span>
-                              )}
-                              <button type="button" onClick={() => setPhotoUrls(photoUrls.filter((_, x) => x !== i))}
-                                className="absolute -top-2 -right-2 w-6 h-6 rounded-full bg-white dark:bg-stone-900 border border-stone-200 dark:border-stone-700 flex items-center justify-center shadow-sm cursor-pointer hover:border-rose-400"
-                                aria-label={`Odebrat fotku ${i + 1}`}>
-                                <X className="w-3.5 h-3.5 text-stone-500" />
-                              </button>
-                            </div>
-                          ))}
-                        </div>
-                      ) : (
-                        <div className="rounded-lg border border-dashed border-stone-300 dark:border-stone-700 px-4 py-8 text-center">
-                          <Upload className="w-6 h-6 text-stone-300 mx-auto mb-2" />
-                          <div className="text-[13.5px] font-medium text-stone-900 dark:text-stone-100">Zatím žádná fotka</div>
-                          <div className="text-[12px] text-stone-400 mt-0.5">
-                            Vložte odkaz níže. Při importu z inzerátu se fotka doplní sama.
-                          </div>
-                        </div>
-                      )}
-
-                      <div className="space-y-1.5">
-                        <Label htmlFor="wizard_photo">Odkaz na fotku</Label>
-                        <div className="flex flex-col sm:flex-row gap-2">
-                          <Input
-                            id="wizard_photo"
-                            value={photoDraft}
-                            onChange={(e) => setPhotoDraft(e.target.value)}
-                            onKeyDown={(e) => {
-                              if (e.key === 'Enter') {
-                                e.preventDefault();
-                                const v = photoDraft.trim();
-                                if (v && !photoUrls.includes(v)) { setPhotoUrls([...photoUrls, v]); setPhotoDraft(''); }
-                              }
-                            }}
-                            placeholder="https://…"
-                            className="border-stone-200 h-10 text-xs bg-white dark:bg-stone-950 w-full sm:flex-1"
-                          />
-                          <Button type="button" variant="outline" className="h-10 text-xs shrink-0"
-                            disabled={!photoDraft.trim()}
-                            onClick={() => {
-                              const v = photoDraft.trim();
-                              if (v && !photoUrls.includes(v)) { setPhotoUrls([...photoUrls, v]); setPhotoDraft(''); }
-                            }}>
-                            Přidat fotku
-                          </Button>
-                        </div>
-                        <p className="text-[11.5px] text-stone-400">
-                          První fotka je hlavní — zobrazí se na kartě v seznamu. Pořadí změníte odebráním a přidáním.
-                        </p>
-                      </div>
+                    <div className="space-y-3">
+                      <PhotoUploader photos={photoUrls} onChange={setPhotoUrls} />
+                      <p className="text-[11.5px] text-stone-400">
+                        Všechny fotky se ořezávají na stejný formát 4:3, aby karty nemovitostí vypadaly jednotně.
+                        První fotka je hlavní. Při importu z inzerátu se doplní sama.
+                      </p>
                     </div>
                   )}
 
