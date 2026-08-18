@@ -214,6 +214,17 @@ export const PropertiesView: React.FC<PropertiesViewProps> = ({
   const [importStage, setImportStage] = useState<string>('');
   const [createdSummary, setCreatedSummary] = useState<Property | null>(null);
 
+  // Krok 1 vyžaduje vědomou volbu — výchozí hodnoty samy o sobě nestačí
+  const [kindPicked, setKindPicked] = useState(false);
+  const [dealPicked, setDealPicked] = useState(false);
+
+  // Našeptávač adres (Photon nad daty OpenStreetMap — zdarma, bez klíče)
+  type AddrSuggestion = { label: string; detail: string };
+  const [addrSuggestions, setAddrSuggestions] = useState<AddrSuggestion[]>([]);
+  const [addrLoading, setAddrLoading] = useState(false);
+  const [addrOpen, setAddrOpen] = useState(false);
+  const addrPickedRef = React.useRef(false);
+
   // Create form: collapsed optional section (foto, provize, poznámka)
   const [showOptional, setShowOptional] = useState(false);
   const optionalSectionRef = React.useRef<HTMLDivElement>(null);
@@ -492,6 +503,81 @@ export const PropertiesView: React.FC<PropertiesViewProps> = ({
 
   // Zasíťování se v DB drží jako TEXT[], ve formuláři jako čárkami oddělený řetězec.
   // Checkboxy s ním pracují přes tyhle dva helpery, aby se nic z importu neztratilo.
+  // Našeptávač adres — Photon nad OpenStreetMap. Bbox omezuje výsledky na ČR,
+  // takže makléři stačí napsat ulici a vybrat konkrétní dům ze seznamu.
+  useEffect(() => {
+    if (createMode !== 'kroky' || wizardStep !== 1) return;
+    if (addrPickedRef.current) { addrPickedRef.current = false; return; }
+    const q = newAddress.trim();
+    if (q.length < 3) { setAddrSuggestions([]); setAddrLoading(false); return; }
+
+    let cancelled = false;
+    setAddrLoading(true);
+    const timer = window.setTimeout(async () => {
+      try {
+        const url = `https://photon.komoot.io/api/?q=${encodeURIComponent(q)}&lang=default&limit=6&bbox=12.09,48.55,18.86,51.06`;
+        const res = await fetch(url);
+        if (!res.ok) throw new Error('geokodér nedostupný');
+        const data = await res.json();
+        if (cancelled) return;
+        const seen = new Set<string>();
+        const items: AddrSuggestion[] = [];
+        for (const f of data.features || []) {
+          const pr = f.properties || {};
+          if (pr.countrycode && pr.countrycode !== 'CZ') continue;
+          const street = pr.street || pr.name;
+          if (!street) continue;
+          const label = [street, pr.housenumber].filter(Boolean).join(' ');
+          const city = pr.city || pr.town || pr.village || pr.county || '';
+          const detail = [pr.district, city, pr.postcode].filter(Boolean).join(' · ');
+          const key = `${label}|${city}`;
+          if (seen.has(key)) continue;
+          seen.add(key);
+          items.push({ label: city ? `${label}, ${city}` : label, detail });
+        }
+        setAddrSuggestions(items);
+        setAddrOpen(items.length > 0);
+      } catch {
+        if (!cancelled) setAddrSuggestions([]);
+      } finally {
+        if (!cancelled) setAddrLoading(false);
+      }
+    }, 320);
+
+    return () => { cancelled = true; window.clearTimeout(timer); setAddrLoading(false); };
+  }, [newAddress, createMode, wizardStep]);
+
+  const pickAddress = (value: string) => {
+    addrPickedRef.current = true;
+    setNewAddress(value);
+    setAddrSuggestions([]);
+    setAddrOpen(false);
+  };
+
+  // Podmínky pro přechod na další krok průvodce
+  const wizardStepValid = (() => {
+    if (createMode !== 'kroky') return true;
+    switch (wizardStep) {
+      case 0:
+        return kindPicked && dealPicked;
+      case 1:
+        return newAddress.trim().length > 2;
+      case 2:
+        if (newKind === 'byt') return Boolean(flatLayout && flatArea);
+        if (newKind === 'dům') return Boolean(houseLayout && houseArea && landArea);
+        if (newKind === 'pozemek') return Boolean(landSize);
+        return Boolean(commSubtype);
+      case 3:
+        return Boolean(newPrice) && Number(newPrice) > 0;
+      case 4:
+        return ownerMode === 'select'
+          ? Boolean(newOwnerId)
+          : Boolean(newOwnerFullName && (newOwnerPhone || newOwnerEmail));
+      default:
+        return true;
+    }
+  })();
+
   // Popis nemovitosti pro nadpisy („Byt 3+kk", „Pozemek — pole")
   const describeProperty = (p: Property) => {
     if (p.kind === 'byt') return `Byt ${p.flat_layout || ''}`.trim();
@@ -1393,6 +1479,10 @@ export const PropertiesView: React.FC<PropertiesViewProps> = ({
     setShowOptional(false);
     setCreateMode('rozcestí');
     setWizardStep(0);
+    setKindPicked(false);
+    setDealPicked(false);
+    setAddrSuggestions([]);
+    setAddrOpen(false);
     setImportLines([]);
     setImportStage('');
     setCreatedSummary(null);
@@ -4793,7 +4883,7 @@ export const PropertiesView: React.FC<PropertiesViewProps> = ({
                       <button
                         key={s.key}
                         type="button"
-                        onClick={() => setWizardStep(i)}
+                        onClick={() => i < wizardStep && setWizardStep(i)}
                         title={s.label}
                         className={cn(
                           'h-1.5 rounded-full transition-all cursor-pointer',
@@ -4826,7 +4916,7 @@ export const PropertiesView: React.FC<PropertiesViewProps> = ({
                             <button
                               key={opt.id}
                               type="button"
-                              onClick={() => setNewKind(opt.id as Property['kind'])}
+                              onClick={() => { setNewKind(opt.id as Property['kind']); setKindPicked(true); }}
                               className={cn(
                                 'flex flex-col gap-2 rounded-lg border p-3.5 text-left transition-colors cursor-pointer',
                                 active
@@ -4845,7 +4935,7 @@ export const PropertiesView: React.FC<PropertiesViewProps> = ({
                           <button
                             key={t}
                             type="button"
-                            onClick={() => setNewTransaction(t as Property['transaction'])}
+                            onClick={() => { setNewTransaction(t as Property['transaction']); setDealPicked(true); }}
                             className={cn(
                               'px-4 h-9 rounded-full border text-[13px] font-medium transition-colors cursor-pointer capitalize',
                               newTransaction === t
@@ -4862,16 +4952,50 @@ export const PropertiesView: React.FC<PropertiesViewProps> = ({
 
                   {/* 2. Adresa */}
                   {wizardStep === 1 && (
-                    <div className="space-y-1.5">
+                    <div className="space-y-1.5 relative">
                       <Label htmlFor="wizard_address">Adresa *</Label>
                       <Input
                         id="wizard_address"
                         value={newAddress}
                         onChange={(e) => setNewAddress(e.target.value)}
-                        placeholder="např. Kozinova, Poděbrady"
+                        onFocus={() => addrSuggestions.length > 0 && setAddrOpen(true)}
+                        placeholder="Začněte psát ulici, např. Poděbradská"
                         className="border-stone-200 h-10 text-xs"
+                        autoComplete="off"
                         autoFocus
                       />
+
+                      {addrLoading && (
+                        <div className="flex items-center gap-2 text-[12px] text-stone-400 pt-1">
+                          <span className="w-3 h-3 rounded-full border-2 border-stone-200 dark:border-stone-700 border-t-[#0E8A5F] animate-spin" />
+                          Hledám adresy…
+                        </div>
+                      )}
+
+                      {addrOpen && addrSuggestions.length > 0 && (
+                        <div className="absolute z-20 left-0 right-0 top-full mt-1 rounded-lg border border-stone-200 dark:border-stone-800 bg-white dark:bg-stone-950 shadow-lg overflow-hidden">
+                          {addrSuggestions.map((sug) => (
+                            <button
+                              key={sug.label + sug.detail}
+                              type="button"
+                              onClick={() => pickAddress(sug.label)}
+                              className="w-full text-left px-3.5 py-2.5 hover:bg-[#0E8A5F]/[0.06] transition-colors cursor-pointer flex items-start gap-2.5 border-b border-stone-100 dark:border-stone-850 last:border-b-0"
+                            >
+                              <MapPin className="w-3.5 h-3.5 text-[#0E8A5F] mt-0.5 flex-none" />
+                              <span className="min-w-0">
+                                <span className="block text-[13px] font-medium text-stone-900 dark:text-stone-100">{sug.label}</span>
+                                {sug.detail && <span className="block text-[11.5px] text-stone-400">{sug.detail}</span>}
+                              </span>
+                            </button>
+                          ))}
+                        </div>
+                      )}
+
+                      {!addrLoading && !addrOpen && (
+                        <p className="text-[11.5px] text-stone-400 pt-0.5">
+                          Vyberte ze seznamu, nebo dopište adresu ručně.
+                        </p>
+                      )}
                     </div>
                   )}
 
@@ -4978,9 +5102,20 @@ export const PropertiesView: React.FC<PropertiesViewProps> = ({
                       <button
                         type="button"
                         onClick={() => setCreateMode('vse')}
-                        className="text-[12.5px] text-stone-400 hover:text-[#0E8A5F] transition-colors cursor-pointer"
+                        className="w-full flex items-center justify-between gap-3 rounded-lg border border-stone-200 dark:border-stone-800 bg-stone-50 dark:bg-stone-900 px-4 py-3 text-left hover:border-[#0E8A5F] hover:bg-[#0E8A5F]/[0.05] transition-colors cursor-pointer"
                       >
-                        Chci vyplnit i ostatní parametry →
+                        <span className="flex items-center gap-2.5 min-w-0">
+                          <SlidersHorizontal className="w-4 h-4 text-[#0E8A5F] flex-none" />
+                          <span className="min-w-0">
+                            <span className="block text-[13.5px] font-semibold text-stone-900 dark:text-stone-100">
+                              Chci vyplnit i ostatní parametry
+                            </span>
+                            <span className="block text-[11.5px] text-stone-400">
+                              Patro, vlastnictví, konstrukce, PENB, vybavení…
+                            </span>
+                          </span>
+                        </span>
+                        <ChevronRight className="w-4 h-4 text-[#0E8A5F] flex-none" />
                       </button>
                     </div>
                   )}
@@ -5077,17 +5212,6 @@ export const PropertiesView: React.FC<PropertiesViewProps> = ({
                     </div>
                   )}
 
-                  {/* živý souhrn */}
-                  {wizardSummary.length > 0 && (
-                    <div className="rounded-lg border border-dashed border-stone-200 dark:border-stone-800 px-4 py-3">
-                      <div className="text-[11px] font-semibold uppercase tracking-wider text-stone-400 mb-2">Vzniká nabídka</div>
-                      <div className="flex flex-wrap gap-x-4 gap-y-1.5">
-                        {wizardSummary.map((s) => (
-                          <span key={s} className="text-[12.5px] text-stone-600 dark:text-stone-300">{s}</span>
-                        ))}
-                      </div>
-                    </div>
-                  )}
                 </div>
               )}
 
@@ -5996,11 +6120,11 @@ export const PropertiesView: React.FC<PropertiesViewProps> = ({
                     ← Zpět
                   </button>
                   {wizardStep < WIZARD_STEPS.length - 1 ? (
-                    <Button type="button" onClick={() => setWizardStep(wizardStep + 1)}>
+                    <Button type="button" disabled={!wizardStepValid} onClick={() => setWizardStep(wizardStep + 1)}>
                       Pokračovat
                     </Button>
                   ) : (
-                    <Button type="submit">Uložit nemovitost</Button>
+                    <Button type="submit" disabled={!wizardStepValid}>Uložit nemovitost</Button>
                   )}
                 </>
               ) : createMode === 'vse' ? (
