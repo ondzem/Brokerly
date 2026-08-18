@@ -32,14 +32,14 @@ const OFFER_STATUS_OPTIONS = [
   'staženo',
 ] as const;
 
-const FLAT_LAYOUT_OPTIONS = ['1+kk', '2+kk', '2+1', '3+kk', '3+1', '4+kk', '4+1', '5 a více'] as const;
+const FLAT_LAYOUT_OPTIONS = ['1+kk', '1+1', '2+kk', '2+1', '3+kk', '3+1', '4+kk', '4+1', '5+kk', '5+1', '6 a více', 'atypické'] as const;
 const OWNERSHIP_OPTIONS = ['osobní', 'družstevní', 'SVJ'] as const;
 const CONSTRUCTION_OPTIONS = ['cihla', 'panel', 'jiné'] as const;
 const FLAT_CONDITION_OPTIONS = ['novostavba', 'po rekonstrukci', 'dobrý', 'před rekonstrukcí'] as const;
 const FLAT_FEATURE_OPTIONS = ['výtah', 'balkon/lodžie', 'terasa', 'sklep', 'podlahové vytápění', 'klimatizace'] as const;
 const PENB_OPTIONS = ['A', 'B', 'C', 'D', 'E', 'F', 'G'] as const;
 
-const HOUSE_LAYOUT_OPTIONS = ['2+kk', '3+kk', '4+kk', '5+kk', '6 a více'] as const;
+const HOUSE_LAYOUT_OPTIONS = ['2+kk', '2+1', '3+kk', '3+1', '4+kk', '4+1', '5+kk', '5+1', '6+kk', '6+1', '7 a více', 'atypické'] as const;
 const HOUSE_TYPE_OPTIONS = ['samostatný', 'řadový', 'dvojdomek'] as const;
 const HOUSE_FEATURE_OPTIONS = ['garáž', 'zahrada', 'bazén'] as const;
 
@@ -66,6 +66,15 @@ const WIZARD_STEPS = [
   { key: 'cena', label: 'Cena', question: 'Za kolik?', hint: 'Cenu za metr spočítám průběžně.' },
   { key: 'vlastnik', label: 'Vlastník', question: 'Čí to je?', hint: 'Vyberte z kontaktů, nebo rovnou založte nový.' },
 ] as const;
+
+// Co se skrývá pod „ostatní parametry" — popisek podle druhu
+const MORE_PARAMS_HINT: Record<string, string> = {
+  byt: 'Patro, vlastnictví, konstrukce, stav, PENB, vybavení',
+  'dům': 'Typ domu, podlaží, stav, PENB, garáž a zahrada',
+  pozemek: 'Územní plán, přístup, rozměry, zasíťování',
+  'komerční': 'Stav a vybavenost, parkování, PENB',
+  'garáž/ostatní': 'Stav, vjezd a přístup',
+};
 
 const KIND_ICONS: Record<string, React.ComponentType<{ className?: string }>> = {
   byt: Building2,
@@ -213,6 +222,7 @@ export const PropertiesView: React.FC<PropertiesViewProps> = ({
   const [importLines, setImportLines] = useState<{ label: string; value: string }[]>([]);
   const [importStage, setImportStage] = useState<string>('');
   const [createdSummary, setCreatedSummary] = useState<Property | null>(null);
+  const [showMoreParams, setShowMoreParams] = useState(false);
 
   // Našeptávač adres (Photon nad daty OpenStreetMap — zdarma, bez klíče)
   type AddrSuggestion = { label: string; detail: string };
@@ -559,6 +569,7 @@ export const PropertiesView: React.FC<PropertiesViewProps> = ({
     setNewAddress(value);
     setAddrSuggestions([]);
     setAddrOpen(false);
+    setShowMoreParams(false);
   };
 
   // Podmínky pro přechod na další krok průvodce
@@ -1248,7 +1259,7 @@ export const PropertiesView: React.FC<PropertiesViewProps> = ({
               kind: { type: "STRING", enum: ["byt", "dům", "pozemek", "komerční", "garáž/ostatní"] },
               transaction: { type: "STRING", enum: ["prodej", "pronájem"] },
               price: { type: "NUMBER", description: "Cena nebo nájemné jako číslo v Kč" },
-              flat_layout: { type: "STRING", enum: ["1+kk", "2+kk", "2+1", "3+kk", "3+1", "4+kk", "4+1", "5 a více"] },
+              flat_layout: { type: "STRING", enum: ["1+kk", "1+1", "2+kk", "2+1", "3+kk", "3+1", "4+kk", "4+1", "5+kk", "5+1", "6 a více", "atypické"] },
               flat_area: { type: "NUMBER", description: "Užitná plocha bytu v m2" },
               floor: { type: "STRING", description: "Patro z pater, např. '3. ze 5'" },
               ownership: { type: "STRING", enum: ["osobní", "družstevní", "SVJ"] },
@@ -1259,7 +1270,7 @@ export const PropertiesView: React.FC<PropertiesViewProps> = ({
                 type: "ARRAY",
                 items: { type: "STRING", enum: ["výtah", "balkon/lodžie", "terasa", "sklep"] }
               },
-              house_layout: { type: "STRING", enum: ["2+kk", "3+kk", "4+kk", "5+kk", "6 a více"] },
+              house_layout: { type: "STRING", enum: ["2+kk", "2+1", "3+kk", "3+1", "4+kk", "4+1", "5+kk", "5+1", "6+kk", "6+1", "7 a více", "atypické"] },
               house_area: { type: "NUMBER", description: "Užitná plocha domu v m2" },
               land_area: { type: "NUMBER", description: "Plocha pozemku v m2" },
               house_type: { type: "STRING", enum: ["samostatný", "řadový", "dvojdomek"] },
@@ -5112,22 +5123,199 @@ export const PropertiesView: React.FC<PropertiesViewProps> = ({
                       )}
                       <button
                         type="button"
-                        onClick={() => setCreateMode('vse')}
+                        onClick={() => setShowMoreParams(!showMoreParams)}
+                        aria-expanded={showMoreParams}
                         className="w-full flex items-center justify-between gap-3 rounded-lg border border-stone-200 dark:border-stone-800 bg-stone-50 dark:bg-stone-900 px-4 py-3 text-left hover:border-[#0E8A5F] hover:bg-[#0E8A5F]/[0.05] transition-colors cursor-pointer"
                       >
                         <span className="flex items-center gap-2.5 min-w-0">
                           <SlidersHorizontal className="w-4 h-4 text-[#0E8A5F] flex-none" />
                           <span className="min-w-0">
                             <span className="block text-[13.5px] font-semibold text-stone-900 dark:text-stone-100">
-                              Chci vyplnit i ostatní parametry
+                              {showMoreParams ? 'Skrýt ostatní parametry' : 'Chci vyplnit i ostatní parametry'}
                             </span>
-                            <span className="block text-[11.5px] text-stone-400">
-                              Patro, vlastnictví, konstrukce, PENB, vybavení…
-                            </span>
+                            <span className="block text-[11.5px] text-stone-400">{MORE_PARAMS_HINT[newKind]}</span>
                           </span>
                         </span>
-                        <ChevronRight className="w-4 h-4 text-[#0E8A5F] flex-none" />
+                        <ChevronRight className={cn('w-4 h-4 text-[#0E8A5F] flex-none transition-transform', showMoreParams && 'rotate-90')} />
                       </button>
+
+                      {showMoreParams && (
+                        <div className="space-y-4 rounded-lg border border-[#0E8A5F]/30 bg-[#0E8A5F]/[0.03] p-4">
+                          {newKind === 'byt' && (
+                            <>
+                              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                <div className="space-y-1.5">
+                                  <Label htmlFor="w2_floor">Patro / z pater</Label>
+                                  <Input id="w2_floor" value={flatFloor} onChange={(e) => setFlatFloor(e.target.value)}
+                                    placeholder="např. 3. ze 5" className="border-stone-200 h-10 text-xs bg-white dark:bg-stone-950" />
+                                </div>
+                                <div className="space-y-1.5">
+                                  <Label htmlFor="w2_own">Vlastnictví</Label>
+                                  <Select value={flatOwnership} onValueChange={setFlatOwnership}>
+                                    <SelectTrigger id="w2_own" className="border-stone-200 h-10 text-xs w-full bg-white dark:bg-stone-950"><SelectValue placeholder="Vyberte" /></SelectTrigger>
+                                    <SelectContent>{OWNERSHIP_OPTIONS.map((o) => <SelectItem key={o} value={o}>{o}</SelectItem>)}</SelectContent>
+                                  </Select>
+                                </div>
+                                <div className="space-y-1.5">
+                                  <Label htmlFor="w2_const">Konstrukce</Label>
+                                  <Select value={flatConstruction} onValueChange={setFlatConstruction}>
+                                    <SelectTrigger id="w2_const" className="border-stone-200 h-10 text-xs w-full bg-white dark:bg-stone-950"><SelectValue placeholder="Vyberte" /></SelectTrigger>
+                                    <SelectContent>{CONSTRUCTION_OPTIONS.map((o) => <SelectItem key={o} value={o}>{o}</SelectItem>)}</SelectContent>
+                                  </Select>
+                                </div>
+                                <div className="space-y-1.5">
+                                  <Label htmlFor="w2_cond">Stav bytu</Label>
+                                  <Select value={flatCondition} onValueChange={setFlatCondition}>
+                                    <SelectTrigger id="w2_cond" className="border-stone-200 h-10 text-xs w-full bg-white dark:bg-stone-950"><SelectValue placeholder="Vyberte" /></SelectTrigger>
+                                    <SelectContent>{FLAT_CONDITION_OPTIONS.map((o) => <SelectItem key={o} value={o}>{o}</SelectItem>)}</SelectContent>
+                                  </Select>
+                                </div>
+                                <div className="space-y-1.5">
+                                  <Label htmlFor="w2_penb">PENB</Label>
+                                  <Select value={flatPenb} onValueChange={setFlatPenb}>
+                                    <SelectTrigger id="w2_penb" className="border-stone-200 h-10 text-xs w-full bg-white dark:bg-stone-950"><SelectValue placeholder="Třída" /></SelectTrigger>
+                                    <SelectContent>{PENB_OPTIONS.map((o) => <SelectItem key={o} value={o}>{o}</SelectItem>)}</SelectContent>
+                                  </Select>
+                                </div>
+                                <div className="space-y-1.5">
+                                  <Label htmlFor="w2_park">Parkování</Label>
+                                  <Input id="w2_park" value={flatParking} onChange={(e) => setFlatParking(e.target.value)}
+                                    placeholder="např. garážové stání" className="border-stone-200 h-10 text-xs bg-white dark:bg-stone-950" />
+                                </div>
+                              </div>
+                              <div className="space-y-2">
+                                <Label>Vybavení bytu</Label>
+                                <div className="flex flex-wrap gap-2">
+                                  {FLAT_FEATURE_OPTIONS.map((f) => (
+                                    <button key={f} type="button" onClick={() => handleFlatFeatureToggle(f)}
+                                      className={cn('px-3.5 h-9 rounded-full border text-[13px] font-medium transition-colors cursor-pointer',
+                                        flatFeatures?.includes(f) ? 'border-[#0E8A5F] bg-[#0E8A5F] text-white'
+                                          : 'border-stone-200 dark:border-stone-800 text-stone-500 hover:border-[#0E8A5F]/60 bg-white dark:bg-stone-950')}>
+                                      {f}
+                                    </button>
+                                  ))}
+                                </div>
+                              </div>
+                            </>
+                          )}
+
+                          {newKind === 'dům' && (
+                            <>
+                              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                <div className="space-y-1.5">
+                                  <Label htmlFor="w2_htype">Typ domu</Label>
+                                  <Select value={houseType} onValueChange={setHouseType}>
+                                    <SelectTrigger id="w2_htype" className="border-stone-200 h-10 text-xs w-full bg-white dark:bg-stone-950"><SelectValue placeholder="Vyberte" /></SelectTrigger>
+                                    <SelectContent>{HOUSE_TYPE_OPTIONS.map((o) => <SelectItem key={o} value={o}>{o}</SelectItem>)}</SelectContent>
+                                  </Select>
+                                </div>
+                                <div className="space-y-1.5">
+                                  <Label htmlFor="w2_floors">Počet podlaží</Label>
+                                  <Input id="w2_floors" type="number" value={houseFloors} onChange={(e) => setHouseFloors(e.target.value)}
+                                    className="border-stone-200 h-10 text-xs bg-white dark:bg-stone-950" />
+                                </div>
+                                <div className="space-y-1.5">
+                                  <Label htmlFor="w2_hcond">Stav domu</Label>
+                                  <Select value={houseCondition} onValueChange={setHouseCondition}>
+                                    <SelectTrigger id="w2_hcond" className="border-stone-200 h-10 text-xs w-full bg-white dark:bg-stone-950"><SelectValue placeholder="Vyberte" /></SelectTrigger>
+                                    <SelectContent>{FLAT_CONDITION_OPTIONS.map((o) => <SelectItem key={o} value={o}>{o}</SelectItem>)}</SelectContent>
+                                  </Select>
+                                </div>
+                                <div className="space-y-1.5">
+                                  <Label htmlFor="w2_hpenb">PENB</Label>
+                                  <Select value={housePenb} onValueChange={setHousePenb}>
+                                    <SelectTrigger id="w2_hpenb" className="border-stone-200 h-10 text-xs w-full bg-white dark:bg-stone-950"><SelectValue placeholder="Třída" /></SelectTrigger>
+                                    <SelectContent>{PENB_OPTIONS.map((o) => <SelectItem key={o} value={o}>{o}</SelectItem>)}</SelectContent>
+                                  </Select>
+                                </div>
+                              </div>
+                              <div className="space-y-2">
+                                <Label>Vybavení a příslušenství</Label>
+                                <div className="flex flex-wrap gap-2">
+                                  {HOUSE_FEATURE_OPTIONS.map((f) => (
+                                    <button key={f} type="button" onClick={() => handleHouseFeatureToggle(f)}
+                                      className={cn('px-3.5 h-9 rounded-full border text-[13px] font-medium transition-colors cursor-pointer',
+                                        houseFeatures?.includes(f) ? 'border-[#0E8A5F] bg-[#0E8A5F] text-white'
+                                          : 'border-stone-200 dark:border-stone-800 text-stone-500 hover:border-[#0E8A5F]/60 bg-white dark:bg-stone-950')}>
+                                      {f}
+                                    </button>
+                                  ))}
+                                </div>
+                              </div>
+                            </>
+                          )}
+
+                          {newKind === 'pozemek' && (
+                            <>
+                              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                <div className="space-y-1.5">
+                                  <Label htmlFor="w2_zoning">Územní plán</Label>
+                                  <Select value={zoningPlan} onValueChange={setZoningPlan}>
+                                    <SelectTrigger id="w2_zoning" className="border-stone-200 h-10 text-xs w-full bg-white dark:bg-stone-950"><SelectValue placeholder="Vyberte" /></SelectTrigger>
+                                    <SelectContent>{ZONING_PLAN_OPTIONS.map((o) => <SelectItem key={o} value={o}>{o}</SelectItem>)}</SelectContent>
+                                  </Select>
+                                </div>
+                                <div className="space-y-1.5">
+                                  <Label htmlFor="w2_access">Přístup</Label>
+                                  <Select value={landAccess} onValueChange={setLandAccess}>
+                                    <SelectTrigger id="w2_access" className="border-stone-200 h-10 text-xs w-full bg-white dark:bg-stone-950"><SelectValue placeholder="Vyberte" /></SelectTrigger>
+                                    <SelectContent>{LAND_ACCESS_OPTIONS.map((o) => <SelectItem key={o} value={o}>{o}</SelectItem>)}</SelectContent>
+                                  </Select>
+                                </div>
+                                <div className="space-y-1.5 sm:col-span-2">
+                                  <Label htmlFor="w2_dims">Šířka / tvar / svažitost</Label>
+                                  <Input id="w2_dims" value={landDimensions} onChange={(e) => setLandDimensions(e.target.value)}
+                                    placeholder="např. 20×40 m, rovina" className="border-stone-200 h-10 text-xs bg-white dark:bg-stone-950" />
+                                </div>
+                              </div>
+                              <div className="space-y-2">
+                                <Label>Zasíťování</Label>
+                                <div className="flex flex-wrap gap-2">
+                                  {Array.from(new Set([...LAND_UTILITY_OPTIONS, ...landUtilityList])).map((u) => (
+                                    <button key={u} type="button" onClick={() => toggleLandUtility(u)}
+                                      className={cn('px-3.5 h-9 rounded-full border text-[13px] font-medium transition-colors cursor-pointer',
+                                        landUtilityList.includes(u) ? 'border-[#0E8A5F] bg-[#0E8A5F] text-white'
+                                          : 'border-stone-200 dark:border-stone-800 text-stone-500 hover:border-[#0E8A5F]/60 bg-white dark:bg-stone-950')}>
+                                      {u}
+                                    </button>
+                                  ))}
+                                </div>
+                              </div>
+                            </>
+                          )}
+
+                          {(newKind === 'komerční' || newKind === 'garáž/ostatní') && (
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                              <div className="space-y-1.5">
+                                <Label htmlFor="w2_ccond">{newKind === 'komerční' ? 'Stav / vybavenost' : 'Stav'}</Label>
+                                {newKind === 'komerční' ? (
+                                  <Input id="w2_ccond" value={commCondition} onChange={(e) => setCommCondition(e.target.value)}
+                                    placeholder="např. po rekonstrukci, klimatizace" className="border-stone-200 h-10 text-xs bg-white dark:bg-stone-950" />
+                                ) : (
+                                  <Select value={commCondition} onValueChange={setCommCondition}>
+                                    <SelectTrigger id="w2_ccond" className="border-stone-200 h-10 text-xs w-full bg-white dark:bg-stone-950"><SelectValue placeholder="Vyberte" /></SelectTrigger>
+                                    <SelectContent>{GARAGE_CONDITION_OPTIONS.map((o) => <SelectItem key={o} value={o}>{o}</SelectItem>)}</SelectContent>
+                                  </Select>
+                                )}
+                              </div>
+                              <div className="space-y-1.5">
+                                <Label htmlFor="w2_cpark">{newKind === 'komerční' ? 'Parkování / vjezd' : 'Vjezd / přístup'}</Label>
+                                <Input id="w2_cpark" value={commParking} onChange={(e) => setCommParking(e.target.value)}
+                                  placeholder="např. 4 stání ve dvoře" className="border-stone-200 h-10 text-xs bg-white dark:bg-stone-950" />
+                              </div>
+                              {newKind === 'komerční' && (
+                                <div className="space-y-1.5">
+                                  <Label htmlFor="w2_cpenb">PENB</Label>
+                                  <Select value={commPenb} onValueChange={setCommPenb}>
+                                    <SelectTrigger id="w2_cpenb" className="border-stone-200 h-10 text-xs w-full bg-white dark:bg-stone-950"><SelectValue placeholder="Třída" /></SelectTrigger>
+                                    <SelectContent>{PENB_OPTIONS.map((o) => <SelectItem key={o} value={o}>{o}</SelectItem>)}</SelectContent>
+                                  </Select>
+                                </div>
+                              )}
+                            </div>
+                          )}
+                        </div>
+                      )}
                     </div>
                   )}
 
