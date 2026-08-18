@@ -69,11 +69,11 @@ const WIZARD_STEPS = [
 
 // Co se skrývá pod „ostatní parametry" — popisek podle druhu
 const MORE_PARAMS_HINT: Record<string, string> = {
-  byt: 'Patro, vlastnictví, konstrukce, stav, PENB, vybavení',
-  'dům': 'Typ domu, podlaží, stav, PENB, garáž a zahrada',
-  pozemek: 'Územní plán, přístup, rozměry, zasíťování',
-  'komerční': 'Stav a vybavenost, parkování, PENB',
-  'garáž/ostatní': 'Stav, vjezd a přístup',
+  byt: 'Patro, vlastnictví, konstrukce, PENB, vybavení · fotky, popis, provize',
+  'dům': 'Typ domu, podlaží, stav, PENB, garáž a zahrada · fotky, popis, provize',
+  pozemek: 'Územní plán, přístup, rozměry, sítě · fotky, popis, provize',
+  'komerční': 'Stav a vybavenost, parkování, PENB · fotky, popis, provize',
+  'garáž/ostatní': 'Stav, vjezd a přístup · fotky, popis, provize',
 };
 
 const KIND_ICONS: Record<string, React.ComponentType<{ className?: string }>> = {
@@ -223,6 +223,8 @@ export const PropertiesView: React.FC<PropertiesViewProps> = ({
   const [importStage, setImportStage] = useState<string>('');
   const [createdSummary, setCreatedSummary] = useState<Property | null>(null);
   const [showMoreParams, setShowMoreParams] = useState(false);
+  const [photoUrls, setPhotoUrls] = useState<string[]>([]);
+  const [photoDraft, setPhotoDraft] = useState('');
 
   // Našeptávač adres (Photon nad daty OpenStreetMap — zdarma, bez klíče)
   type AddrSuggestion = { label: string; detail: string };
@@ -570,6 +572,8 @@ export const PropertiesView: React.FC<PropertiesViewProps> = ({
     setAddrSuggestions([]);
     setAddrOpen(false);
     setShowMoreParams(false);
+    setPhotoUrls([]);
+    setPhotoDraft('');
   };
 
   // Podmínky pro přechod na další krok průvodce
@@ -1025,6 +1029,8 @@ export const PropertiesView: React.FC<PropertiesViewProps> = ({
         return;
       }
 
+      const createAttachments = Array.from(new Set([...(photoUrl ? [photoUrl] : []), ...photoUrls])).filter(Boolean);
+
       const created = await createProperty({
         owner_id: finalOwnerId,
         kind: newKind,
@@ -1035,8 +1041,8 @@ export const PropertiesView: React.FC<PropertiesViewProps> = ({
         facts_for_answers: newFacts || null,
         handover_term: newHandover || null,
         listing_id: newListingId || null,
-        attachments: photoUrl ? [photoUrl] : null,
-        
+        attachments: createAttachments.length > 0 ? createAttachments : null,
+
         // Byt details
         flat_layout: newKind === 'byt' ? (flatLayout as Property['flat_layout']) : null,
         flat_area: newKind === 'byt' && flatArea ? parseSafeNumber(flatArea) : null,
@@ -1312,6 +1318,7 @@ export const PropertiesView: React.FC<PropertiesViewProps> = ({
       // Set DOM photo URL state immediately
       if (foundPhotoUrl) {
         setPhotoUrl(foundPhotoUrl);
+        setPhotoUrls((prev) => (prev.includes(foundPhotoUrl) ? prev : [foundPhotoUrl, ...prev]));
       }
 
       const geminiRes = await fetch(geminiUrl, {
@@ -2492,7 +2499,7 @@ export const PropertiesView: React.FC<PropertiesViewProps> = ({
                     </svg>
                   )}
                   <span className="absolute bottom-[6px] left-[6px] sm:left-auto sm:right-[6px] bg-[#00221F]/80 dark:bg-stone-900/80 text-white text-[11.5px] font-medium px-2 py-0.5 rounded-[5px]">
-                    {selectedProperty.attachments?.length || 12} fotek
+                    {selectedProperty.attachments?.length || 0} fotek
                   </span>
                 </div>
 
@@ -5314,6 +5321,126 @@ export const PropertiesView: React.FC<PropertiesViewProps> = ({
                               )}
                             </div>
                           )}
+
+                          {/* Pronájem — jen když jde o nájem */}
+                          {newTransaction === 'pronájem' && (
+                            <div className="space-y-4 border-t border-[#0E8A5F]/20 pt-4">
+                              <div className="text-[11px] font-semibold uppercase tracking-wider text-stone-400">Pronájem</div>
+                              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                <div className="space-y-1.5">
+                                  <Label htmlFor="w2_deposit">Vratná kauce (Kč)</Label>
+                                  <Input id="w2_deposit" type="number" value={rentDeposit} onChange={(e) => setRentDeposit(e.target.value)}
+                                    placeholder="Kč" className="border-stone-200 h-10 text-xs bg-white dark:bg-stone-950" />
+                                </div>
+                                <div className="space-y-1.5">
+                                  <Label htmlFor="w2_fees">Měsíční poplatky (Kč)</Label>
+                                  <Input id="w2_fees" type="number" value={rentFeesUtilities} onChange={(e) => setRentFeesUtilities(e.target.value)}
+                                    placeholder="Kč" className="border-stone-200 h-10 text-xs bg-white dark:bg-stone-950" />
+                                </div>
+                                <div className="space-y-1.5">
+                                  <Label htmlFor="w2_rdur">Doba nájmu</Label>
+                                  <Input id="w2_rdur" value={rentDuration} onChange={(e) => setRentDuration(e.target.value)}
+                                    placeholder="např. 1 rok s prodloužením" className="border-stone-200 h-10 text-xs bg-white dark:bg-stone-950" />
+                                </div>
+                                <div className="space-y-1.5">
+                                  <Label htmlFor="w2_rfrom">Dostupné od</Label>
+                                  <Input id="w2_rfrom" type="date" value={rentAvailableFrom} onChange={(e) => setRentAvailableFrom(e.target.value)}
+                                    className="border-stone-200 h-10 text-xs bg-white dark:bg-stone-950" />
+                                </div>
+                                <div className="space-y-1.5 sm:col-span-2">
+                                  <Label htmlFor="w2_requip">Vybavení</Label>
+                                  <Select value={rentEquipment} onValueChange={setRentEquipment}>
+                                    <SelectTrigger id="w2_requip" className="border-stone-200 h-10 text-xs w-full bg-white dark:bg-stone-950"><SelectValue placeholder="Vyberte" /></SelectTrigger>
+                                    <SelectContent>{RENT_EQUIPMENT_OPTIONS.map((o) => <SelectItem key={o} value={o}>{o}</SelectItem>)}</SelectContent>
+                                  </Select>
+                                </div>
+                              </div>
+                            </div>
+                          )}
+
+                          {/* Fotky */}
+                          <div className="space-y-3 border-t border-[#0E8A5F]/20 pt-4">
+                            <div className="text-[11px] font-semibold uppercase tracking-wider text-stone-400">
+                              Fotky {photoUrls.length > 0 && `· ${photoUrls.length}`}
+                            </div>
+                            {photoUrls.length > 0 && (
+                              <div className="flex flex-wrap gap-2">
+                                {photoUrls.map((url, i) => (
+                                  <div key={url} className="relative group">
+                                    <img src={url} alt={`Fotka ${i + 1}`}
+                                      className="h-16 w-20 rounded-md object-cover border border-stone-200 dark:border-stone-800" />
+                                    {i === 0 && (
+                                      <span className="absolute bottom-0 left-0 right-0 bg-[#00221F]/80 text-[9px] text-white text-center py-0.5 rounded-b-md">
+                                        hlavní
+                                      </span>
+                                    )}
+                                    <button type="button" onClick={() => setPhotoUrls(photoUrls.filter((_, x) => x !== i))}
+                                      className="absolute -top-1.5 -right-1.5 w-5 h-5 rounded-full bg-white dark:bg-stone-900 border border-stone-200 dark:border-stone-700 flex items-center justify-center shadow-sm cursor-pointer hover:border-rose-400"
+                                      aria-label={`Odebrat fotku ${i + 1}`}>
+                                      <X className="w-3 h-3 text-stone-500" />
+                                    </button>
+                                  </div>
+                                ))}
+                              </div>
+                            )}
+                            <div className="flex flex-col sm:flex-row gap-2">
+                              <Input value={photoDraft} onChange={(e) => setPhotoDraft(e.target.value)}
+                                onKeyDown={(e) => {
+                                  if (e.key === 'Enter') {
+                                    e.preventDefault();
+                                    const v = photoDraft.trim();
+                                    if (v && !photoUrls.includes(v)) { setPhotoUrls([...photoUrls, v]); setPhotoDraft(''); }
+                                  }
+                                }}
+                                placeholder="Vložte odkaz na fotku (https://…)"
+                                className="border-stone-200 h-10 text-xs bg-white dark:bg-stone-950 w-full sm:flex-1" />
+                              <Button type="button" variant="outline" className="h-10 text-xs shrink-0"
+                                disabled={!photoDraft.trim()}
+                                onClick={() => {
+                                  const v = photoDraft.trim();
+                                  if (v && !photoUrls.includes(v)) { setPhotoUrls([...photoUrls, v]); setPhotoDraft(''); }
+                                }}>
+                                Přidat fotku
+                              </Button>
+                            </div>
+                            <p className="text-[11.5px] text-stone-400">
+                              Při importu z inzerátu se hlavní fotka doplní sama. Další můžete přidat odkazem.
+                            </p>
+                          </div>
+
+                          {/* Popis a předání */}
+                          <div className="space-y-4 border-t border-[#0E8A5F]/20 pt-4">
+                            <div className="text-[11px] font-semibold uppercase tracking-wider text-stone-400">Popis a předání</div>
+                            <div className="space-y-1.5">
+                              <Label htmlFor="w2_facts">Co je v ceně / fakta pro odpovědi</Label>
+                              <Textarea id="w2_facts" rows={3} value={newFacts} onChange={(e) => setNewFacts(e.target.value)}
+                                placeholder="Co je v ceně, stav, zvláštnosti… AI z toho odpovídá zájemcům."
+                                className="border-stone-200 text-xs bg-white dark:bg-stone-950" />
+                            </div>
+                            <div className="space-y-1.5">
+                              <Label htmlFor="w2_handover">Možný termín předání</Label>
+                              <Input id="w2_handover" value={newHandover} onChange={(e) => setNewHandover(e.target.value)}
+                                placeholder="např. ihned, po dohodě, 3/2026"
+                                className="border-stone-200 h-10 text-xs bg-white dark:bg-stone-950" />
+                            </div>
+                          </div>
+
+                          {/* Provize */}
+                          <div className="space-y-4 border-t border-[#0E8A5F]/20 pt-4">
+                            <div className="text-[11px] font-semibold uppercase tracking-wider text-stone-400">Provize</div>
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                              <div className="space-y-1.5">
+                                <Label htmlFor="w2_cpct">Provize (%)</Label>
+                                <Input id="w2_cpct" type="number" value={commissionPct} onChange={(e) => setCommissionPct(e.target.value)}
+                                  placeholder="%" className="border-stone-200 h-10 text-xs bg-white dark:bg-stone-950" />
+                              </div>
+                              <div className="space-y-1.5">
+                                <Label htmlFor="w2_cval">Provize (Kč)</Label>
+                                <Input id="w2_cval" type="number" value={commissionVal} onChange={(e) => setCommissionVal(e.target.value)}
+                                  placeholder="Kč" className="border-stone-200 h-10 text-xs bg-white dark:bg-stone-950" />
+                              </div>
+                            </div>
+                          </div>
                         </div>
                       )}
                     </div>
