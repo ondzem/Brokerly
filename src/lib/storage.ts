@@ -2,9 +2,13 @@ import { supabase } from './supabase';
 
 export const PROPERTY_PHOTO_BUCKET = 'property-photos';
 
-/** Cílový rozměr fotek — všechny se ořezávají na stejný poměr i velikost. */
+/**
+ * Cílový rozměr fotek — všechny se ořezávají na stejný poměr i velikost.
+ * Poměr 3:2 = přirozený formát fotoaparátů, u nemovitostí standard.
+ * Změna poměru = změna těchto dvou čísel, zbytek (ořez i výřez) se dopočítá.
+ */
 export const PHOTO_TARGET_WIDTH = 1200;
-export const PHOTO_TARGET_HEIGHT = 900;
+export const PHOTO_TARGET_HEIGHT = 800;
 export const PHOTO_ASPECT = PHOTO_TARGET_WIDTH / PHOTO_TARGET_HEIGHT;
 
 /**

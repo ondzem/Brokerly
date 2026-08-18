@@ -136,7 +136,7 @@ export const PhotoUploader: React.FC<PhotoUploaderProps> = ({ photos, onChange }
         if (state.handle === 'w' || state.handle === 'e') y = start.y + (start.height - height) / 2;
 
         // udrž ořez uvnitř obrázku
-        if (x < 0) { width += x * -1 * -1; x = 0; }
+        if (x < 0) { width += x; x = 0; } // x je záporné → výřez se zkrátí o přesah
         if (y < 0) { y = 0; }
         if (x + width > natural.width) width = natural.width - x;
         height = width / PHOTO_ASPECT;
