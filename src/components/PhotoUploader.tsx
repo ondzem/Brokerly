@@ -11,6 +11,8 @@ type Handle = 'move' | 'nw' | 'ne' | 'sw' | 'se' | 'n' | 's' | 'w' | 'e';
 interface PhotoUploaderProps {
   photos: string[];
   onChange: (photos: string[]) => void;
+  /** Hlásí ven, že je načtená fotka bez potvrzeného ořezu — průvodce na ni upozorní. */
+  onPendingChange?: (pending: boolean) => void;
 }
 
 /** Největší ořez v daném poměru, který se vejde do rozměrů obrázku. */
@@ -29,7 +31,7 @@ function initialCrop(naturalWidth: number, naturalHeight: number): Rect {
   };
 }
 
-export const PhotoUploader: React.FC<PhotoUploaderProps> = ({ photos, onChange }) => {
+export const PhotoUploader: React.FC<PhotoUploaderProps> = ({ photos, onChange, onPendingChange }) => {
   const [dragOver, setDragOver] = useState(false);
   const [queue, setQueue] = useState<string[]>([]); // data URL fotek čekajících na ořez
   const [crop, setCrop] = useState<Rect | null>(null);
@@ -42,6 +44,11 @@ export const PhotoUploader: React.FC<PhotoUploaderProps> = ({ photos, onChange }
   const dragState = useRef<{ handle: Handle; startX: number; startY: number; startCrop: Rect } | null>(null);
 
   const current = queue[0] ?? null;
+
+  // Fronta neprázdná = uživatel má rozdělanou fotku, kterou ještě nepotvrdil
+  useEffect(() => {
+    onPendingChange?.(queue.length > 0);
+  }, [queue.length, onPendingChange]);
 
   const acceptFiles = useCallback((files: FileList | null) => {
     if (!files || files.length === 0) return;

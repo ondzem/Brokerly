@@ -11,7 +11,7 @@ import { Card, CardContent, CardTitle, CardDescription } from '@/components/ui/c
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { toast } from 'sonner';
 import { PhotoUploader } from '@/components/PhotoUploader';
-import { Search, Plus, Home, User, Briefcase, DollarSign, MapPin, LayoutGrid, List, SlidersHorizontal, FileText, CheckCircle2, Trash2, Edit, X, ChevronRight, Calendar, ArrowRight, Upload, Sparkles, FileUp, MoreHorizontal, Building2, Trees, Store, Warehouse } from 'lucide-react';
+import { Search, Plus, Home, User, Briefcase, DollarSign, MapPin, LayoutGrid, List, SlidersHorizontal, FileText, CheckCircle2, Trash2, Edit, X, ChevronRight, Calendar, ArrowRight, Upload, Sparkles, FileUp, MoreHorizontal, Building2, Trees, Store, Warehouse, AlertTriangle } from 'lucide-react';
 
 const KIND_OPTIONS = [
   { id: 'byt', label: 'byt' },
@@ -226,6 +226,8 @@ export const PropertiesView: React.FC<PropertiesViewProps> = ({
   const [createdSummary, setCreatedSummary] = useState<Property | null>(null);
   const [showMoreParams, setShowMoreParams] = useState(false);
   const [photoUrls, setPhotoUrls] = useState<string[]>([]);
+  const [photoPending, setPhotoPending] = useState(false);   // načtená fotka bez potvrzeného ořezu
+  const [photoWarning, setPhotoWarning] = useState(false);   // upozornění „přijdete o ni"
   const [photoDraft, setPhotoDraft] = useState('');
 
   // Našeptávač adres (Photon nad daty OpenStreetMap — zdarma, bez klíče)
@@ -603,6 +605,28 @@ export const PropertiesView: React.FC<PropertiesViewProps> = ({
         return true;
     }
   })();
+
+  const onPhotoStep = createMode === 'kroky' && WIZARD_STEPS[wizardStep]?.key === 'fotky';
+
+  // Ořez potvrzený nebo zahozený → upozornění je bezpředmětné a další fotka
+  // musí dostat vlastní varování, ne zdědit odklepnuté.
+  useEffect(() => {
+    if (!photoPending) setPhotoWarning(false);
+  }, [photoPending]);
+
+  /**
+   * Na kroku s fotkami první kliknutí jen upozorní, že rozdělaný ořez není
+   * potvrzený — teprve druhé pustí dál. Fotka se jinak tiše ztratí (krok se
+   * odmountuje) a uživatel se to dozví až na kartě nemovitosti.
+   */
+  const goToNextStep = () => {
+    if (onPhotoStep && photoPending && !photoWarning) {
+      setPhotoWarning(true);
+      return;
+    }
+    setPhotoWarning(false);
+    setWizardStep(wizardStep + 1);
+  };
 
   // Popis nemovitosti pro nadpisy („Byt 3+kk", „Pozemek — pole")
   const describeProperty = (p: Property) => {
@@ -1489,6 +1513,8 @@ export const PropertiesView: React.FC<PropertiesViewProps> = ({
     // Tyhle stavy sdílí detail nemovitosti — bez resetu by se do nové nemovitosti
     // propsala fotka, provize i kauce z naposledy otevřené karty.
     setPhotoUrl('');
+    setPhotoPending(false);
+    setPhotoWarning(false);
     setRentDeposit('');
     setRentFeesUtilities('');
     setRentDuration('');
@@ -5414,12 +5440,29 @@ export const PropertiesView: React.FC<PropertiesViewProps> = ({
                     </div>
                   )}
 
-                  {/* 4. Cena */}
+                  {/* 4. Fotky — nepovinný krok */}
                   {WIZARD_STEPS[wizardStep].key === 'fotky' && (
                     <div className="space-y-3">
-                      <PhotoUploader photos={photoUrls} onChange={setPhotoUrls} />
+                      {photoWarning && photoPending && (
+                        <div className="rounded-lg border border-amber-300 bg-amber-50 dark:border-amber-800/60 dark:bg-amber-950/30 px-3.5 py-3 flex gap-2.5">
+                          <AlertTriangle className="w-4 h-4 text-amber-600 shrink-0 mt-px" />
+                          <div className="text-[12.5px] leading-relaxed text-amber-900 dark:text-amber-200">
+                            <span className="font-semibold">Fotka zatím není přidaná.</span>{' '}
+                            Potvrďte ořez tlačítkem <span className="font-semibold">Použít výřez</span>,
+                            jinak se neuloží. Dalším kliknutím na Pokračovat půjdete dál bez ní.
+                          </div>
+                        </div>
+                      )}
+
+                      <PhotoUploader
+                        photos={photoUrls}
+                        onChange={setPhotoUrls}
+                        onPendingChange={setPhotoPending}
+                      />
+
                       <p className="text-[11.5px] text-stone-400">
-                        Všechny fotky se ořezávají na stejný formát 4:3, aby karty nemovitostí vypadaly jednotně.
+                        Fotky jsou nepovinné — dají se doplnit kdykoli později na kartě nemovitosti.
+                        Všechny se ořezávají na stejný formát 3:2, aby karty vypadaly jednotně.
                         První fotka je hlavní. Při importu z inzerátu se doplní sama.
                       </p>
                     </div>
@@ -6424,8 +6467,10 @@ export const PropertiesView: React.FC<PropertiesViewProps> = ({
                     ← Zpět
                   </button>
                   {wizardStep < WIZARD_STEPS.length - 1 ? (
-                    <Button type="button" disabled={!wizardStepValid} onClick={() => setWizardStep(wizardStep + 1)}>
-                      Pokračovat
+                    <Button type="button" disabled={!wizardStepValid} onClick={goToNextStep}>
+                      {onPhotoStep && photoUrls.length === 0 && !photoPending
+                        ? 'Pokračovat bez fotek'
+                        : 'Pokračovat'}
                     </Button>
                   ) : (
                     <Button type="submit" disabled={!wizardStepValid}>Uložit nemovitost</Button>
