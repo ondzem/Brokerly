@@ -63,17 +63,18 @@ const WIZARD_STEPS = [
   { key: 'druh', label: 'Druh', question: 'Co dáváte do nabídky?', hint: 'Podle druhu se zeptám na správné parametry.' },
   { key: 'adresa', label: 'Adresa', question: 'Kde to stojí?', hint: 'Ulice a město stačí.' },
   { key: 'parametry', label: 'Parametry', question: 'Jak je to velké?', hint: 'Jen to podstatné — zbytek doplníte kdykoli později.' },
+  { key: 'fotky', label: 'Fotky', question: 'Máte fotky?', hint: 'Nepovinné — dají se doplnit i později na kartě nemovitosti.' },
   { key: 'cena', label: 'Cena', question: 'Za kolik?', hint: 'Cenu za metr spočítám průběžně.' },
   { key: 'vlastnik', label: 'Vlastník', question: 'Čí to je?', hint: 'Vyberte z kontaktů, nebo rovnou založte nový.' },
 ] as const;
 
 // Co se skrývá pod „ostatní parametry" — popisek podle druhu
 const MORE_PARAMS_HINT: Record<string, string> = {
-  byt: 'Patro, vlastnictví, konstrukce, PENB, vybavení · fotky, popis, provize',
-  'dům': 'Typ domu, podlaží, stav, PENB, garáž a zahrada · fotky, popis, provize',
-  pozemek: 'Územní plán, přístup, rozměry, sítě · fotky, popis, provize',
-  'komerční': 'Stav a vybavenost, parkování, PENB · fotky, popis, provize',
-  'garáž/ostatní': 'Stav, vjezd a přístup · fotky, popis, provize',
+  byt: 'Patro, vlastnictví, konstrukce, PENB, vybavení · popis, provize',
+  'dům': 'Typ domu, podlaží, stav, PENB, garáž a zahrada · popis, provize',
+  pozemek: 'Územní plán, přístup, rozměry, sítě · popis, provize',
+  'komerční': 'Stav a vybavenost, parkování, PENB · popis, provize',
+  'garáž/ostatní': 'Stav, vjezd a přístup · popis, provize',
 };
 
 const KIND_ICONS: Record<string, React.ComponentType<{ className?: string }>> = {
@@ -515,7 +516,7 @@ export const PropertiesView: React.FC<PropertiesViewProps> = ({
   // Našeptávač adres — Photon nad OpenStreetMap. Bbox omezuje výsledky na ČR,
   // takže makléři stačí napsat ulici a vybrat konkrétní dům ze seznamu.
   useEffect(() => {
-    if (createMode !== 'kroky' || wizardStep !== 1) return;
+    if (createMode !== 'kroky' || WIZARD_STEPS[wizardStep]?.key !== 'adresa') return;
     if (addrPickedRef.current) { addrPickedRef.current = false; return; }
     const q = newAddress.trim();
     if (q.length < 3) { setAddrSuggestions([]); setAddrLoading(false); return; }
@@ -579,19 +580,21 @@ export const PropertiesView: React.FC<PropertiesViewProps> = ({
   // Podmínky pro přechod na další krok průvodce
   const wizardStepValid = (() => {
     if (createMode !== 'kroky') return true;
-    switch (wizardStep) {
-      case 0:
+    switch (WIZARD_STEPS[wizardStep]?.key) {
+      case 'druh':
         return Boolean(newKind && newTransaction);
-      case 1:
+      case 'adresa':
         return newAddress.trim().length > 2;
-      case 2:
+      case 'parametry':
         if (newKind === 'byt') return Boolean(flatLayout && flatArea);
         if (newKind === 'dům') return Boolean(houseLayout && houseArea && landArea);
         if (newKind === 'pozemek') return Boolean(landSize);
         return Boolean(commSubtype);
-      case 3:
+      case 'fotky':
+        return true; // nepovinné
+      case 'cena':
         return Boolean(newPrice) && Number(newPrice) > 0;
-      case 4:
+      case 'vlastnik':
         return ownerMode === 'select'
           ? Boolean(newOwnerId)
           : Boolean(newOwnerFullName && (newOwnerPhone || newOwnerEmail));
@@ -4929,7 +4932,7 @@ export const PropertiesView: React.FC<PropertiesViewProps> = ({
                   </div>
 
                   {/* 1. Druh + transakce */}
-                  {wizardStep === 0 && (
+                  {WIZARD_STEPS[wizardStep].key === 'druh' && (
                     <div className="space-y-4">
                       <div className="grid grid-cols-2 sm:grid-cols-3 gap-2.5">
                         {KIND_OPTIONS.map((opt) => {
@@ -4974,7 +4977,7 @@ export const PropertiesView: React.FC<PropertiesViewProps> = ({
                   )}
 
                   {/* 2. Adresa */}
-                  {wizardStep === 1 && (
+                  {WIZARD_STEPS[wizardStep].key === 'adresa' && (
                     <div className="space-y-1.5">
                       <Label htmlFor="wizard_address">Adresa *</Label>
                       <Input
@@ -5029,7 +5032,7 @@ export const PropertiesView: React.FC<PropertiesViewProps> = ({
                   )}
 
                   {/* 3. Parametry podle druhu */}
-                  {wizardStep === 2 && (
+                  {WIZARD_STEPS[wizardStep].key === 'parametry' && (
                     <div className="space-y-4">
                       {newKind === 'byt' && (
                         <>
@@ -5132,18 +5135,32 @@ export const PropertiesView: React.FC<PropertiesViewProps> = ({
                         type="button"
                         onClick={() => setShowMoreParams(!showMoreParams)}
                         aria-expanded={showMoreParams}
-                        className="w-full flex items-center justify-between gap-3 rounded-lg border border-stone-200 dark:border-stone-800 bg-stone-50 dark:bg-stone-900 px-4 py-3 text-left hover:border-[#0E8A5F] hover:bg-[#0E8A5F]/[0.05] transition-colors cursor-pointer"
+                        className={cn(
+                          'w-full flex items-center justify-between gap-3 rounded-xl border-2 px-4 py-3.5 text-left transition-colors cursor-pointer',
+                          showMoreParams
+                            ? 'border-[#0E8A5F] bg-[#0E8A5F]/[0.06]'
+                            : 'border-[#0E8A5F]/45 bg-[#0E8A5F]/[0.06] hover:border-[#0E8A5F] hover:bg-[#0E8A5F]/[0.11]'
+                        )}
                       >
-                        <span className="flex items-center gap-2.5 min-w-0">
-                          <SlidersHorizontal className="w-4 h-4 text-[#0E8A5F] flex-none" />
+                        <span className="flex items-center gap-3 min-w-0">
+                          <span className="w-9 h-9 rounded-lg bg-[#00D991] flex items-center justify-center flex-none">
+                            <SlidersHorizontal className="w-4 h-4 text-[#00221F]" />
+                          </span>
                           <span className="min-w-0">
-                            <span className="block text-[13.5px] font-semibold text-stone-900 dark:text-stone-100">
-                              {showMoreParams ? 'Skrýt ostatní parametry' : 'Chci vyplnit i ostatní parametry'}
+                            <span className="flex items-center gap-2">
+                              <span className="text-[14.5px] font-semibold text-stone-900 dark:text-stone-100">
+                                {showMoreParams ? 'Skrýt ostatní parametry' : 'Vyplnit i ostatní parametry'}
+                              </span>
+                              {!showMoreParams && (
+                                <span className="text-[10px] font-semibold uppercase tracking-wider bg-[#00D991]/20 text-[#0E8A5F] px-1.5 py-0.5 rounded">
+                                  Nepovinné
+                                </span>
+                              )}
                             </span>
-                            <span className="block text-[11.5px] text-stone-400">{MORE_PARAMS_HINT[newKind]}</span>
+                            <span className="block text-[12px] text-stone-500 dark:text-stone-400 mt-0.5">{MORE_PARAMS_HINT[newKind]}</span>
                           </span>
                         </span>
-                        <ChevronRight className={cn('w-4 h-4 text-[#0E8A5F] flex-none transition-transform', showMoreParams && 'rotate-90')} />
+                        <ChevronRight className={cn('w-5 h-5 text-[#0E8A5F] flex-none transition-transform', showMoreParams && 'rotate-90')} />
                       </button>
 
                       {showMoreParams && (
@@ -5358,56 +5375,6 @@ export const PropertiesView: React.FC<PropertiesViewProps> = ({
                             </div>
                           )}
 
-                          {/* Fotky */}
-                          <div className="space-y-3 border-t border-[#0E8A5F]/20 pt-4">
-                            <div className="text-[11px] font-semibold uppercase tracking-wider text-stone-400">
-                              Fotky {photoUrls.length > 0 && `· ${photoUrls.length}`}
-                            </div>
-                            {photoUrls.length > 0 && (
-                              <div className="flex flex-wrap gap-2">
-                                {photoUrls.map((url, i) => (
-                                  <div key={url} className="relative group">
-                                    <img src={url} alt={`Fotka ${i + 1}`}
-                                      className="h-16 w-20 rounded-md object-cover border border-stone-200 dark:border-stone-800" />
-                                    {i === 0 && (
-                                      <span className="absolute bottom-0 left-0 right-0 bg-[#00221F]/80 text-[9px] text-white text-center py-0.5 rounded-b-md">
-                                        hlavní
-                                      </span>
-                                    )}
-                                    <button type="button" onClick={() => setPhotoUrls(photoUrls.filter((_, x) => x !== i))}
-                                      className="absolute -top-1.5 -right-1.5 w-5 h-5 rounded-full bg-white dark:bg-stone-900 border border-stone-200 dark:border-stone-700 flex items-center justify-center shadow-sm cursor-pointer hover:border-rose-400"
-                                      aria-label={`Odebrat fotku ${i + 1}`}>
-                                      <X className="w-3 h-3 text-stone-500" />
-                                    </button>
-                                  </div>
-                                ))}
-                              </div>
-                            )}
-                            <div className="flex flex-col sm:flex-row gap-2">
-                              <Input value={photoDraft} onChange={(e) => setPhotoDraft(e.target.value)}
-                                onKeyDown={(e) => {
-                                  if (e.key === 'Enter') {
-                                    e.preventDefault();
-                                    const v = photoDraft.trim();
-                                    if (v && !photoUrls.includes(v)) { setPhotoUrls([...photoUrls, v]); setPhotoDraft(''); }
-                                  }
-                                }}
-                                placeholder="Vložte odkaz na fotku (https://…)"
-                                className="border-stone-200 h-10 text-xs bg-white dark:bg-stone-950 w-full sm:flex-1" />
-                              <Button type="button" variant="outline" className="h-10 text-xs shrink-0"
-                                disabled={!photoDraft.trim()}
-                                onClick={() => {
-                                  const v = photoDraft.trim();
-                                  if (v && !photoUrls.includes(v)) { setPhotoUrls([...photoUrls, v]); setPhotoDraft(''); }
-                                }}>
-                                Přidat fotku
-                              </Button>
-                            </div>
-                            <p className="text-[11.5px] text-stone-400">
-                              Při importu z inzerátu se hlavní fotka doplní sama. Další můžete přidat odkazem.
-                            </p>
-                          </div>
-
                           {/* Popis a předání */}
                           <div className="space-y-4 border-t border-[#0E8A5F]/20 pt-4">
                             <div className="text-[11px] font-semibold uppercase tracking-wider text-stone-400">Popis a předání</div>
@@ -5447,7 +5414,71 @@ export const PropertiesView: React.FC<PropertiesViewProps> = ({
                   )}
 
                   {/* 4. Cena */}
-                  {wizardStep === 3 && (
+                  {WIZARD_STEPS[wizardStep].key === 'fotky' && (
+                    <div className="space-y-4">
+                      {photoUrls.length > 0 ? (
+                        <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+                          {photoUrls.map((url, i) => (
+                            <div key={url} className="relative">
+                              <img src={url} alt={`Fotka ${i + 1}`}
+                                className="h-24 w-full rounded-lg object-cover border border-stone-200 dark:border-stone-800" />
+                              {i === 0 && (
+                                <span className="absolute bottom-0 left-0 right-0 bg-[#00221F]/85 text-[10px] font-medium text-white text-center py-1 rounded-b-lg">
+                                  hlavní fotka
+                                </span>
+                              )}
+                              <button type="button" onClick={() => setPhotoUrls(photoUrls.filter((_, x) => x !== i))}
+                                className="absolute -top-2 -right-2 w-6 h-6 rounded-full bg-white dark:bg-stone-900 border border-stone-200 dark:border-stone-700 flex items-center justify-center shadow-sm cursor-pointer hover:border-rose-400"
+                                aria-label={`Odebrat fotku ${i + 1}`}>
+                                <X className="w-3.5 h-3.5 text-stone-500" />
+                              </button>
+                            </div>
+                          ))}
+                        </div>
+                      ) : (
+                        <div className="rounded-lg border border-dashed border-stone-300 dark:border-stone-700 px-4 py-8 text-center">
+                          <Upload className="w-6 h-6 text-stone-300 mx-auto mb-2" />
+                          <div className="text-[13.5px] font-medium text-stone-900 dark:text-stone-100">Zatím žádná fotka</div>
+                          <div className="text-[12px] text-stone-400 mt-0.5">
+                            Vložte odkaz níže. Při importu z inzerátu se fotka doplní sama.
+                          </div>
+                        </div>
+                      )}
+
+                      <div className="space-y-1.5">
+                        <Label htmlFor="wizard_photo">Odkaz na fotku</Label>
+                        <div className="flex flex-col sm:flex-row gap-2">
+                          <Input
+                            id="wizard_photo"
+                            value={photoDraft}
+                            onChange={(e) => setPhotoDraft(e.target.value)}
+                            onKeyDown={(e) => {
+                              if (e.key === 'Enter') {
+                                e.preventDefault();
+                                const v = photoDraft.trim();
+                                if (v && !photoUrls.includes(v)) { setPhotoUrls([...photoUrls, v]); setPhotoDraft(''); }
+                              }
+                            }}
+                            placeholder="https://…"
+                            className="border-stone-200 h-10 text-xs bg-white dark:bg-stone-950 w-full sm:flex-1"
+                          />
+                          <Button type="button" variant="outline" className="h-10 text-xs shrink-0"
+                            disabled={!photoDraft.trim()}
+                            onClick={() => {
+                              const v = photoDraft.trim();
+                              if (v && !photoUrls.includes(v)) { setPhotoUrls([...photoUrls, v]); setPhotoDraft(''); }
+                            }}>
+                            Přidat fotku
+                          </Button>
+                        </div>
+                        <p className="text-[11.5px] text-stone-400">
+                          První fotka je hlavní — zobrazí se na kartě v seznamu. Pořadí změníte odebráním a přidáním.
+                        </p>
+                      </div>
+                    </div>
+                  )}
+
+                  {WIZARD_STEPS[wizardStep].key === 'cena' && (
                     <div className="space-y-3">
                       <div className="space-y-1.5">
                         <Label htmlFor="wizard_price">{newTransaction === 'pronájem' ? 'Nájem (Kč / měsíc) *' : 'Cena (Kč) *'}</Label>
@@ -5477,7 +5508,7 @@ export const PropertiesView: React.FC<PropertiesViewProps> = ({
                   )}
 
                   {/* 5. Vlastník */}
-                  {wizardStep === 4 && (
+                  {WIZARD_STEPS[wizardStep].key === 'vlastnik' && (
                     <div className="space-y-4">
                       <div className="flex bg-stone-100 dark:bg-stone-850 p-0.5 rounded-md border border-stone-200 dark:border-stone-800">
                         {(['select', 'new'] as const).map((m) => (
