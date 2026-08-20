@@ -2,40 +2,63 @@
 
 ## Postup — tohle si přečtěte oba
 
-Celá spolupráce stojí na dvou úkonech. Nic víc si pamatovat nemusíte.
+**Když pracujete přes Claude Code, nemusíte psát nic.** Synchronizace běží sama.
+
+| kdy | co se stane |
+|---|---|
+| otevřete Claude Code v projektu | stáhnou se změny od kolegy a Claude vám napíše, co přibylo |
+| Claude dokončí odpověď | vaše práce se uloží a nahraje na GitHub |
+
+Takže: prompt · Claude pracuje · nahráno. Prompt · Claude pracuje · nahráno.
+Po každé odpovědi je práce u kolegy. Nemusíte na to myslet a nemusíte nic psát
+na začátek promptu.
+
+### Jak poznám, že něco udělal on?
+
+Claude vám to sám napíše, hned jak otevřete projekt:
+
+```
+📥 Stáhl jsem změny od kolegy:
+• Práce: PropertiesView.tsx, storage.ts (Kolega, před 3 hodinami)
+```
+
+Když nic nepřibylo, neřekne nic.
+
+### A když pracuju dvě hodiny v kuse?
+
+Nic neřešíte. Po **každé** odpovědi Claude se práce nahraje, takže kolega vidí
+každý krok. Nic se nehromadí.
+
+Jen pozor na jednu věc: nová verze od kolegy se u vás objeví, **až Claude Code
+znovu otevřete**. Když víte, že mezitím něco nahrál, řekněte prostě
+*„stáhni změny od kolegy"*.
+
+### Když nepoužívám Claude Code
+
+Pak v terminálu:
 
 | úkon | co znamená |
 |---|---|
 | **`brokerly`** | *„dej mi nejnovější verzi a spusť projekt"* |
-| **`Ctrl + C`** | *„hotovo, pošli moji práci tomu druhému"* |
+| **`Ctrl + C`** | *„hotovo, pošli moji práci"* |
 
-Když spustíte `brokerly`, nahoře se vypíše, **co ten druhý mezitím udělal** —
-například `📥 Od minule přibylo: • Práce: PropertiesView.tsx, storage.ts (Kolega,
-před 3 hodinami)`. Když se nevypíše nic, nikdo nic nenahrál.
+(Kolega, který alias nemá, spouští `./start.sh` ve složce projektu.)
 
-### Jak se dostanu k jeho změnám?
+### Konec dne
 
-Dáte `Ctrl + C` a spustíte `brokerly` znovu. Trvá to deset vteřin.
+**Nic.** Poslední odpověď Claude se nahrála sama, takže můžete zavřít počítač.
 
-Server se totiž dívá do složky tak, jak vypadala při spuštění. Dokud běží, nové
-soubory od kolegy se do ní nedostanou — stáhnou se až při dalším startu.
-
-### Kdy to mám dělat?
-
-**Vždycky, když se chystáte na něco sáhnout.** Ráno, po obědě, po pauze. Čím
-čerstvější verzi máte, tím míň je co spojovat.
-
-A hlavně **nedělejte tři dny práce bez jediného `Ctrl + C`.** Dokud nedáte
-Ctrl + C, vaše práce leží jen u vás na počítači, kolega o ní neví a staví na
-staré verzi.
-
-### Jediné pravidlo navíc
+### Jediné pravidlo, které musíte dodržet
 
 **Řekněte si dopředu, kdo dělá co.** Stačí zpráva: „dneska dělám nemovitosti, ty
 si vezmi kontakty."
 
 Git umí spojit změny v různých souborech úplně sám. Změny na stejném řádku spojit
-neumí a musí rozhodnout člověk — a to zdržuje. Tomu se vyhnete jednou větou předem.
+neumí a musí rozhodnout člověk. Když k tomu dojde, Claude se zastaví a napíše:
+
+> ⛔ Kolega mezitím změnil to samé. Nic jsem nenahrál, práce je uložená.
+
+Odpovíte *„vyřeš konflikt"* a je to. Nic se nikdy neztratí.
 
 ---
 

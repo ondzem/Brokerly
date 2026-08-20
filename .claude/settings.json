@@ -19,6 +19,30 @@
           }
         ]
       }
+    ],
+    "SessionStart": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "\"$CLAUDE_PROJECT_DIR/.claude/sync.sh\" pull",
+            "timeout": 30,
+            "statusMessage": "Stahuji změny od kolegy…"
+          }
+        ]
+      }
+    ],
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "\"$CLAUDE_PROJECT_DIR/.claude/sync.sh\" push",
+            "timeout": 60,
+            "statusMessage": "Nahrávám na GitHub…"
+          }
+        ]
+      }
     ]
   }
 }
