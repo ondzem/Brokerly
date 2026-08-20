@@ -327,3 +327,45 @@ Skills are installed on this machine. **Use them; do not improvise a substitute.
 Not for this project unless I ask: `industrial-brutalist-ui`, `gpt-taste`, `brandkit`, `stitch-design-taste`, `design-taste-frontend-v1` — wrong aesthetic or wrong target for Brokerly.
 
 Also still in force: `superpowers:brainstorming` before planning, `superpowers:writing-plans` for the plan artifact required by §0, and `superpowers:verification-before-completion` before you report anything done.
+
+---
+
+## 11. Two people share this repo
+
+Two developers work on `main` of https://github.com/ondzem/Brokerly from separate
+machines. Neither of them is a git expert — you are the one who has to keep the
+history clean, and you must never let their work collide silently.
+
+**Before you touch any file in a fresh session**, check whether the working copy is
+behind:
+
+```bash
+git fetch origin main && git status -sb
+```
+
+If it reports `behind`, run `git pull --rebase --autostash origin main` before
+editing. Editing on a stale copy is what manufactures conflicts.
+
+**After finishing a piece of work**, commit it. Do not leave a session with a dirty
+working tree that the other person cannot see — an uncommitted change is invisible
+to them and is the most common cause of "why did my work disappear". Push when the
+work is coherent; the user runs `./start.sh`, which pushes on exit, but do not rely
+on that if the user asked you to push.
+
+**Never** use `git push --force`, `git reset --hard` on shared commits, or
+`git checkout` over uncommitted work without saying what will be lost. On this repo
+those destroy someone else's day, not just the user's.
+
+**Resolving a conflict:** read both sides before choosing. If the two sides changed
+the same feature for different reasons, say so and ask — do not silently pick one.
+`git rebase --abort` is always the safe exit.
+
+**Secrets:** `.env.local` holds the Supabase, Gemini and ScraperAPI keys and is
+gitignored. The repo is **public**. Never commit a key, never paste one into a file
+that git tracks, and never print one into the transcript. New environment variables
+get their name (not their value) added to `.env.local.example`.
+
+**Supabase is one shared database**, not one per developer. A destructive migration
+or a deletion hits both people at once — confirm before running one.
+
+The human-facing version of all this is `docs/spoluprace.md`. Keep the two in sync.
