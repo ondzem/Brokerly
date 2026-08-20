@@ -1129,7 +1129,12 @@ export const PropertiesView: React.FC<PropertiesViewProps> = ({
         comm_subtype: usesCommColumns(newKind) ? commSubtype || null : null,
         comm_floor_area: usesCommColumns(newKind) && commFloorArea ? parseSafeNumber(commFloorArea) : null,
         comm_condition_equipment: usesCommColumns(newKind) ? commCondition || null : null,
-        comm_parking_entrance: usesCommColumns(newKind) ? commParking || null : null,
+        // Byt sdílí sloupec parkování s komerčními prostory — vlastní nemá.
+        comm_parking_entrance: usesCommColumns(newKind)
+          ? commParking || null
+          : newKind === 'byt'
+            ? flatParking || null
+            : null,
         comm_penb: newKind === 'komerční' ? commPenb || null : null,
         rent_deposit: newTransaction === 'pronájem' ? parseSafeNumber(rentDeposit) : null,
         rent_fees_utilities: newTransaction === 'pronájem' ? parseSafeNumber(rentFeesUtilities) : null,
