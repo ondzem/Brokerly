@@ -365,6 +365,11 @@ gitignored. The repo is **public**. Never commit a key, never paste one into a f
 that git tracks, and never print one into the transcript. New environment variables
 get their name (not their value) added to `.env.local.example`.
 
+**Migrations run through `python3 scripts/db-push.py`**, which applies anything
+not yet recorded in `_brokerly_migrations` via the Management API. It needs
+`SUPABASE_ACCESS_TOKEN` in `.env.local`; without it, say so and hand the user the
+SQL rather than asking them to work out what to paste.
+
 **Supabase is one shared database**, not one per developer. A destructive migration
 or a deletion hits both people at once — confirm before running one.
 

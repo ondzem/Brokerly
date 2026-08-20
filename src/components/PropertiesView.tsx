@@ -4996,14 +4996,7 @@ export const PropertiesView: React.FC<PropertiesViewProps> = ({
                         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                           <div className="space-y-1.5">
                             <Label htmlFor="wizard_house_layout">Dispozice *</Label>
-                            <Select value={houseLayout} onValueChange={setHouseLayout}>
-                              <SelectTrigger id="wizard_house_layout" className="border-stone-200 h-10 text-xs w-full">
-                                <SelectValue placeholder="Vyberte" />
-                              </SelectTrigger>
-                              <SelectContent>
-                                {HOUSE_LAYOUT_OPTIONS.map((o) => <SelectItem key={o} value={o}>{o}</SelectItem>)}
-                              </SelectContent>
-                            </Select>
+                            <OptionSelect id="wizard_house_layout" value={houseLayout} onChange={setHouseLayout} options={HOUSE_LAYOUT_OPTIONS} className="border-stone-200 w-full" />
                           </div>
                           <div className="space-y-1.5">
                             <Label htmlFor="wizard_house_area">Plocha (m²) *</Label>
@@ -5026,14 +5019,7 @@ export const PropertiesView: React.FC<PropertiesViewProps> = ({
                           </div>
                           <div className="space-y-1.5">
                             <Label htmlFor="wizard_land_type">Druh pozemku</Label>
-                            <Select value={landType} onValueChange={setLandType}>
-                              <SelectTrigger id="wizard_land_type" className="border-stone-200 h-10 text-xs w-full">
-                                <SelectValue placeholder="Vyberte" />
-                              </SelectTrigger>
-                              <SelectContent>
-                                {LAND_TYPE_OPTIONS.map((o) => <SelectItem key={o} value={o}>{o}</SelectItem>)}
-                              </SelectContent>
-                            </Select>
+                            <OptionSelect id="wizard_land_type" value={landType} onChange={setLandType} options={LAND_TYPE_OPTIONS} className="border-stone-200 w-full" />
                           </div>
                         </div>
                       )}
@@ -5103,24 +5089,15 @@ export const PropertiesView: React.FC<PropertiesViewProps> = ({
                                 </div>
                                 <div className="space-y-1.5">
                                   <Label htmlFor="w2_own">Vlastnictví</Label>
-                                  <Select value={flatOwnership} onValueChange={setFlatOwnership}>
-                                    <SelectTrigger id="w2_own" className="border-stone-200 h-10 text-xs w-full bg-white dark:bg-stone-950"><SelectValue placeholder="Vyberte" /></SelectTrigger>
-                                    <SelectContent>{OWNERSHIP_OPTIONS.map((o) => <SelectItem key={o} value={o}>{o}</SelectItem>)}</SelectContent>
-                                  </Select>
+                                  <OptionSelect id="w2_own" value={flatOwnership} onChange={setFlatOwnership} options={OWNERSHIP_OPTIONS} className="border-stone-200 w-full bg-white dark:bg-stone-950" />
                                 </div>
                                 <div className="space-y-1.5">
                                   <Label htmlFor="w2_const">Konstrukce</Label>
-                                  <Select value={flatConstruction} onValueChange={setFlatConstruction}>
-                                    <SelectTrigger id="w2_const" className="border-stone-200 h-10 text-xs w-full bg-white dark:bg-stone-950"><SelectValue placeholder="Vyberte" /></SelectTrigger>
-                                    <SelectContent>{CONSTRUCTION_OPTIONS.map((o) => <SelectItem key={o} value={o}>{o}</SelectItem>)}</SelectContent>
-                                  </Select>
+                                  <OptionSelect id="w2_const" value={flatConstruction} onChange={setFlatConstruction} options={CONSTRUCTION_OPTIONS} className="border-stone-200 w-full bg-white dark:bg-stone-950" />
                                 </div>
                                 <div className="space-y-1.5">
                                   <Label htmlFor="w2_cond">Stav bytu</Label>
-                                  <Select value={flatCondition} onValueChange={setFlatCondition}>
-                                    <SelectTrigger id="w2_cond" className="border-stone-200 h-10 text-xs w-full bg-white dark:bg-stone-950"><SelectValue placeholder="Vyberte" /></SelectTrigger>
-                                    <SelectContent>{FLAT_CONDITION_OPTIONS.map((o) => <SelectItem key={o} value={o}>{o}</SelectItem>)}</SelectContent>
-                                  </Select>
+                                  <OptionSelect id="w2_cond" value={flatCondition} onChange={setFlatCondition} options={FLAT_CONDITION_OPTIONS} className="border-stone-200 w-full bg-white dark:bg-stone-950" />
                                 </div>
                                 <div className="space-y-1.5">
                                   <Label htmlFor="w2_penb">PENB</Label>
@@ -5156,10 +5133,7 @@ export const PropertiesView: React.FC<PropertiesViewProps> = ({
                               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                 <div className="space-y-1.5">
                                   <Label htmlFor="w2_htype">Typ domu</Label>
-                                  <Select value={houseType} onValueChange={setHouseType}>
-                                    <SelectTrigger id="w2_htype" className="border-stone-200 h-10 text-xs w-full bg-white dark:bg-stone-950"><SelectValue placeholder="Vyberte" /></SelectTrigger>
-                                    <SelectContent>{HOUSE_TYPE_OPTIONS.map((o) => <SelectItem key={o} value={o}>{o}</SelectItem>)}</SelectContent>
-                                  </Select>
+                                  <OptionSelect id="w2_htype" value={houseType} onChange={setHouseType} options={HOUSE_TYPE_OPTIONS} className="border-stone-200 w-full bg-white dark:bg-stone-950" />
                                 </div>
                                 <div className="space-y-1.5">
                                   <Label htmlFor="w2_floors">Počet podlaží</Label>
@@ -5168,10 +5142,7 @@ export const PropertiesView: React.FC<PropertiesViewProps> = ({
                                 </div>
                                 <div className="space-y-1.5">
                                   <Label htmlFor="w2_hcond">Stav domu</Label>
-                                  <Select value={houseCondition} onValueChange={setHouseCondition}>
-                                    <SelectTrigger id="w2_hcond" className="border-stone-200 h-10 text-xs w-full bg-white dark:bg-stone-950"><SelectValue placeholder="Vyberte" /></SelectTrigger>
-                                    <SelectContent>{FLAT_CONDITION_OPTIONS.map((o) => <SelectItem key={o} value={o}>{o}</SelectItem>)}</SelectContent>
-                                  </Select>
+                                  <OptionSelect id="w2_hcond" value={houseCondition} onChange={setHouseCondition} options={FLAT_CONDITION_OPTIONS} className="border-stone-200 w-full bg-white dark:bg-stone-950" />
                                 </div>
                                 <div className="space-y-1.5">
                                   <Label htmlFor="w2_hpenb">PENB</Label>
@@ -5202,17 +5173,11 @@ export const PropertiesView: React.FC<PropertiesViewProps> = ({
                               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                 <div className="space-y-1.5">
                                   <Label htmlFor="w2_zoning">Územní plán</Label>
-                                  <Select value={zoningPlan} onValueChange={setZoningPlan}>
-                                    <SelectTrigger id="w2_zoning" className="border-stone-200 h-10 text-xs w-full bg-white dark:bg-stone-950"><SelectValue placeholder="Vyberte" /></SelectTrigger>
-                                    <SelectContent>{ZONING_PLAN_OPTIONS.map((o) => <SelectItem key={o} value={o}>{o}</SelectItem>)}</SelectContent>
-                                  </Select>
+                                  <OptionSelect id="w2_zoning" value={zoningPlan} onChange={setZoningPlan} options={ZONING_PLAN_OPTIONS} className="border-stone-200 w-full bg-white dark:bg-stone-950" />
                                 </div>
                                 <div className="space-y-1.5">
                                   <Label htmlFor="w2_access">Přístup</Label>
-                                  <Select value={landAccess} onValueChange={setLandAccess}>
-                                    <SelectTrigger id="w2_access" className="border-stone-200 h-10 text-xs w-full bg-white dark:bg-stone-950"><SelectValue placeholder="Vyberte" /></SelectTrigger>
-                                    <SelectContent>{LAND_ACCESS_OPTIONS.map((o) => <SelectItem key={o} value={o}>{o}</SelectItem>)}</SelectContent>
-                                  </Select>
+                                  <OptionSelect id="w2_access" value={landAccess} onChange={setLandAccess} options={LAND_ACCESS_OPTIONS} className="border-stone-200 w-full bg-white dark:bg-stone-950" />
                                 </div>
                                 <div className="space-y-1.5 sm:col-span-2">
                                   <Label htmlFor="w2_dims">Šířka / tvar / svažitost</Label>
@@ -5244,10 +5209,7 @@ export const PropertiesView: React.FC<PropertiesViewProps> = ({
                                   <Input id="w2_ccond" value={commCondition} onChange={(e) => setCommCondition(e.target.value)}
                                     placeholder="např. po rekonstrukci, klimatizace" className="border-stone-200 h-10 text-xs bg-white dark:bg-stone-950" />
                                 ) : (
-                                  <Select value={commCondition} onValueChange={setCommCondition}>
-                                    <SelectTrigger id="w2_ccond" className="border-stone-200 h-10 text-xs w-full bg-white dark:bg-stone-950"><SelectValue placeholder="Vyberte" /></SelectTrigger>
-                                    <SelectContent>{GARAGE_CONDITION_OPTIONS.map((o) => <SelectItem key={o} value={o}>{o}</SelectItem>)}</SelectContent>
-                                  </Select>
+                                  <OptionSelect id="w2_ccond" value={commCondition} onChange={setCommCondition} options={GARAGE_CONDITION_OPTIONS} className="border-stone-200 w-full bg-white dark:bg-stone-950" />
                                 )}
                               </div>
                               <div className="space-y-1.5">
@@ -5294,10 +5256,7 @@ export const PropertiesView: React.FC<PropertiesViewProps> = ({
                                 </div>
                                 <div className="space-y-1.5 sm:col-span-2">
                                   <Label htmlFor="w2_requip">Vybavení</Label>
-                                  <Select value={rentEquipment} onValueChange={setRentEquipment}>
-                                    <SelectTrigger id="w2_requip" className="border-stone-200 h-10 text-xs w-full bg-white dark:bg-stone-950"><SelectValue placeholder="Vyberte" /></SelectTrigger>
-                                    <SelectContent>{RENT_EQUIPMENT_OPTIONS.map((o) => <SelectItem key={o} value={o}>{o}</SelectItem>)}</SelectContent>
-                                  </Select>
+                                  <OptionSelect id="w2_requip" value={rentEquipment} onChange={setRentEquipment} options={RENT_EQUIPMENT_OPTIONS} className="border-stone-200 w-full bg-white dark:bg-stone-950" />
                                 </div>
                               </div>
                             </div>
