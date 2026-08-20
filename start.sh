@@ -2,24 +2,73 @@
 #
 # Brokerly — start a synchronizace.
 #
-# Postup: stáhne cizí změny → nainstaluje závislosti → pustí server →
-# po Ctrl+C uloží vaši práci a nahraje ji na GitHub.
+# Postup: uloží rozdělanou práci → stáhne cizí změny → pustí server →
+# po Ctrl+C uloží a nahraje na GitHub.
 #
-# Napsané pro dva lidi na jednom repozitáři: před každým pushem se nejdřív
-# stáhne, co mezitím udělal ten druhý. Když to nejde spojit automaticky,
-# skript se ZASTAVÍ a nic nenahraje — raději než aby přepsal cizí práci.
+# Napsané pro dva lidi na jednom repozitáři. Ve chvíli, kdy git nedokáže
+# spojit obě práce sám, se skript ZASTAVÍ a nic nenahraje — nikdy nenahraje
+# rozpracované spojení ani soubor s konfliktními značkami.
 
 set -uo pipefail
 cd "$(dirname "$0")" || exit 1
 
 BRANCH="main"
-
 say()  { echo "$1"; }
 line() { echo "----------------------------------------------"; }
 
 echo "=============================================="
 echo "        Brokerly — start a synchronizace      "
 echo "=============================================="
+
+conflict_help() {
+  say ""
+  say "⛔ Vaše práce a práce kolegy se potkaly ve stejném místě a git neví,"
+  say "   která verze platí. NIC jsem nenahrál — o svoje změny nepřijdete."
+  say ""
+  say "   Nejjednodušší: otevřete v projektu Claude Code a napište"
+  say "   „vyřeš prosím konflikt a dokonči ho“."
+  say ""
+  say "   Zpátky do stavu před spojováním:  git rebase --abort"
+  exit 1
+}
+
+# Rozdělané spojení pozná git podle neslučitelných položek v indexu.
+# Grep na značky <<<<<<< nepoužíváme — máme je popsané v dokumentaci.
+assert_no_conflict() {
+  if [ -n "$(git ls-files --unmerged)" ] \
+     || [ -e .git/MERGE_HEAD ] \
+     || [ -d .git/rebase-merge ] || [ -d .git/rebase-apply ]; then
+    conflict_help
+  fi
+}
+
+save_work() {
+  [ -z "$(git status --porcelain)" ] && return 0
+
+  local deleted
+  deleted=$(git status --porcelain | grep -c '^.D' || true)
+  if [ "$deleted" -gt 0 ]; then
+    say ""
+    say "⚠️  Pozor, ukládám i smazání $deleted soubor(ů):"
+    git status --porcelain | grep '^.D' | sed 's/^/     /'
+    say "   Pokud jste je nemazali, dejte Ctrl+C a napište Ondřejovi."
+    say ""
+  fi
+
+  git add -A
+  git commit -q -m "$1 — $(git config user.name) $(date '+%-d. %-m. %Y %H:%M')"
+  say "💾 Změny uloženy."
+}
+
+sync_down() {
+  if ! git fetch origin "$BRANCH" 2>/dev/null; then
+    say "⚠️  Nepodařilo se spojit s GitHubem — pokračuji offline."
+    return 1
+  fi
+  git pull --rebase origin "$BRANCH" || conflict_help
+  assert_no_conflict
+  return 0
+}
 
 # --- 0. Kontrola prostředí -----------------------------------------------
 
@@ -37,22 +86,15 @@ if [ ! -f .env.local ]; then
   exit 1
 fi
 
-# --- 1. Stáhnout, co udělal ten druhý ------------------------------------
+# Repozitář zůstal po minule v rozdělaném stavu — dál nemá smysl chodit.
+assert_no_conflict
+
+# --- 1. Uložit rozdělané a stáhnout cizí ---------------------------------
+
+save_work "Rozdělaná práce"
 
 say "🔄 Stahuji změny z GitHubu…"
-if ! git fetch origin "$BRANCH" 2>/dev/null; then
-  say "⚠️  Nepodařilo se spojit s GitHubem — pokračuji offline."
-elif ! git pull --rebase --autostash origin "$BRANCH"; then
-  say ""
-  say "⛔ Vaše změny a změny kolegy se dostaly do konfliktu ve stejném souboru."
-  say "   Git označil sporná místa přímo v souborech (<<<<<<< / >>>>>>>)."
-  say ""
-  say "   Nejjednodušší řešení: otevřete Claude Code a napište"
-  say "   „vyřeš prosím konflikt po rebase a dokonči ho“."
-  say ""
-  say "   Zpátky na začátek se dostanete příkazem:  git rebase --abort"
-  exit 1
-else
+if sync_down; then
   say "✅ Kód je aktuální."
 fi
 
@@ -76,29 +118,17 @@ line
 
 say "📝 Server ukončen. Kontroluji, co jste změnili…"
 
-if [ -z "$(git status --porcelain)" ]; then
+if [ -z "$(git status --porcelain)" ] && git diff --quiet "origin/$BRANCH" HEAD 2>/dev/null; then
   say "✅ Žádné změny k nahrání."
   echo "=============================================="
   exit 0
 fi
 
 git status --short
-say ""
-git add -A
-git commit -q -m "Práce z $(date '+%-d. %-m. %Y %H:%M') — $(git config user.name)"
-say "💾 Změny uloženy."
+save_work "Práce"
 
-# Znovu stáhnout — kolega mohl něco nahrát, zatímco jste pracovali.
 say "🔄 Stahuji cizí změny před nahráním…"
-if ! git pull --rebase --autostash origin "$BRANCH"; then
-  say ""
-  say "⛔ Konflikt s prací kolegy. NIC jsem nenahrál — vaše změny jsou uložené"
-  say "   lokálně, nepřijdete o ně."
-  say ""
-  say "   Otevřete Claude Code a napište: „vyřeš prosím konflikt po rebase“."
-  say "   Nebo zpět na začátek:  git rebase --abort"
-  exit 1
-fi
+sync_down || { say "⛔ Bez připojení nemůžu nahrát. Práci máte uloženou lokálně."; exit 1; }
 
 if git push origin "$BRANCH"; then
   say "🎉 Nahráno na GitHub."

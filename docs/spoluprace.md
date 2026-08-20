@@ -117,3 +117,33 @@ nemá to nic společného s GitHubem a nepotřebuje to žádnou synchronizaci.
 
 Pozor na druhou stranu téže mince: **co jeden smaže, je smazané i pro druhého.**
 Migrace v `supabase/migrations/` pouští jen jeden z vás, ne oba.
+
+---
+
+## První zpráva pro kolegův Claude Code
+
+Většinu toho, co má vědět, si jeho Claude Code přečte sám — `AGENTS.md` a
+`CLAUDE.md` se načítají automaticky při každé session a §11 v AGENTS.md popisuje
+právě tenhle režim práce ve dvou. Žádný dlouhý prompt tedy potřeba není.
+
+Stačí, když do prvního chatu v projektu vloží tohle:
+
+```text
+Pracuju na projektu Brokerly společně s Ondřejem — on na svém počítači, já na
+svém, sdílíme repozitář github.com/ondzem/Brokerly, větev main.
+
+Přečti si AGENTS.md (hlavně §11 o práci ve dvou) a docs/spoluprace.md a drž se
+toho po celou dobu.
+
+Než mi cokoli poradíš nebo změníš:
+1. ověř, jestli nejsem pozadu za GitHubem
+2. když jsem, nejdřív stáhni změny — na starší verzi neupravuj nic
+
+Až něco dokončíme, práci ulož commitem se srozumitelným popisem. Nikdy
+nepoužívej force push ani hard reset na něco, co už je na GitHubu.
+
+Projekt je v etapě 1 — držíme se rozsahu popsaného v AGENTS.md. Když by něco
+vyžadovalo funkci z pozdější etapy, zeptej se, nestav to.
+```
+
+Víc netřeba. Zbytek si jeho Claude dohledá v repozitáři sám.
