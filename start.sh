@@ -55,9 +55,19 @@ save_work() {
     say ""
   fi
 
+  # Do popisu commitu jdou názvy dotčených souborů. Automatický commit nemůže
+  # vědět, CO se změnilo, ale KDE se to změnilo vědět může — a to je pro toho
+  # druhého ráno podstatně užitečnější než datum, které si git pamatuje sám.
+  local names count msg
+  names=$(git status --porcelain | sed 's/^...//' | sed 's/.*-> //' \
+          | xargs -n1 basename 2>/dev/null | sort -u)
+  count=$(echo "$names" | grep -c . || true)
+  msg=$(echo "$names" | head -3 | paste -sd',' - | sed 's/,/, /g')
+  [ "$count" -gt 3 ] && msg="$msg + $((count - 3)) dalších"
+
   git add -A
-  git commit -q -m "$1 — $(git config user.name) $(date '+%-d. %-m. %Y %H:%M')"
-  say "💾 Změny uloženy."
+  git commit -q -m "$1: $msg"
+  say "💾 Uloženo: $msg"
 }
 
 sync_down() {
@@ -65,6 +75,18 @@ sync_down() {
     say "⚠️  Nepodařilo se spojit s GitHubem — pokračuji offline."
     return 1
   fi
+
+  # Vypsat, co mezitím udělal ten druhý — jinak se to dozvíte, až vám to
+  # spadne pod rukama.
+  local incoming
+  incoming=$(git log --pretty='   • %s  (%an, %ar)' "HEAD..origin/$BRANCH" 2>/dev/null)
+  if [ -n "$incoming" ]; then
+    say ""
+    say "📥 Od minule přibylo:"
+    echo "$incoming"
+    say ""
+  fi
+
   git pull --rebase origin "$BRANCH" || conflict_help
   assert_no_conflict
   return 0
@@ -91,7 +113,7 @@ assert_no_conflict
 
 # --- 1. Uložit rozdělané a stáhnout cizí ---------------------------------
 
-save_work "Rozdělaná práce"
+save_work "Rozdělané"
 
 say "🔄 Stahuji změny z GitHubu…"
 if sync_down; then

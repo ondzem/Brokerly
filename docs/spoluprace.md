@@ -1,5 +1,45 @@
 # Práce ve dvou na Brokerly
 
+## Postup — tohle si přečtěte oba
+
+Celá spolupráce stojí na dvou úkonech. Nic víc si pamatovat nemusíte.
+
+| úkon | co znamená |
+|---|---|
+| **`brokerly`** | *„dej mi nejnovější verzi a spusť projekt"* |
+| **`Ctrl + C`** | *„hotovo, pošli moji práci tomu druhému"* |
+
+Když spustíte `brokerly`, nahoře se vypíše, **co ten druhý mezitím udělal** —
+například `📥 Od minule přibylo: • Práce: PropertiesView.tsx, storage.ts (Kolega,
+před 3 hodinami)`. Když se nevypíše nic, nikdo nic nenahrál.
+
+### Jak se dostanu k jeho změnám?
+
+Dáte `Ctrl + C` a spustíte `brokerly` znovu. Trvá to deset vteřin.
+
+Server se totiž dívá do složky tak, jak vypadala při spuštění. Dokud běží, nové
+soubory od kolegy se do ní nedostanou — stáhnou se až při dalším startu.
+
+### Kdy to mám dělat?
+
+**Vždycky, když se chystáte na něco sáhnout.** Ráno, po obědě, po pauze. Čím
+čerstvější verzi máte, tím míň je co spojovat.
+
+A hlavně **nedělejte tři dny práce bez jediného `Ctrl + C`.** Dokud nedáte
+Ctrl + C, vaše práce leží jen u vás na počítači, kolega o ní neví a staví na
+staré verzi.
+
+### Jediné pravidlo navíc
+
+**Řekněte si dopředu, kdo dělá co.** Stačí zpráva: „dneska dělám nemovitosti, ty
+si vezmi kontakty."
+
+Git umí spojit změny v různých souborech úplně sám. Změny na stejném řádku spojit
+neumí a musí rozhodnout člověk — a to zdržuje. Tomu se vyhnete jednou větou předem.
+
+---
+
+
 Kolega **nedostane složku z disku**. Složku má GitHub — každý si ji stáhne k sobě,
 pracuje u sebe a hotovou práci pošle zpět. GitHub je to jediné společné místo.
 
