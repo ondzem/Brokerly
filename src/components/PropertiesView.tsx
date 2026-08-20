@@ -3,6 +3,7 @@ import { Property, Contact, Deal, Activity } from '@/types';
 import { createProperty, updateProperty, createContact, deleteProperty, createDeal, updateDeal } from '@/lib/db';
 import { cn } from '@/lib/utils';
 import { OptionSelect } from '@/components/ui/option-select';
+import { ChipPicker } from '@/components/ui/chip-picker';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -19,7 +20,7 @@ const KIND_OPTIONS = [
   { id: 'dům', label: 'dům' },
   { id: 'pozemek', label: 'pozemek' },
   { id: 'komerční', label: 'komerční' },
-  { id: 'garáž/ostatní', label: 'garáž/ostatní' },
+  { id: 'garáž/ostatní', label: 'garáž' },
 ] as const;
 
 const TRANSACTION_OPTIONS = ['prodej', 'pronájem'] as const;
@@ -3459,41 +3460,7 @@ export const PropertiesView: React.FC<PropertiesViewProps> = ({
                                 </div>
                               </div>
                               <div className="space-y-1.5 pt-1">
-                                <div className="flex gap-6 items-center flex-wrap pt-2">
-                                  {FLAT_FEATURE_OPTIONS.map((feat) => {
-                                    const checked = flatFeatures?.includes(feat);
-                                    return (
-                                      <label key={feat} className="flex items-center gap-2 text-xs text-stone-700 dark:text-stone-300 font-medium cursor-pointer">
-                                        <div 
-                                          className={cn(
-                                            "w-4 h-4 rounded border flex items-center justify-center transition-all",
-                                            checked 
-                                              ? "bg-[#00D991] border-[#00D991] text-[#00221F]" 
-                                              : "bg-white border-stone-300 dark:bg-stone-900 dark:border-stone-700 text-transparent"
-                                          )}
-                                        >
-                                          {checked && (
-                                            <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
-                                              <polyline points="20 6 9 17 4 12" />
-                                            </svg>
-                                          )}
-                                        </div>
-                                        <input 
-                                          type="checkbox" 
-                                          checked={checked} 
-                                          onChange={() => {
-                                            const updated = flatFeatures?.includes(feat)
-                                              ? flatFeatures.filter(x => x !== feat)
-                                              : [...(flatFeatures || []), feat];
-                                            setFlatFeatures(updated);
-                                          }} 
-                                          className="sr-only"
-                                        />
-                                        <span>{feat.charAt(0).toUpperCase() + feat.slice(1)}</span>
-                                      </label>
-                                    );
-                                  })}
-                                </div>
+                                <ChipPicker field="flat_features" builtin={FLAT_FEATURE_OPTIONS} selected={flatFeatures || []} onChange={(v) => setFlatFeatures(v)} />
                               </div>
                             </>
                           ) : editKind === 'pozemek' ? (
@@ -3535,31 +3502,7 @@ export const PropertiesView: React.FC<PropertiesViewProps> = ({
                               </div>
                               <div className="space-y-1.5">
                                 <Label className="text-xs font-semibold text-stone-400 dark:text-stone-500">Zasíťování</Label>
-                                <div className="flex gap-x-6 gap-y-3 items-center flex-wrap pt-1">
-                                  {Array.from(new Set([...LAND_UTILITY_OPTIONS, ...landUtilityList])).map((util) => {
-                                    const checked = landUtilityList.includes(util);
-                                    return (
-                                      <label key={util} className="flex items-center gap-2 text-xs text-stone-700 dark:text-stone-300 font-medium cursor-pointer">
-                                        <div
-                                          className={cn(
-                                            'w-4 h-4 rounded border flex items-center justify-center transition-all',
-                                            checked
-                                              ? 'bg-[#00D991] border-[#00D991] text-[#00221F]'
-                                              : 'bg-white border-stone-300 dark:bg-stone-900 dark:border-stone-700 text-transparent'
-                                          )}
-                                        >
-                                          {checked && (
-                                            <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
-                                              <polyline points="20 6 9 17 4 12" />
-                                            </svg>
-                                          )}
-                                        </div>
-                                        <input type="checkbox" checked={checked} onChange={() => toggleLandUtility(util)} className="sr-only" />
-                                        <span>{util.charAt(0).toUpperCase() + util.slice(1)}</span>
-                                      </label>
-                                    );
-                                  })}
-                                </div>
+                                <ChipPicker field="land_utilities" builtin={LAND_UTILITY_OPTIONS} selected={landUtilityList} onChange={(v) => setLandUtilities(v.join(', '))} />
                               </div>
                             </>
                           ) : editKind === 'garáž/ostatní' ? (
@@ -3714,41 +3657,7 @@ export const PropertiesView: React.FC<PropertiesViewProps> = ({
                                 </div>
                               </div>
                               <div className="space-y-1.5 pt-1">
-                                <div className="flex gap-6 items-center flex-wrap pt-2">
-                                  {HOUSE_FEATURE_OPTIONS.map((feat) => {
-                                    const checked = houseFeatures?.includes(feat);
-                                    return (
-                                      <label key={feat} className="flex items-center gap-2 text-xs text-stone-700 dark:text-stone-300 font-medium cursor-pointer">
-                                        <div 
-                                          className={cn(
-                                            "w-4 h-4 rounded border flex items-center justify-center transition-all",
-                                            checked 
-                                              ? "bg-[#00D991] border-[#00D991] text-[#00221F]" 
-                                              : "bg-white border-stone-300 dark:bg-stone-900 dark:border-stone-700 text-transparent"
-                                          )}
-                                        >
-                                          {checked && (
-                                            <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
-                                              <polyline points="20 6 9 17 4 12" />
-                                            </svg>
-                                          )}
-                                        </div>
-                                        <input 
-                                          type="checkbox" 
-                                          checked={checked} 
-                                          onChange={() => {
-                                            const updated = houseFeatures?.includes(feat)
-                                              ? houseFeatures.filter(x => x !== feat)
-                                              : [...(houseFeatures || []), feat];
-                                            setHouseFeatures(updated);
-                                          }} 
-                                          className="sr-only"
-                                        />
-                                        <span>{feat.charAt(0).toUpperCase() + feat.slice(1)}</span>
-                                      </label>
-                                    );
-                                  })}
-                                </div>
+                                <ChipPicker field="house_features" builtin={HOUSE_FEATURE_OPTIONS} selected={houseFeatures || []} onChange={(v) => setHouseFeatures(v)} />
                               </div>
                             </>
                           )}
@@ -4692,7 +4601,7 @@ export const PropertiesView: React.FC<PropertiesViewProps> = ({
                       <div className="min-w-0">
                         <span className="font-display text-[15px] font-semibold text-stone-900 dark:text-stone-100">Zadám ručně</span>
                         <p className="text-[13px] text-stone-500 dark:text-stone-400 mt-1 leading-relaxed">
-                          Pět otázek, jedna po druhé. Zhruba minuta.
+                          Krok za krokem, jedna otázka po druhé.
                         </p>
                       </div>
                       <ChevronRight className="w-4 h-4 text-stone-300 group-hover:text-[#0E8A5F] transition-colors mt-1 ml-auto flex-none" />
@@ -5119,16 +5028,7 @@ export const PropertiesView: React.FC<PropertiesViewProps> = ({
                               </div>
                               <div className="space-y-2">
                                 <Label>Vybavení bytu</Label>
-                                <div className="flex flex-wrap gap-2">
-                                  {FLAT_FEATURE_OPTIONS.map((f) => (
-                                    <button key={f} type="button" onClick={() => handleFlatFeatureToggle(f)}
-                                      className={cn('px-3.5 h-9 rounded-full border text-[13px] font-medium transition-colors cursor-pointer',
-                                        flatFeatures?.includes(f) ? 'border-[#0E8A5F] bg-[#0E8A5F] text-white'
-                                          : 'border-stone-200 dark:border-stone-800 text-stone-500 hover:border-[#0E8A5F]/60 bg-white dark:bg-stone-950')}>
-                                      {f}
-                                    </button>
-                                  ))}
-                                </div>
+                                <ChipPicker field="flat_features" builtin={FLAT_FEATURE_OPTIONS} selected={flatFeatures || []} onChange={(v) => setFlatFeatures(v)} />
                               </div>
                             </>
                           )}
@@ -5159,16 +5059,7 @@ export const PropertiesView: React.FC<PropertiesViewProps> = ({
                               </div>
                               <div className="space-y-2">
                                 <Label>Vybavení a příslušenství</Label>
-                                <div className="flex flex-wrap gap-2">
-                                  {HOUSE_FEATURE_OPTIONS.map((f) => (
-                                    <button key={f} type="button" onClick={() => handleHouseFeatureToggle(f)}
-                                      className={cn('px-3.5 h-9 rounded-full border text-[13px] font-medium transition-colors cursor-pointer',
-                                        houseFeatures?.includes(f) ? 'border-[#0E8A5F] bg-[#0E8A5F] text-white'
-                                          : 'border-stone-200 dark:border-stone-800 text-stone-500 hover:border-[#0E8A5F]/60 bg-white dark:bg-stone-950')}>
-                                      {f}
-                                    </button>
-                                  ))}
-                                </div>
+                                <ChipPicker field="house_features" builtin={HOUSE_FEATURE_OPTIONS} selected={houseFeatures || []} onChange={(v) => setHouseFeatures(v)} />
                               </div>
                             </>
                           )}
@@ -5192,16 +5083,7 @@ export const PropertiesView: React.FC<PropertiesViewProps> = ({
                               </div>
                               <div className="space-y-2">
                                 <Label>Zasíťování</Label>
-                                <div className="flex flex-wrap gap-2">
-                                  {Array.from(new Set([...LAND_UTILITY_OPTIONS, ...landUtilityList])).map((u) => (
-                                    <button key={u} type="button" onClick={() => toggleLandUtility(u)}
-                                      className={cn('px-3.5 h-9 rounded-full border text-[13px] font-medium transition-colors cursor-pointer',
-                                        landUtilityList.includes(u) ? 'border-[#0E8A5F] bg-[#0E8A5F] text-white'
-                                          : 'border-stone-200 dark:border-stone-800 text-stone-500 hover:border-[#0E8A5F]/60 bg-white dark:bg-stone-950')}>
-                                      {u}
-                                    </button>
-                                  ))}
-                                </div>
+                                <ChipPicker field="land_utilities" builtin={LAND_UTILITY_OPTIONS} selected={landUtilityList} onChange={(v) => setLandUtilities(v.join(', '))} />
                               </div>
                             </>
                           )}
@@ -5815,19 +5697,7 @@ export const PropertiesView: React.FC<PropertiesViewProps> = ({
 
                     <div className="space-y-1.5">
                       <Label>Vybavení bytu</Label>
-                      <div className="flex flex-wrap gap-4 pt-1">
-                        {FLAT_FEATURE_OPTIONS.map((opt) => (
-                          <label key={opt} className="flex items-center gap-2 text-xs font-normal cursor-pointer select-none">
-                            <input
-                              type="checkbox"
-                              checked={flatFeatures?.includes(opt) || false}
-                              onChange={() => handleFlatFeatureToggle(opt)}
-                              className="rounded border-stone-300 text-primary focus:ring-primary h-3.5 w-3.5"
-                            />
-                            {opt}
-                          </label>
-                        ))}
-                      </div>
+                      <ChipPicker field="flat_features" builtin={FLAT_FEATURE_OPTIONS} selected={flatFeatures || []} onChange={(v) => setFlatFeatures(v)} />
                     </div>
                   </div>
                 )}
@@ -5906,19 +5776,7 @@ export const PropertiesView: React.FC<PropertiesViewProps> = ({
 
                     <div className="space-y-1.5">
                       <Label>Vybavení a příslušenství</Label>
-                      <div className="flex flex-wrap gap-4 pt-1">
-                        {HOUSE_FEATURE_OPTIONS.map((opt) => (
-                          <label key={opt} className="flex items-center gap-2 text-xs font-normal cursor-pointer select-none">
-                            <input
-                              type="checkbox"
-                              checked={houseFeatures?.includes(opt) || false}
-                              onChange={() => handleHouseFeatureToggle(opt)}
-                              className="rounded border-stone-300 text-primary focus:ring-primary h-3.5 w-3.5"
-                            />
-                            {opt}
-                          </label>
-                        ))}
-                      </div>
+                      <ChipPicker field="house_features" builtin={HOUSE_FEATURE_OPTIONS} selected={houseFeatures || []} onChange={(v) => setHouseFeatures(v)} />
                     </div>
                   </div>
                 )}
@@ -5969,31 +5827,7 @@ export const PropertiesView: React.FC<PropertiesViewProps> = ({
 
                     <div className="space-y-1.5">
                       <Label>Zasíťování</Label>
-                      <div className="flex gap-x-6 gap-y-3 items-center flex-wrap pt-1">
-                        {Array.from(new Set([...LAND_UTILITY_OPTIONS, ...landUtilityList])).map((util) => {
-                          const checked = landUtilityList.includes(util);
-                          return (
-                            <label key={util} className="flex items-center gap-2 text-xs text-stone-700 dark:text-stone-300 font-medium cursor-pointer">
-                              <div
-                                className={cn(
-                                  'w-4 h-4 rounded border flex items-center justify-center transition-all',
-                                  checked
-                                    ? 'bg-[#00D991] border-[#00D991] text-[#00221F]'
-                                    : 'bg-white border-stone-300 dark:bg-stone-900 dark:border-stone-700 text-transparent'
-                                )}
-                              >
-                                {checked && (
-                                  <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
-                                    <polyline points="20 6 9 17 4 12" />
-                                  </svg>
-                                )}
-                              </div>
-                              <input type="checkbox" checked={checked} onChange={() => toggleLandUtility(util)} className="sr-only" />
-                              <span>{util.charAt(0).toUpperCase() + util.slice(1)}</span>
-                            </label>
-                          );
-                        })}
-                      </div>
+                      <ChipPicker field="land_utilities" builtin={LAND_UTILITY_OPTIONS} selected={landUtilityList} onChange={(v) => setLandUtilities(v.join(', '))} />
                     </div>
                   </div>
                 )}
