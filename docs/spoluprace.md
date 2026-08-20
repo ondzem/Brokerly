@@ -33,6 +33,11 @@ Jen pozor na jednu věc: nová verze od kolegy se u vás objeví, **až Claude C
 znovu otevřete**. Když víte, že mezitím něco nahrál, řekněte prostě
 *„stáhni změny od kolegy"*.
 
+### Jak si ověřím, že to opravdu jede?
+
+Otevřete https://github.com/ondzem/Brokerly/commits/main. Po každé odpovědi
+Claude tam přibude nový řádek, do minuty. Když tam je, práce je u kolegy.
+
 ### Když nepoužívám Claude Code
 
 Pak v terminálu:
