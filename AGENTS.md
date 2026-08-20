@@ -368,9 +368,12 @@ get their name (not their value) added to `.env.local.example`.
 **Supabase is one shared database**, not one per developer. A destructive migration
 or a deletion hits both people at once — confirm before running one.
 
-**Synchronization is automatic.** `.claude/sync.sh` runs on SessionStart (pull)
-and Stop (commit + pull + push), so the working copy is current when a session
-opens and the other machine sees each answer's work as soon as you finish it.
+**Synchronization is automatic.** `.claude/sync.sh` runs on SessionStart and
+UserPromptSubmit (pull) and on Stop (commit + pull + push), so the working copy
+is current at the start of every turn and the other machine sees each answer's
+work as soon as you finish it. When the pull brings something in, it says so in
+your context — treat any file you read earlier in the session as stale and read
+it again before editing.
 You therefore do not need to pull before editing or push when done — but you DO
 need to leave the tree in a state worth pushing: coherent edits, no debris.
 

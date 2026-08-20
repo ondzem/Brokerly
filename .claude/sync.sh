@@ -14,8 +14,20 @@ cd "$(dirname "$0")/.." 2>/dev/null || exit 0
 
 BRANCH=main
 
+# $1 = zpráva pro člověka, $2 = (volitelně) název události — pak dostane
+# zprávu i Claude, aby věděl, že soubory pod ním nejsou takové, jak si je
+# přečetl.
 say() {
-  python3 -c 'import json,sys; print(json.dumps({"systemMessage": sys.argv[1], "suppressOutput": True}))' "$1"
+  python3 - "$1" "${2:-}" <<'PYEOF'
+import json, sys
+out = {"systemMessage": sys.argv[1], "suppressOutput": True}
+if len(sys.argv) > 2 and sys.argv[2]:
+    out["hookSpecificOutput"] = {
+        "hookEventName": sys.argv[2],
+        "additionalContext": sys.argv[1],
+    }
+print(json.dumps(out))
+PYEOF
   exit 0
 }
 quiet() { echo '{"suppressOutput": true}'; exit 0; }
@@ -51,6 +63,7 @@ commit_work() {
 case "${1:-}" in
 
   pull)
+    EVENT="${2:-}"
     git fetch origin "$BRANCH" 2>/dev/null || quiet   # offline → mlčky dál
 
     incoming=$(git log --pretty='• %s (%an, %ar)' "HEAD..origin/$BRANCH" 2>/dev/null)
@@ -59,10 +72,10 @@ case "${1:-}" in
     dirty && commit_work "Rozdělané" >/dev/null
 
     if ! git pull --rebase origin "$BRANCH" >/dev/null 2>&1; then
-      say "⛔ Změny od kolegy se potkaly s vašimi ve stejném místě. Napište mi „vyřeš konflikt“ — nic se neztratilo."
+      say "⛔ Změny od kolegy se potkaly s vašimi ve stejném místě. Napište mi „vyřeš konflikt“ — nic se neztratilo." "$EVENT"
     fi
-    say "📥 Stáhl jsem změny od kolegy:
-$incoming"
+    say "📥 Stáhl jsem změny od kolegy — soubory na disku se právě změnily, přečti si je znovu, než na ně sáhneš:
+$incoming" "$EVENT"
     ;;
 
   push)

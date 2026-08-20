@@ -26,12 +26,13 @@ Když nic nepřibylo, neřekne nic.
 
 ### A když pracuju dvě hodiny v kuse?
 
-Nic neřešíte. Po **každé** odpovědi Claude se práce nahraje, takže kolega vidí
-každý krok. Nic se nehromadí.
+Nic neřešíte, v obou směrech:
 
-Jen pozor na jednu věc: nová verze od kolegy se u vás objeví, **až Claude Code
-znovu otevřete**. Když víte, že mezitím něco nahrál, řekněte prostě
-*„stáhni změny od kolegy"*.
+- po **každé** odpovědi Claude se vaše práce nahraje,
+- před **každým** vaším promptem se stáhne to, co mezitím nahrál kolega.
+
+Takže i s otevřeným Claude Code pracujete vždycky na aktuální verzi. Když nic
+nepřibylo, kontrola proběhne mlčky (trvá půl vteřiny).
 
 ### Jak si ověřím, že to opravdu jede?
 
