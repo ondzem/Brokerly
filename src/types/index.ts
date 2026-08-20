@@ -41,24 +41,24 @@ export interface Property {
   attachments: string[] | null;
   
   // Byt
-  flat_layout: '1+kk' | '2+kk' | '2+1' | '3+kk' | '3+1' | '4+kk' | '4+1' | '5 a více' | null;
+  flat_layout: string | null;
   flat_area: number | null;
   floor: string | null;
-  ownership: 'osobní' | 'družstevní' | 'SVJ' | null;
-  construction: 'cihla' | 'panel' | 'jiné' | null;
-  flat_features: ('výtah' | 'balkon/lodžie' | 'terasa' | 'sklep' | 'podlahové vytápění' | 'klimatizace')[] | null;
-  flat_condition: 'novostavba' | 'po rekonstrukci' | 'dobrý' | 'před rekonstrukcí' | null;
-  flat_penb: 'A' | 'B' | 'C' | 'D' | 'E' | 'F' | 'G' | null;
+  ownership: string | null;
+  construction: string | null;
+  flat_features: string[] | null;
+  flat_condition: string | null;
+  flat_penb: string | null;
   
   // Dům
-  house_layout: '2+kk' | '3+kk' | '4+kk' | '5+kk' | '6 a více' | null;
+  house_layout: string | null;
   house_area: number | null;
   land_area: number | null;
-  house_type: 'samostatný' | 'řadový' | 'dvojdomek' | null;
+  house_type: string | null;
   floors_count: number | null;
-  house_features: ('garáž' | 'zahrada' | 'bazén')[] | null;
-  house_condition: 'novostavba' | 'po rekonstrukci' | 'dobrý' | 'před rekonstrukcí' | null;
-  house_penb: 'A' | 'B' | 'C' | 'D' | 'E' | 'F' | 'G' | null;
+  house_features: string[] | null;
+  house_condition: string | null;
+  house_penb: string | null;
 
   // Deferred blocks (pozemek, komerční, pronájem)
   land_size: number | null;
