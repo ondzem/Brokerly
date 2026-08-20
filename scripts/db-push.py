@@ -53,6 +53,9 @@ def run_sql(ref: str, token: str, sql: str):
         headers={
             "Authorization": f"Bearer {token}",
             "Content-Type": "application/json",
+            # Bez běžné hlavičky User-Agent vrací Cloudflare před API 403
+            # (error 1010) — vypadá to jako chyba tokenu, ale není.
+            "User-Agent": "brokerly-db-push/1.0",
         },
         method="POST",
     )
