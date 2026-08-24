@@ -9,7 +9,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Card, CardContent, CardTitle, CardDescription } from '@/components/ui/card';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { toast } from 'sonner';
-import { Search, Plus, User, Mail, Phone, Calendar as CalendarIcon, Briefcase, Home, Clock, AlertCircle, SlidersHorizontal, X } from 'lucide-react';
+import { Search, Plus, User, Mail, Phone, Calendar as CalendarIcon, Briefcase, Home, Clock, AlertCircle, SlidersHorizontal, X, Building2, Trees, Store, Warehouse } from 'lucide-react';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Calendar } from '@/components/ui/calendar';
 
@@ -53,9 +53,12 @@ export const ContactsView: React.FC<ContactsViewProps> = ({
   const [searchQuery, setSearchQuery] = useState('');
   const [isCreateOpen, setIsCreateOpen] = useState(false);
   const [isDetailOpen, setIsDetailOpen] = useState(false);
-  const [activeRoleTab, setActiveRoleTab] = useState<'all' | 'buyer' | 'owner'>('all');
+  const [activeRoleTab, setActiveRoleTab] = useState<'buyer' | 'owner'>('buyer');
   const [statusFilter, setStatusFilter] = useState<'vše' | Contact['status']>('vše');
   const [tempFilter, setTempFilter] = useState<'vše' | 'horký' | 'vlažný' | 'studený'>('vše');
+  const [kindFilter, setKindFilter] = useState<'vše' | 'byt' | 'dům' | 'pozemek' | 'komerční' | 'garáž/ostatní'>('vše');
+  const [transFilter, setTransFilter] = useState<'vše' | 'prodej' | 'pronájem'>('vše');
+  const [propertyFilter, setPropertyFilter] = useState<string>('vše');
   const [isFiltersOpen, setIsFiltersOpen] = useState(false);
   const [isMobileFiltersExpanded, setIsMobileFiltersExpanded] = useState(false);
 
@@ -159,11 +162,53 @@ export const ContactsView: React.FC<ContactsViewProps> = ({
     if (statusFilter !== 'vše' && c.status !== statusFilter) return false;
     if (tempFilter !== 'vše' && c.temperature !== tempFilter) return false;
 
+    // Property-derived filters: what the contact seeks, owns, or has a deal on
+    if (kindFilter !== 'vše' || transFilter !== 'vše' || propertyFilter !== 'vše') {
+      const cDeals = deals.filter((d) => d.buyer_id === c.id);
+      const dealProps = cDeals
+        .map((d) => (d.property_id ? properties.find((p) => p.id === d.property_id) : undefined))
+        .filter((p): p is Property => Boolean(p));
+      const ownedProps = properties.filter((p) => p.owner_id === c.id);
+
+      if (kindFilter !== 'vše') {
+        const kinds = new Set<string>([
+          ...(c.seeking_kind || []),
+          ...ownedProps.map((p) => p.kind),
+          ...dealProps.map((p) => p.kind),
+        ]);
+        if (!kinds.has(kindFilter)) return false;
+      }
+
+      if (transFilter !== 'vše') {
+        const transactions = new Set<string>([
+          ...(c.seeking_transaction ? [c.seeking_transaction === 'koupě' ? 'prodej' : 'pronájem'] : []),
+          ...ownedProps.map((p) => p.transaction),
+          ...dealProps.map((p) => p.transaction),
+        ]);
+        if (!transactions.has(transFilter)) return false;
+      }
+
+      if (propertyFilter !== 'vše') {
+        const related =
+          ownedProps.some((p) => p.id === propertyFilter) ||
+          cDeals.some((d) => d.property_id === propertyFilter);
+        if (!related) return false;
+      }
+    }
+
     return true;
   });
 
-  const activeFilterCount = (statusFilter !== 'vše' ? 1 : 0) + (tempFilter !== 'vše' ? 1 : 0);
+  const activeFilterCount =
+    (kindFilter !== 'vše' ? 1 : 0) +
+    (transFilter !== 'vše' ? 1 : 0) +
+    (propertyFilter !== 'vše' ? 1 : 0) +
+    (statusFilter !== 'vše' ? 1 : 0) +
+    (tempFilter !== 'vše' ? 1 : 0);
   const resetFilters = () => {
+    setKindFilter('vše');
+    setTransFilter('vše');
+    setPropertyFilter('vše');
     setStatusFilter('vše');
     setTempFilter('vše');
   };
@@ -359,9 +404,91 @@ export const ContactsView: React.FC<ContactsViewProps> = ({
     }`;
 
   // Shared filter sections (desktop panel + mobile drawer) — same structure as
-  // the properties filter: stav in lifecycle order, then teplota.
+  // the properties filter: transakce, property-kind tiles and the concrete
+  // property first, then stav in lifecycle order and teplota.
+  const kindTiles = [
+    { id: 'byt', label: 'Byty', Icon: Building2 },
+    { id: 'dům', label: 'Domy', Icon: Home },
+    { id: 'pozemek', label: 'Pozemky', Icon: Trees },
+    { id: 'komerční', label: 'Komerční', Icon: Store },
+    { id: 'garáž/ostatní', label: 'Ostatní', Icon: Warehouse },
+  ] as const;
+
   const renderFilterSections = () => (
     <div className="flex flex-col gap-5">
+      <div className="space-y-2">
+        <div className="text-[11px] uppercase tracking-wider font-semibold text-stone-400 dark:text-stone-500">
+          Transakce
+        </div>
+        <div className="flex bg-[#ECEBE6] p-[3px] rounded-[10px] dark:bg-stone-850 h-9 items-center w-full sm:w-fit">
+          {(['vše', 'prodej', 'pronájem'] as const).map((t) => (
+            <button
+              key={t}
+              type="button"
+              onClick={() => setTransFilter(t)}
+              className={`px-4 h-[30px] flex-1 sm:flex-none flex items-center justify-center rounded-[8px] text-[12.5px] font-medium transition-all duration-150 cursor-pointer ${
+                transFilter === t
+                  ? 'bg-white text-[#0B1F1A] shadow-xs dark:bg-stone-900 dark:text-white'
+                  : 'text-stone-500 hover:text-stone-800 dark:text-stone-400 dark:hover:text-stone-200'
+              }`}
+            >
+              {t === 'vše' ? 'Vše' : t === 'prodej' ? 'Prodej' : 'Pronájem'}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      <div className="space-y-2">
+        <div className="text-[11px] uppercase tracking-wider font-semibold text-stone-400 dark:text-stone-500">
+          Typ nemovitosti
+        </div>
+        <div className="grid grid-cols-3 sm:grid-cols-5 gap-2">
+          {kindTiles.map(({ id, label, Icon }) => {
+            const active = kindFilter === id;
+            return (
+              <button
+                key={id}
+                type="button"
+                onClick={() => setKindFilter(active ? 'vše' : id)}
+                className={`flex flex-col items-center justify-center gap-1.5 py-3 rounded-[10px] border transition-all duration-150 cursor-pointer ${
+                  active
+                    ? 'border-transparent shadow-xs bg-[#00D991] text-[#00221F]'
+                    : 'bg-white border-stone-250/70 hover:border-stone-300 text-[#0B1F1A] dark:bg-stone-900 dark:border-white/10 dark:text-white'
+                }`}
+              >
+                <Icon className={`h-[18px] w-[18px] ${active ? 'text-[#00221F]' : 'text-stone-400'}`} />
+                <span className="text-[12px] font-medium">{label}</span>
+              </button>
+            );
+          })}
+        </div>
+      </div>
+
+      <div className="space-y-2">
+        <div className="text-[11px] uppercase tracking-wider font-semibold text-stone-400 dark:text-stone-500">
+          Nemovitost
+        </div>
+        <Select value={propertyFilter} onValueChange={setPropertyFilter}>
+          <SelectTrigger className="h-9 w-full text-[12.5px] rounded-[10px] border-stone-250/70 dark:border-white/10">
+            <span className="truncate text-left">
+              {(() => {
+                if (propertyFilter === 'vše') return 'Všechny nemovitosti';
+                const p = properties.find((pp) => pp.id === propertyFilter);
+                return p ? `${p.address} · ${p.kind}` : 'Všechny nemovitosti';
+              })()}
+            </span>
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="vše">Všechny nemovitosti</SelectItem>
+            {properties.map((p) => (
+              <SelectItem key={p.id} value={p.id}>
+                {p.address} · {p.kind}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      </div>
+
       <div className="space-y-2">
         <div className="text-[11px] uppercase tracking-wider font-semibold text-stone-400 dark:text-stone-500">
           Stav
@@ -427,8 +554,7 @@ export const ContactsView: React.FC<ContactsViewProps> = ({
   const roleToggle = (
     <div className="flex bg-[#ECEBE6] p-[3px] rounded-[10px] dark:bg-stone-850 h-9 items-center flex-none">
       {([
-        { id: 'all', label: 'Vše' },
-        { id: 'buyer', label: 'Kupující' },
+        { id: 'buyer', label: 'Zájemci' },
         { id: 'owner', label: 'Vlastníci' },
       ] as const).map((tab) => (
         <button
@@ -455,7 +581,7 @@ export const ContactsView: React.FC<ContactsViewProps> = ({
             Kontakty
           </h1>
           <span className="text-[13px] text-stone-500 dark:text-stone-400">
-            {totalCount} {totalCount === 1 ? 'kontakt' : totalCount >= 2 && totalCount <= 4 ? 'kontakty' : 'kontaktů'} · {buyersCount} kupujících · {ownersCount} vlastníků
+            {totalCount} {totalCount === 1 ? 'kontakt' : totalCount >= 2 && totalCount <= 4 ? 'kontakty' : 'kontaktů'} · {buyersCount} zájemců · {ownersCount} vlastníků
           </span>
         </div>
         <button
@@ -549,11 +675,10 @@ export const ContactsView: React.FC<ContactsViewProps> = ({
           <div className="text-[15px] font-medium text-[#0B1F1A] dark:text-white">
             Žádný kontakt neodpovídá hledání či filtrům.
           </div>
-          {(activeFilterCount > 0 || activeRoleTab !== 'all' || searchQuery) && (
+          {(activeFilterCount > 0 || searchQuery) && (
             <button
               onClick={() => {
                 resetFilters();
-                setActiveRoleTab('all');
                 setSearchQuery('');
               }}
               className="text-[12.5px] font-medium text-[#0E8A5F] hover:underline cursor-pointer"
