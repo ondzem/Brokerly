@@ -55,10 +55,11 @@ export const ContactsView: React.FC<ContactsViewProps> = ({
   const [isDetailOpen, setIsDetailOpen] = useState(false);
   const [activeRoleTab, setActiveRoleTab] = useState<'buyer' | 'owner'>('buyer');
   const [statusFilter, setStatusFilter] = useState<'vše' | Contact['status']>('vše');
-  const [tempFilter, setTempFilter] = useState<'vše' | 'horký' | 'vlažný' | 'studený'>('vše');
   const [kindFilter, setKindFilter] = useState<'vše' | 'byt' | 'dům' | 'pozemek' | 'komerční' | 'garáž/ostatní'>('vše');
   const [transFilter, setTransFilter] = useState<'vše' | 'prodej' | 'pronájem'>('vše');
   const [propertyFilter, setPropertyFilter] = useState<string>('vše');
+  const [layoutFilter, setLayoutFilter] = useState<'vše' | (typeof LAYOUT_OPTIONS)[number]>('vše');
+  const [locationFilter, setLocationFilter] = useState('');
   const [isFiltersOpen, setIsFiltersOpen] = useState(false);
   const [isMobileFiltersExpanded, setIsMobileFiltersExpanded] = useState(false);
 
@@ -160,10 +161,9 @@ export const ContactsView: React.FC<ContactsViewProps> = ({
     if (activeRoleTab === 'owner' && !c.roles.includes('vlastník')) return false;
 
     if (statusFilter !== 'vše' && c.status !== statusFilter) return false;
-    if (tempFilter !== 'vše' && c.temperature !== tempFilter) return false;
 
     // Property-derived filters: what the contact seeks, owns, or has a deal on
-    if (kindFilter !== 'vše' || transFilter !== 'vše' || propertyFilter !== 'vše') {
+    if (kindFilter !== 'vše' || transFilter !== 'vše' || propertyFilter !== 'vše' || layoutFilter !== 'vše' || locationFilter.trim()) {
       const cDeals = deals.filter((d) => d.buyer_id === c.id);
       const dealProps = cDeals
         .map((d) => (d.property_id ? properties.find((p) => p.id === d.property_id) : undefined))
@@ -194,6 +194,29 @@ export const ContactsView: React.FC<ContactsViewProps> = ({
           cDeals.some((d) => d.property_id === propertyFilter);
         if (!related) return false;
       }
+
+      if (layoutFilter !== 'vše') {
+        const matchesLayout = (layout: string | null | undefined) => {
+          if (!layout) return false;
+          if (layout === layoutFilter) return true;
+          if (layoutFilter === '4+ a více') {
+            return ['4+kk', '4+1', '5+kk', '5 a více', '6 a více'].includes(layout);
+          }
+          return false;
+        };
+        const seekingMatch = (c.seeking_layout || []).includes(layoutFilter);
+        const propMatch = [...ownedProps, ...dealProps].some(
+          (p) => matchesLayout(p.flat_layout) || matchesLayout(p.house_layout)
+        );
+        if (!seekingMatch && !propMatch) return false;
+      }
+
+      if (locationFilter.trim()) {
+        const loc = locationFilter.trim().toLowerCase();
+        const seekingLoc = (c.seeking_location || []).some((l) => l.toLowerCase().includes(loc));
+        const propLoc = [...ownedProps, ...dealProps].some((p) => p.address.toLowerCase().includes(loc));
+        if (!seekingLoc && !propLoc) return false;
+      }
     }
 
     return true;
@@ -203,14 +226,16 @@ export const ContactsView: React.FC<ContactsViewProps> = ({
     (kindFilter !== 'vše' ? 1 : 0) +
     (transFilter !== 'vše' ? 1 : 0) +
     (propertyFilter !== 'vše' ? 1 : 0) +
-    (statusFilter !== 'vše' ? 1 : 0) +
-    (tempFilter !== 'vše' ? 1 : 0);
+    (layoutFilter !== 'vše' ? 1 : 0) +
+    (locationFilter.trim() ? 1 : 0) +
+    (statusFilter !== 'vše' ? 1 : 0);
   const resetFilters = () => {
     setKindFilter('vše');
     setTransFilter('vše');
     setPropertyFilter('vše');
+    setLayoutFilter('vše');
+    setLocationFilter('');
     setStatusFilter('vše');
-    setTempFilter('vše');
   };
 
   const handleRoleToggle = (role: Contact['roles'][number], isEdit = false) => {
@@ -391,11 +416,6 @@ export const ContactsView: React.FC<ContactsViewProps> = ({
     status === 'klient' ? 'bg-indigo-500/10 text-indigo-600' :
     'bg-stone-500/10 text-stone-600';
 
-  const tempBadgeClass = (t: NonNullable<Contact['temperature']>) =>
-    t === 'horký' ? 'bg-rose-50 text-rose-700 border border-rose-100 dark:bg-rose-950/30 dark:text-rose-400 dark:border-rose-900' :
-    t === 'vlažný' ? 'bg-amber-50 text-amber-700 border border-amber-100 dark:bg-amber-950/30 dark:text-amber-400 dark:border-amber-900' :
-    'bg-stone-50 text-stone-600 border border-stone-200/60 dark:bg-stone-800 dark:text-stone-400 dark:border-stone-700';
-
   const filterChipClass = (active: boolean) =>
     `text-[12.5px] font-medium px-3.5 py-1.5 rounded-[10px] transition-all duration-150 border cursor-pointer ${
       active
@@ -491,6 +511,40 @@ export const ContactsView: React.FC<ContactsViewProps> = ({
 
       <div className="space-y-2">
         <div className="text-[11px] uppercase tracking-wider font-semibold text-stone-400 dark:text-stone-500">
+          Dispozice
+        </div>
+        <div className="flex flex-wrap gap-2">
+          {LAYOUT_OPTIONS.map((l) => (
+            <button
+              key={l}
+              type="button"
+              onClick={() => setLayoutFilter(layoutFilter === l ? 'vše' : l)}
+              className={filterChipClass(layoutFilter === l)}
+            >
+              {l}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      <div className="space-y-2">
+        <div className="text-[11px] uppercase tracking-wider font-semibold text-stone-400 dark:text-stone-500">
+          Lokalita
+        </div>
+        <div className="flex items-center gap-2 bg-white border border-stone-250/70 rounded-[10px] px-3.5 h-9 w-full shadow-sm dark:bg-stone-900 dark:border-white/10">
+          <Search className="h-3.5 w-3.5 text-stone-400" />
+          <input
+            type="text"
+            placeholder="Např. Brno…"
+            value={locationFilter}
+            onChange={(e) => setLocationFilter(e.target.value)}
+            className="w-full bg-transparent border-none outline-none text-[12.5px] placeholder-stone-400 focus:ring-0 p-0 h-full text-[#0B1F1A] dark:text-white"
+          />
+        </div>
+      </div>
+
+      <div className="space-y-2">
+        <div className="text-[11px] uppercase tracking-wider font-semibold text-stone-400 dark:text-stone-500">
           Stav
         </div>
         <div className="flex flex-wrap gap-2">
@@ -502,23 +556,6 @@ export const ContactsView: React.FC<ContactsViewProps> = ({
               className={filterChipClass(statusFilter === st)}
             >
               {st.charAt(0).toUpperCase() + st.slice(1)}
-            </button>
-          ))}
-        </div>
-      </div>
-      <div className="space-y-2">
-        <div className="text-[11px] uppercase tracking-wider font-semibold text-stone-400 dark:text-stone-500">
-          Teplota
-        </div>
-        <div className="flex flex-wrap gap-2">
-          {(['horký', 'vlažný', 'studený'] as const).map((t) => (
-            <button
-              key={t}
-              type="button"
-              onClick={() => setTempFilter(tempFilter === t ? 'vše' : t)}
-              className={filterChipClass(tempFilter === t)}
-            >
-              {t.charAt(0).toUpperCase() + t.slice(1)}
             </button>
           ))}
         </div>
@@ -695,7 +732,7 @@ export const ContactsView: React.FC<ContactsViewProps> = ({
               <table className="w-full text-left border-collapse">
                 <thead>
                   <tr className="border-b border-stone-200/60 dark:border-stone-800">
-                    {['Jméno', 'Telefon', 'E-mail', 'Role', 'Stav', 'Teplota', 'Aktivní obchod'].map((h) => (
+                    {['Jméno', 'Telefon', 'E-mail', 'Role', 'Stav', 'Aktivní obchod'].map((h) => (
                       <th
                         key={h}
                         className="text-[11px] uppercase tracking-wider font-semibold text-stone-400 dark:text-stone-500 py-3 px-4 whitespace-nowrap"
@@ -751,15 +788,6 @@ export const ContactsView: React.FC<ContactsViewProps> = ({
                           </span>
                         </td>
                         <td className="py-3 px-4">
-                          {contact.temperature ? (
-                            <span className={`text-[9.5px] font-semibold px-2 py-0.5 rounded-[4px] uppercase tracking-wider whitespace-nowrap ${tempBadgeClass(contact.temperature)}`}>
-                              {contact.temperature}
-                            </span>
-                          ) : (
-                            <span className="text-[12px] text-stone-400">—</span>
-                          )}
-                        </td>
-                        <td className="py-3 px-4">
                           {activeDeal ? (
                             <span className="text-[10.5px] text-emerald-600 dark:text-emerald-400 font-semibold uppercase tracking-wider flex items-center gap-1.5 whitespace-nowrap">
                               <span className="h-1.5 w-1.5 rounded-full bg-[#00D991]" />
@@ -810,11 +838,6 @@ export const ContactsView: React.FC<ContactsViewProps> = ({
                         {role}
                       </span>
                     ))}
-                    {contact.temperature && (
-                      <span className={`text-[8.5px] font-semibold px-2 py-0.5 rounded-[4px] uppercase tracking-wider ${tempBadgeClass(contact.temperature)}`}>
-                        {contact.temperature}
-                      </span>
-                    )}
                   </div>
                   {activeDeal && (
                     <div className="text-[10px] text-emerald-600 dark:text-emerald-400 font-bold uppercase tracking-wider flex items-center gap-1 bg-emerald-500/5 py-1 px-1.5 rounded-md border border-emerald-500/10 w-fit">
