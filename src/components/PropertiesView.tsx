@@ -206,9 +206,10 @@ export const PropertiesView: React.FC<PropertiesViewProps> = ({
   const [viewMode, setViewMode] = useState<'cards' | 'list'>('cards');
   const [isConfirmDeleteOpen, setIsConfirmDeleteOpen] = useState(false);
   const [transactionFilter, setTransactionFilter] = useState<'vše' | 'prodej' | 'pronájem'>('vše');
-  const [kindFilter, setKindFilter] = useState<'vše' | 'byt' | 'dům' | 'pozemek' | 'komerční'>('vše');
-  const [statusFilter, setStatusFilter] = useState<'vše' | 'v nabídce' | 'rezervováno' | 'akvizice' | 'uzavřeno'>('vše');
+  const [kindFilter, setKindFilter] = useState<'vše' | 'byt' | 'dům' | 'pozemek' | 'komerční' | 'garáž/ostatní'>('vše');
+  const [statusFilter, setStatusFilter] = useState<'vše' | 'akvizice' | 'v nabídce' | 'rezervováno' | 'uzavřeno'>('vše');
   const [isMobileFiltersExpanded, setIsMobileFiltersExpanded] = useState(false);
+  const [isDesktopFiltersOpen, setIsDesktopFiltersOpen] = useState(false);
 
   // Focus property if navigated from outside
   useEffect(() => {
@@ -1638,6 +1639,120 @@ export const PropertiesView: React.FC<PropertiesViewProps> = ({
   const inOfferCount = properties.filter(p => p.offer_status === 'v nabídce').length;
   const reservedCount = properties.filter(p => p.offer_status === 'rezervováno').length;
 
+  const activeFilterCount =
+    (transactionFilter !== 'vše' ? 1 : 0) +
+    (kindFilter !== 'vše' ? 1 : 0) +
+    (statusFilter !== 'vše' ? 1 : 0);
+
+  const resetFilters = () => {
+    setTransactionFilter('vše');
+    setKindFilter('vše');
+    setStatusFilter('vše');
+  };
+
+  // Shared filter sections (desktop panel + mobile drawer) — Sreality-like
+  // structure: transakce on top, then property-kind tiles, then offer status
+  // in lifecycle order.
+  const filterSectionBorder = theme === 'light' ? 'rgba(11,31,26,0.1)' : 'rgba(255,255,255,0.08)';
+  const kindTiles = [
+    { id: 'byt', label: 'Byty', Icon: Building2 },
+    { id: 'dům', label: 'Domy', Icon: Home },
+    { id: 'pozemek', label: 'Pozemky', Icon: Trees },
+    { id: 'komerční', label: 'Komerční', Icon: Store },
+    { id: 'garáž/ostatní', label: 'Ostatní', Icon: Warehouse },
+  ] as const;
+  const statusChips = [
+    { id: 'akvizice', label: 'Akvizice' },
+    { id: 'v nabídce', label: 'V nabídce' },
+    { id: 'rezervováno', label: 'Rezervováno' },
+    { id: 'uzavřeno', label: 'Prodáno' },
+  ] as const;
+
+  const renderFilterSections = () => (
+    <div className="flex flex-col gap-5">
+      {/* Transakce */}
+      <div className="space-y-2">
+        <div className="text-[11px] uppercase tracking-wider font-semibold" style={{ color: colors.textMuted }}>
+          Transakce
+        </div>
+        <div className="flex bg-[#ECEBE6] p-[3px] rounded-[10px] dark:bg-stone-850 h-9 items-center w-full sm:w-fit">
+          {(['vše', 'prodej', 'pronájem'] as const).map((t) => (
+            <button
+              key={t}
+              onClick={() => setTransactionFilter(t)}
+              className={`px-4 h-[30px] flex-1 sm:flex-none flex items-center justify-center rounded-[8px] text-[12.5px] font-medium transition-all duration-150 cursor-pointer ${
+                transactionFilter === t
+                  ? 'bg-white text-[#0B1F1A] shadow-xs dark:bg-stone-900 dark:text-white'
+                  : 'text-stone-500 hover:text-stone-800 dark:text-stone-400 dark:hover:text-stone-200'
+              }`}
+            >
+              {t === 'vše' ? 'Vše' : t === 'prodej' ? 'Prodej' : 'Pronájem'}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {/* Typ nemovitosti */}
+      <div className="space-y-2">
+        <div className="text-[11px] uppercase tracking-wider font-semibold" style={{ color: colors.textMuted }}>
+          Typ nemovitosti
+        </div>
+        <div className="grid grid-cols-3 sm:grid-cols-5 gap-2">
+          {kindTiles.map(({ id, label, Icon }) => {
+            const active = kindFilter === id;
+            return (
+              <button
+                key={id}
+                onClick={() => setKindFilter(active ? 'vše' : id)}
+                className={`flex flex-col items-center justify-center gap-1.5 py-3 rounded-[10px] border transition-all duration-150 cursor-pointer ${
+                  active
+                    ? 'border-transparent shadow-xs'
+                    : 'bg-white border-stone-250/70 hover:border-stone-300 dark:bg-stone-900 dark:border-white/10'
+                }`}
+                style={{
+                  backgroundColor: active ? colors.accent : undefined,
+                  color: active ? '#00221F' : colors.textPrimary,
+                }}
+              >
+                <Icon className="h-[18px] w-[18px]" style={{ color: active ? '#00221F' : colors.textMuted }} />
+                <span className="text-[12px] font-medium">{label}</span>
+              </button>
+            );
+          })}
+        </div>
+      </div>
+
+      {/* Stav nabídky */}
+      <div className="space-y-2">
+        <div className="text-[11px] uppercase tracking-wider font-semibold" style={{ color: colors.textMuted }}>
+          Stav nabídky
+        </div>
+        <div className="flex flex-wrap gap-2">
+          {statusChips.map((st) => {
+            const active = statusFilter === st.id;
+            return (
+              <button
+                key={st.id}
+                onClick={() => setStatusFilter(active ? 'vše' : st.id)}
+                className={`text-[12.5px] font-medium px-3.5 py-1.5 rounded-[10px] transition-all duration-150 border cursor-pointer ${
+                  active
+                    ? 'border-transparent shadow-xs'
+                    : 'bg-white border-stone-250/70 hover:border-stone-300 dark:bg-stone-900 dark:border-white/10 dark:text-white'
+                }`}
+                style={{
+                  backgroundColor: active ? colors.accent : undefined,
+                  color: active ? '#00221F' : colors.textPrimary,
+                }}
+              >
+                {st.label}
+              </button>
+            );
+          })}
+        </div>
+      </div>
+    </div>
+  );
+
   return (
     <div className="space-y-6 select-none font-sans">
       {/* Header section (3C Design) */}
@@ -1660,7 +1775,7 @@ export const PropertiesView: React.FC<PropertiesViewProps> = ({
       </div>
 
       {/* Search & View Mode Filters Bar (Desktop - 3C Design) */}
-      <div className="hidden md:flex items-center gap-2 overflow-x-auto whitespace-nowrap scrollbar-none py-1">
+      <div className="hidden md:flex items-center gap-2 py-1">
         {/* Search */}
         <div 
           className="flex items-center gap-2 bg-white border border-stone-250/70 rounded-[10px] px-3.5 h-9 w-[180px] flex-none shadow-sm dark:bg-stone-900 dark:border-white/10"
@@ -1679,98 +1794,63 @@ export const PropertiesView: React.FC<PropertiesViewProps> = ({
         {/* Separator */}
         <div className="w-[0.5px] h-5 bg-stone-300 dark:bg-white/15 flex-none" />
 
-        {/* Transaction Filters */}
-        <button
-          onClick={() => setTransactionFilter('vše')}
-          className={`text-[12.5px] font-medium px-[11px] py-[5px] rounded-[10px] transition-all duration-150 border flex-none cursor-pointer ${
-            transactionFilter === 'vše'
-              ? 'border-transparent shadow-xs'
-              : 'bg-white border-stone-250/70 dark:bg-stone-900 dark:border-white/10 dark:text-white'
-          }`}
-          style={{ 
-            backgroundColor: transactionFilter === 'vše' ? colors.accent : undefined,
-            color: transactionFilter === 'vše' ? '#00221F' : colors.textPrimary 
-          }}
-        >
-          Vše
-        </button>
-        <button
-          onClick={() => setTransactionFilter('prodej')}
-          className={`text-[12.5px] font-medium px-[11px] py-[5px] rounded-[10px] transition-all duration-150 border flex-none cursor-pointer ${
-            transactionFilter === 'prodej'
-              ? 'border-transparent shadow-xs'
-              : 'bg-white border-stone-250/70 dark:bg-stone-900 dark:border-white/10 dark:text-white'
-          }`}
-          style={{ 
-            backgroundColor: transactionFilter === 'prodej' ? colors.accent : undefined,
-            color: transactionFilter === 'prodej' ? '#00221F' : colors.textPrimary 
-          }}
-        >
-          Prodej
-        </button>
-        <button
-          onClick={() => setTransactionFilter('pronájem')}
-          className={`text-[12.5px] font-medium px-[11px] py-[5px] rounded-[10px] transition-all duration-150 border flex-none cursor-pointer ${
-            transactionFilter === 'pronájem'
-              ? 'border-transparent shadow-xs'
-              : 'bg-white border-stone-250/70 dark:bg-stone-900 dark:border-white/10 dark:text-white'
-          }`}
-          style={{ 
-            backgroundColor: transactionFilter === 'pronájem' ? colors.accent : undefined,
-            color: transactionFilter === 'pronájem' ? '#00221F' : colors.textPrimary 
-          }}
-        >
-          Pronájem
-        </button>
-
-        {/* Separator */}
-        <div className="w-[0.5px] h-5 bg-stone-300 dark:bg-white/15 flex-none" />
-
-        {/* Kind Filters */}
-        {(['byt', 'dům', 'pozemek', 'komerční'] as const).map((kind) => (
+        {/* Filters button + dropdown panel */}
+        <div className="relative flex-none">
           <button
-            key={kind}
-            onClick={() => setKindFilter(kindFilter === kind ? 'vše' : kind)}
-            className={`text-[12.5px] font-medium px-[11px] py-[5px] rounded-[10px] transition-all duration-150 border capitalize flex-none cursor-pointer ${
-              kindFilter === kind
-                ? 'border-transparent shadow-xs'
-                : 'bg-white border-stone-250/70 dark:bg-stone-900 dark:border-white/10 dark:text-white'
-            }`}
-            style={{ 
-              backgroundColor: kindFilter === kind ? colors.accent : undefined,
-              color: kindFilter === kind ? '#00221F' : colors.textPrimary 
-            }}
+            onClick={() => setIsDesktopFiltersOpen(!isDesktopFiltersOpen)}
+            className="flex items-center gap-1.5 px-3.5 h-9 rounded-[10px] border border-stone-250/70 bg-white dark:bg-stone-900 dark:border-white/10 font-medium text-[12.5px] shadow-sm cursor-pointer transition-all duration-150"
+            style={{ color: colors.textPrimary }}
           >
-            {kind}
+            <SlidersHorizontal
+              className="h-3.5 w-3.5"
+              style={{ color: activeFilterCount > 0 || isDesktopFiltersOpen ? colors.accent : colors.textMuted }}
+            />
+            <span>Filtry</span>
+            {activeFilterCount > 0 && (
+              <span
+                className="min-w-[18px] h-[18px] px-1 rounded-full text-[10.5px] font-semibold flex items-center justify-center"
+                style={{ backgroundColor: colors.accent, color: '#00221F' }}
+              >
+                {activeFilterCount}
+              </span>
+            )}
           </button>
-        ))}
 
-        {/* Separator */}
-        <div className="w-[0.5px] h-5 bg-stone-300 dark:bg-white/15 flex-none" />
-
-        {/* Status Filters */}
-        {([
-          { id: 'v nabídce', label: 'V nabídce' },
-          { id: 'rezervováno', label: 'Rezervováno' },
-          { id: 'akvizice', label: 'Akvizice' },
-          { id: 'uzavřeno', label: 'Prodáno' }
-        ] as const).map((st) => (
-          <button
-            key={st.id}
-            onClick={() => setStatusFilter(statusFilter === st.id ? 'vše' : st.id)}
-            className={`text-[12.5px] font-medium px-[11px] py-[5px] rounded-[10px] transition-all duration-150 border flex-none cursor-pointer ${
-              statusFilter === st.id
-                ? 'border-transparent shadow-xs'
-                : 'bg-white border-stone-250/70 dark:bg-stone-900 dark:border-white/10 dark:text-white'
-            }`}
-            style={{ 
-              backgroundColor: statusFilter === st.id ? colors.accent : undefined,
-              color: statusFilter === st.id ? '#00221F' : colors.textPrimary 
-            }}
-          >
-            {st.label}
-          </button>
-        ))}
+          {isDesktopFiltersOpen && (
+            <>
+              {/* Click-away backdrop */}
+              <div className="fixed inset-0 z-40" onClick={() => setIsDesktopFiltersOpen(false)} />
+              <div
+                className="absolute left-0 top-[calc(100%+8px)] z-50 w-[620px] rounded-xl border p-5 shadow-lg animate-in fade-in slide-in-from-top-2 duration-150"
+                style={{ backgroundColor: colors.cardBg, borderColor: filterSectionBorder }}
+              >
+                <div className="flex items-center justify-between mb-5">
+                  <span className="text-[14px] font-semibold" style={{ color: colors.textPrimary }}>
+                    Filtry
+                  </span>
+                  <div className="flex items-center gap-2">
+                    {activeFilterCount > 0 && (
+                      <button
+                        onClick={resetFilters}
+                        className="text-[12px] font-medium px-2.5 py-1 rounded-[8px] border border-stone-250/70 dark:border-white/10 text-stone-500 hover:text-stone-800 dark:text-stone-400 dark:hover:text-stone-200 cursor-pointer transition-all duration-150"
+                      >
+                        Resetovat filtry
+                      </button>
+                    )}
+                    <button
+                      onClick={() => setIsDesktopFiltersOpen(false)}
+                      className="p-1.5 rounded-[8px] text-stone-400 hover:text-stone-700 hover:bg-stone-100 dark:hover:bg-stone-800 dark:hover:text-stone-200 cursor-pointer transition-all duration-150"
+                      aria-label="Zavřít filtry"
+                    >
+                      <X className="h-4 w-4" />
+                    </button>
+                  </div>
+                </div>
+                {renderFilterSections()}
+              </div>
+            </>
+          )}
+        </div>
 
         {/* View Mode controls / toggles */}
         <div className="ml-auto flex bg-[#ECEBE6] p-[3px] rounded-[10px] flex-none dark:bg-stone-850 h-9 items-center">
@@ -1856,120 +1936,33 @@ export const PropertiesView: React.FC<PropertiesViewProps> = ({
 
         {/* Collapsible Mobile Options Box */}
         {isMobileFiltersExpanded && (
-          <div 
-            className="flex flex-col gap-4 p-4 rounded-xl border animate-in slide-in-from-top-2 duration-150 shadow-xs"
-            style={{ backgroundColor: colors.cardBg, borderColor: theme === 'light' ? 'rgba(11,31,26,0.1)' : 'rgba(255,255,255,0.08)' }}
+          <div
+            className="flex flex-col gap-5 p-4 rounded-xl border animate-in slide-in-from-top-2 duration-150 shadow-xs"
+            style={{ backgroundColor: colors.cardBg, borderColor: filterSectionBorder }}
           >
-            {/* Transaction Group */}
-            <div className="space-y-1.5">
-              <div className="text-[11px] uppercase tracking-wider font-semibold" style={{ color: colors.textMuted }}>
-                Transakce
-              </div>
-              <div className="flex flex-wrap gap-2">
-                {(['vše', 'prodej', 'pronájem'] as const).map((t) => (
+            <div className="flex items-center justify-between">
+              <span className="text-[14px] font-semibold" style={{ color: colors.textPrimary }}>
+                Filtry
+              </span>
+              <div className="flex items-center gap-2">
+                {activeFilterCount > 0 && (
                   <button
-                    key={t}
-                    onClick={() => setTransactionFilter(t)}
-                    className={`text-[12.5px] font-medium px-3.5 py-1.5 rounded-[10px] transition-all duration-150 border cursor-pointer ${
-                      transactionFilter === t
-                        ? 'border-transparent shadow-xs'
-                        : 'bg-white border-stone-250/70 dark:bg-stone-900 dark:border-white/10 dark:text-white'
-                    }`}
-                    style={{ 
-                      backgroundColor: transactionFilter === t ? colors.accent : undefined,
-                      color: transactionFilter === t ? '#00221F' : colors.textPrimary 
-                    }}
+                    onClick={resetFilters}
+                    className="text-[12px] font-medium px-2.5 py-1 rounded-[8px] border border-stone-250/70 dark:border-white/10 text-stone-500 hover:text-stone-800 dark:text-stone-400 dark:hover:text-stone-200 cursor-pointer transition-all duration-150"
                   >
-                    {t === 'vše' ? 'Všechny' : t === 'prodej' ? 'Prodej' : 'Pronájem'}
+                    Resetovat filtry
                   </button>
-                ))}
-              </div>
-            </div>
-
-            {/* Kind Group */}
-            <div className="space-y-1.5">
-              <div className="text-[11px] uppercase tracking-wider font-semibold" style={{ color: colors.textMuted }}>
-                Druh nemovitosti
-              </div>
-              <div className="flex flex-wrap gap-2">
+                )}
                 <button
-                  onClick={() => setKindFilter('vše')}
-                  className={`text-[12.5px] font-medium px-3.5 py-1.5 rounded-[10px] transition-all duration-150 border cursor-pointer ${
-                    kindFilter === 'vše'
-                      ? 'border-transparent shadow-xs'
-                      : 'bg-white border-stone-250/70 dark:bg-stone-900 dark:border-white/10 dark:text-white'
-                  }`}
-                  style={{ 
-                    backgroundColor: kindFilter === 'vše' ? colors.accent : undefined,
-                    color: kindFilter === 'vše' ? '#00221F' : colors.textPrimary 
-                  }}
+                  onClick={() => setIsMobileFiltersExpanded(false)}
+                  className="p-1.5 rounded-[8px] text-stone-400 hover:text-stone-700 hover:bg-stone-100 dark:hover:bg-stone-800 dark:hover:text-stone-200 cursor-pointer transition-all duration-150"
+                  aria-label="Zavřít filtry"
                 >
-                  Všechny
+                  <X className="h-4 w-4" />
                 </button>
-                {(['byt', 'dům', 'pozemek', 'komerční'] as const).map((kind) => (
-                  <button
-                    key={kind}
-                    onClick={() => setKindFilter(kind)}
-                    className={`text-[12.5px] font-medium px-3.5 py-1.5 rounded-[10px] transition-all duration-150 border capitalize cursor-pointer ${
-                      kindFilter === kind
-                        ? 'border-transparent shadow-xs'
-                        : 'bg-white border-stone-250/70 dark:bg-stone-900 dark:border-white/10 dark:text-white'
-                    }`}
-                    style={{ 
-                      backgroundColor: kindFilter === kind ? colors.accent : undefined,
-                      color: kindFilter === kind ? '#00221F' : colors.textPrimary 
-                    }}
-                  >
-                    {kind}
-                  </button>
-                ))}
               </div>
             </div>
-
-            {/* Status Group */}
-            <div className="space-y-1.5">
-              <div className="text-[11px] uppercase tracking-wider font-semibold" style={{ color: colors.textMuted }}>
-                Stav nabídky
-              </div>
-              <div className="flex flex-wrap gap-2">
-                <button
-                  onClick={() => setStatusFilter('vše')}
-                  className={`text-[12.5px] font-medium px-3.5 py-1.5 rounded-[10px] transition-all duration-150 border cursor-pointer ${
-                    statusFilter === 'vše'
-                      ? 'border-transparent shadow-xs'
-                      : 'bg-white border-stone-250/70 dark:bg-stone-900 dark:border-white/10 dark:text-white'
-                  }`}
-                  style={{ 
-                    backgroundColor: statusFilter === 'vše' ? colors.accent : undefined,
-                    color: statusFilter === 'vše' ? '#00221F' : colors.textPrimary 
-                  }}
-                >
-                  Všechny
-                </button>
-                {([
-                  { id: 'v nabídce', label: 'V nabídce' },
-                  { id: 'rezervováno', label: 'Rezervováno' },
-                  { id: 'akvizice', label: 'Akvizice' },
-                  { id: 'uzavřeno', label: 'Prodáno' }
-                ] as const).map((st) => (
-                  <button
-                    key={st.id}
-                    onClick={() => setStatusFilter(st.id)}
-                    className={`text-[12.5px] font-medium px-3.5 py-1.5 rounded-[10px] transition-all duration-150 border cursor-pointer ${
-                      statusFilter === st.id
-                        ? 'border-transparent shadow-xs'
-                        : 'bg-white border-stone-250/70 dark:bg-stone-900 dark:border-white/10 dark:text-white'
-                    }`}
-                    style={{ 
-                      backgroundColor: statusFilter === st.id ? colors.accent : undefined,
-                      color: statusFilter === st.id ? '#00221F' : colors.textPrimary 
-                    }}
-                  >
-                    {st.label}
-                  </button>
-                ))}
-              </div>
-            </div>
+            {renderFilterSections()}
           </div>
         )}
       </div>
