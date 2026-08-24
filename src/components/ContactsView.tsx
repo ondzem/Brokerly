@@ -9,7 +9,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Card, CardContent, CardTitle, CardDescription } from '@/components/ui/card';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { toast } from 'sonner';
-import { Search, Plus, User, Mail, Phone, Calendar as CalendarIcon, Briefcase, Home, Clock, AlertCircle } from 'lucide-react';
+import { Search, Plus, User, Mail, Phone, Calendar as CalendarIcon, Briefcase, Home, Clock, AlertCircle, SlidersHorizontal, X } from 'lucide-react';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Calendar } from '@/components/ui/calendar';
 
@@ -53,7 +53,11 @@ export const ContactsView: React.FC<ContactsViewProps> = ({
   const [searchQuery, setSearchQuery] = useState('');
   const [isCreateOpen, setIsCreateOpen] = useState(false);
   const [isDetailOpen, setIsDetailOpen] = useState(false);
-  const [activeRoleTab, setActiveRoleTab] = useState<'buyer' | 'owner'>('buyer');
+  const [activeRoleTab, setActiveRoleTab] = useState<'all' | 'buyer' | 'owner'>('all');
+  const [statusFilter, setStatusFilter] = useState<'vše' | Contact['status']>('vše');
+  const [tempFilter, setTempFilter] = useState<'vše' | 'horký' | 'vlažný' | 'studený'>('vše');
+  const [isFiltersOpen, setIsFiltersOpen] = useState(false);
+  const [isMobileFiltersExpanded, setIsMobileFiltersExpanded] = useState(false);
 
   // Focus contact if navigated from outside
   useEffect(() => {
@@ -140,7 +144,7 @@ export const ContactsView: React.FC<ContactsViewProps> = ({
     }
   }, [selectedContact]);
 
-  // Search and Role filter
+  // Search, role tab and panel filters
   const filteredContacts = contacts.filter((c) => {
     const q = searchQuery.toLowerCase();
     const matchesSearch = c.full_name.toLowerCase().includes(q) ||
@@ -149,12 +153,20 @@ export const ContactsView: React.FC<ContactsViewProps> = ({
 
     if (!matchesSearch) return false;
 
-    if (activeRoleTab === 'buyer') {
-      return c.roles.includes('kupující');
-    } else {
-      return !c.roles.includes('kupující');
-    }
+    if (activeRoleTab === 'buyer' && !c.roles.includes('kupující')) return false;
+    if (activeRoleTab === 'owner' && !c.roles.includes('vlastník')) return false;
+
+    if (statusFilter !== 'vše' && c.status !== statusFilter) return false;
+    if (tempFilter !== 'vše' && c.temperature !== tempFilter) return false;
+
+    return true;
   });
+
+  const activeFilterCount = (statusFilter !== 'vše' ? 1 : 0) + (tempFilter !== 'vše' ? 1 : 0);
+  const resetFilters = () => {
+    setStatusFilter('vše');
+    setTempFilter('vše');
+  };
 
   const handleRoleToggle = (role: Contact['roles'][number], isEdit = false) => {
     const targetRoles = isEdit ? editRoles : newRoles;
@@ -323,124 +335,373 @@ export const ContactsView: React.FC<ContactsViewProps> = ({
   const contactProperties = selectedContact ? properties.filter((p) => p.owner_id === selectedContact.id) : [];
   const contactActivities = selectedContact ? activities.filter((a) => a.contact_id === selectedContact.id) : [];
 
+  const totalCount = contacts.length;
+  const buyersCount = contacts.filter((c) => c.roles.includes('kupující')).length;
+  const ownersCount = contacts.filter((c) => c.roles.includes('vlastník')).length;
+
+  const statusBadgeClass = (status: Contact['status']) =>
+    status === 'nový' ? 'bg-emerald-500/10 text-emerald-600' :
+    status === 'kontaktovaný' ? 'bg-amber-500/10 text-amber-600' :
+    status === 'kvalifikovaný' ? 'bg-sky-500/10 text-sky-600' :
+    status === 'klient' ? 'bg-indigo-500/10 text-indigo-600' :
+    'bg-stone-500/10 text-stone-600';
+
+  const tempBadgeClass = (t: NonNullable<Contact['temperature']>) =>
+    t === 'horký' ? 'bg-rose-50 text-rose-700 border border-rose-100 dark:bg-rose-950/30 dark:text-rose-400 dark:border-rose-900' :
+    t === 'vlažný' ? 'bg-amber-50 text-amber-700 border border-amber-100 dark:bg-amber-950/30 dark:text-amber-400 dark:border-amber-900' :
+    'bg-stone-50 text-stone-600 border border-stone-200/60 dark:bg-stone-800 dark:text-stone-400 dark:border-stone-700';
+
+  const filterChipClass = (active: boolean) =>
+    `text-[12.5px] font-medium px-3.5 py-1.5 rounded-[10px] transition-all duration-150 border cursor-pointer ${
+      active
+        ? 'border-transparent shadow-xs bg-[#00D991] text-[#00221F]'
+        : 'bg-white border-stone-250/70 hover:border-stone-300 text-[#0B1F1A] dark:bg-stone-900 dark:border-white/10 dark:text-white'
+    }`;
+
+  // Shared filter sections (desktop panel + mobile drawer) — same structure as
+  // the properties filter: stav in lifecycle order, then teplota.
+  const renderFilterSections = () => (
+    <div className="flex flex-col gap-5">
+      <div className="space-y-2">
+        <div className="text-[11px] uppercase tracking-wider font-semibold text-stone-400 dark:text-stone-500">
+          Stav
+        </div>
+        <div className="flex flex-wrap gap-2">
+          {STATUS_OPTIONS.map((st) => (
+            <button
+              key={st}
+              type="button"
+              onClick={() => setStatusFilter(statusFilter === st ? 'vše' : st)}
+              className={filterChipClass(statusFilter === st)}
+            >
+              {st.charAt(0).toUpperCase() + st.slice(1)}
+            </button>
+          ))}
+        </div>
+      </div>
+      <div className="space-y-2">
+        <div className="text-[11px] uppercase tracking-wider font-semibold text-stone-400 dark:text-stone-500">
+          Teplota
+        </div>
+        <div className="flex flex-wrap gap-2">
+          {(['horký', 'vlažný', 'studený'] as const).map((t) => (
+            <button
+              key={t}
+              type="button"
+              onClick={() => setTempFilter(tempFilter === t ? 'vše' : t)}
+              className={filterChipClass(tempFilter === t)}
+            >
+              {t.charAt(0).toUpperCase() + t.slice(1)}
+            </button>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+
+  const renderFilterPanelHeader = (onClose: () => void) => (
+    <div className="flex items-center justify-between">
+      <span className="text-[14px] font-semibold text-[#0B1F1A] dark:text-white">Filtry</span>
+      <div className="flex items-center gap-2">
+        {activeFilterCount > 0 && (
+          <button
+            type="button"
+            onClick={resetFilters}
+            className="text-[12px] font-medium px-2.5 py-1 rounded-[8px] border border-stone-250/70 dark:border-white/10 text-stone-500 hover:text-stone-800 dark:text-stone-400 dark:hover:text-stone-200 cursor-pointer transition-all duration-150"
+          >
+            Resetovat filtry
+          </button>
+        )}
+        <button
+          type="button"
+          onClick={onClose}
+          className="p-1.5 rounded-[8px] text-stone-400 hover:text-stone-700 hover:bg-stone-100 dark:hover:bg-stone-800 dark:hover:text-stone-200 cursor-pointer transition-all duration-150"
+          aria-label="Zavřít filtry"
+        >
+          <X className="h-4 w-4" />
+        </button>
+      </div>
+    </div>
+  );
+
+  const roleToggle = (
+    <div className="flex bg-[#ECEBE6] p-[3px] rounded-[10px] dark:bg-stone-850 h-9 items-center flex-none">
+      {([
+        { id: 'all', label: 'Vše' },
+        { id: 'buyer', label: 'Kupující' },
+        { id: 'owner', label: 'Vlastníci' },
+      ] as const).map((tab) => (
+        <button
+          key={tab.id}
+          onClick={() => setActiveRoleTab(tab.id)}
+          className={`px-3.5 h-[30px] flex items-center justify-center rounded-[8px] text-[12.5px] font-medium transition-all duration-150 cursor-pointer ${
+            activeRoleTab === tab.id
+              ? 'bg-white text-[#0B1F1A] shadow-xs dark:bg-stone-900 dark:text-white'
+              : 'text-stone-500 hover:text-stone-800 dark:text-stone-400 dark:hover:text-stone-200'
+          }`}
+        >
+          {tab.label}
+        </button>
+      ))}
+    </div>
+  );
+
   return (
     <div className="space-y-6">
-      {/* Header section */}
-      <div className="flex justify-between items-center">
-        <div>
-          <h1 className="text-3xl font-display font-normal tracking-tight text-[#141414]">Kontakty</h1>
-          <p className="text-muted-foreground text-sm mt-1">
-            Správa poptávek, vlastníků a doporučitelů na jednom místě.
-          </p>
+      {/* Header section (aligned with PropertiesView) */}
+      <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3 mb-2.5 sm:mb-0">
+        <div className="flex flex-col gap-1">
+          <h1 className="font-display font-light text-[26px] leading-tight text-[#0B1F1A] dark:text-white">
+            Kontakty
+          </h1>
+          <span className="text-[13px] text-stone-500 dark:text-stone-400">
+            {totalCount} {totalCount === 1 ? 'kontakt' : totalCount >= 2 && totalCount <= 4 ? 'kontakty' : 'kontaktů'} · {buyersCount} kupujících · {ownersCount} vlastníků
+          </span>
         </div>
-        <Button
+        <button
           onClick={() => setIsCreateOpen(true)}
-          className="gap-1.5 h-10 font-medium"
+          className="flex items-center justify-center gap-2 hover:opacity-90 font-medium text-[14px] px-4 py-2.5 rounded-[10px] cursor-pointer transition-all duration-150 w-full sm:w-auto flex-none shadow-xs bg-[#00D991] text-[#00221F]"
         >
-          <Plus className="h-4.5 w-4.5" />
-          Nový kontakt
-        </Button>
+          + Nový kontakt
+        </button>
       </div>
 
-      {/* Search & Tabs bar */}
-      <div className="flex flex-col sm:flex-row gap-4 items-center justify-between bg-white border border-stone-200 p-3.5 rounded-lg shadow-xs">
-        {/* Search */}
-        <div className="relative w-full sm:w-80">
-          <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-          <Input
-            placeholder="Hledat jméno, telefon, e-mail..."
-            className="pl-9 border-stone-200 focus-visible:ring-1 h-9 text-xs rounded-[10px]"
+      {/* Search & Filters bar (Desktop) */}
+      <div className="hidden md:flex items-center gap-2 py-1">
+        <div className="flex items-center gap-2 bg-white border border-stone-250/70 rounded-[10px] px-3.5 h-9 w-[220px] flex-none shadow-sm dark:bg-stone-900 dark:border-white/10">
+          <Search className="h-3.5 w-3.5 text-stone-400" />
+          <input
+            type="text"
+            placeholder="Hledat jméno, telefon, e-mail…"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
+            className="w-full bg-transparent border-none outline-none text-[12.5px] placeholder-stone-400 focus:ring-0 p-0 h-full text-[#0B1F1A] dark:text-white"
           />
         </div>
 
-        {/* Segmented controls / tabs */}
-        <div className="flex bg-stone-100 p-0.5 rounded-md w-full sm:w-auto self-stretch sm:self-auto border border-stone-200">
+        <div className="w-[0.5px] h-5 bg-stone-300 dark:bg-white/15 flex-none" />
+
+        {/* Filters button + dropdown panel */}
+        <div className="relative flex-none">
           <button
-            onClick={() => setActiveRoleTab('buyer')}
-            className={`flex-1 sm:flex-initial px-4 py-1.5 rounded-sm text-xs font-semibold tracking-wide transition-all ${
-              activeRoleTab === 'buyer'
-                ? 'bg-white text-[#141414] shadow-xs'
-                : 'text-stone-500 hover:text-stone-800'
-            }`}
+            onClick={() => setIsFiltersOpen(!isFiltersOpen)}
+            className="flex items-center gap-1.5 px-3.5 h-9 rounded-[10px] border border-stone-250/70 bg-white dark:bg-stone-900 dark:border-white/10 font-medium text-[12.5px] shadow-sm cursor-pointer transition-all duration-150 text-[#0B1F1A] dark:text-white"
           >
-            Kupující
+            <SlidersHorizontal className={`h-3.5 w-3.5 ${activeFilterCount > 0 || isFiltersOpen ? 'text-[#00D991]' : 'text-stone-400'}`} />
+            <span>Filtry</span>
+            {activeFilterCount > 0 && (
+              <span className="min-w-[18px] h-[18px] px-1 rounded-full text-[10.5px] font-semibold flex items-center justify-center bg-[#00D991] text-[#00221F]">
+                {activeFilterCount}
+              </span>
+            )}
           </button>
-          <button
-            onClick={() => setActiveRoleTab('owner')}
-            className={`flex-1 sm:flex-initial px-4 py-1.5 rounded-sm text-xs font-semibold tracking-wide transition-all ${
-              activeRoleTab === 'owner'
-                ? 'bg-white text-[#141414] shadow-xs'
-                : 'text-stone-500 hover:text-stone-800'
-            }`}
-          >
-            Vlastníci
-          </button>
+
+          {isFiltersOpen && (
+            <>
+              <div className="fixed inset-0 z-40" onClick={() => setIsFiltersOpen(false)} />
+              <div className="absolute left-0 top-[calc(100%+8px)] z-50 w-[520px] rounded-xl border border-stone-200/80 dark:border-white/10 p-5 shadow-lg animate-in fade-in slide-in-from-top-2 duration-150 bg-white dark:bg-stone-900">
+                <div className="mb-5">{renderFilterPanelHeader(() => setIsFiltersOpen(false))}</div>
+                {renderFilterSections()}
+              </div>
+            </>
+          )}
         </div>
+
+        <div className="ml-auto">{roleToggle}</div>
       </div>
 
-      {/* Grid List of Contacts */}
+      {/* Search & Filters bar (Mobile) */}
+      <div className="flex md:hidden flex-col gap-3.5 w-full">
+        <div className="flex items-center justify-between w-full">
+          <button
+            onClick={() => setIsMobileFiltersExpanded(!isMobileFiltersExpanded)}
+            className="flex items-center justify-center gap-1.5 px-4 h-9 rounded-[10px] border border-stone-250/70 bg-white dark:bg-stone-900 dark:border-white/10 font-medium text-[12.5px] shadow-sm cursor-pointer select-none text-[#0B1F1A] dark:text-white"
+          >
+            <SlidersHorizontal className={`h-3.5 w-3.5 ${isMobileFiltersExpanded || activeFilterCount > 0 ? 'text-[#00D991]' : 'text-stone-400'}`} />
+            <span>Filtry</span>
+            {activeFilterCount > 0 && <span className="w-1.5 h-1.5 rounded-full bg-[#00D991]" />}
+          </button>
+          {roleToggle}
+        </div>
+
+        <div className="flex items-center gap-2 bg-white border border-stone-250/70 rounded-[10px] px-3.5 h-9 w-full shadow-sm dark:bg-stone-900 dark:border-white/10">
+          <Search className="h-3.5 w-3.5 text-stone-400" />
+          <input
+            type="text"
+            placeholder="Hledat jméno, telefon, e-mail…"
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="w-full bg-transparent border-none outline-none text-[12.5px] placeholder-stone-400 focus:ring-0 p-0 h-full text-[#0B1F1A] dark:text-white"
+          />
+        </div>
+
+        {isMobileFiltersExpanded && (
+          <div className="flex flex-col gap-5 p-4 rounded-xl border border-stone-200/80 dark:border-white/10 animate-in slide-in-from-top-2 duration-150 shadow-xs bg-white dark:bg-stone-900">
+            {renderFilterPanelHeader(() => setIsMobileFiltersExpanded(false))}
+            {renderFilterSections()}
+          </div>
+        )}
+      </div>
+
+      {/* Contacts list — table on desktop, cards on mobile */}
       {filteredContacts.length === 0 ? (
-        <div className="p-12 text-sm text-muted-foreground italic text-center bg-white border border-stone-200 rounded-lg shadow-xs">
-          Nebyly nalezeny žádné kontakty v této sekci.
+        <div className="border border-dashed border-stone-300/70 dark:border-white/15 rounded-xl py-14 px-10 flex flex-col items-center justify-center gap-2 text-center">
+          <div className="text-[15px] font-medium text-[#0B1F1A] dark:text-white">
+            Žádný kontakt neodpovídá hledání či filtrům.
+          </div>
+          {(activeFilterCount > 0 || activeRoleTab !== 'all' || searchQuery) && (
+            <button
+              onClick={() => {
+                resetFilters();
+                setActiveRoleTab('all');
+                setSearchQuery('');
+              }}
+              className="text-[12.5px] font-medium text-[#0E8A5F] hover:underline cursor-pointer"
+            >
+              Zrušit hledání a filtry
+            </button>
+          )}
         </div>
       ) : (
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 mt-4">
-          {filteredContacts.map((contact) => {
-            const contactDeals = deals.filter((d) => d.buyer_id === contact.id);
-            const activeDeal = contactDeals.find((d) => d.result === 'otevřený');
-            const displayRoles = contact.roles.filter((r) => r !== 'protistrana');
+        <>
+          {/* Desktop table */}
+          <div className="hidden md:block bg-white dark:bg-stone-950 border border-stone-200/60 dark:border-stone-800 rounded-xl shadow-xs overflow-hidden">
+            <div className="overflow-x-auto">
+              <table className="w-full text-left border-collapse">
+                <thead>
+                  <tr className="border-b border-stone-200/60 dark:border-stone-800">
+                    {['Jméno', 'Telefon', 'E-mail', 'Role', 'Stav', 'Teplota', 'Aktivní obchod'].map((h) => (
+                      <th
+                        key={h}
+                        className="text-[11px] uppercase tracking-wider font-semibold text-stone-400 dark:text-stone-500 py-3 px-4 whitespace-nowrap"
+                      >
+                        {h}
+                      </th>
+                    ))}
+                  </tr>
+                </thead>
+                <tbody>
+                  {filteredContacts.map((contact) => {
+                    const cDeals = deals.filter((d) => d.buyer_id === contact.id);
+                    const activeDeal = cDeals.find((d) => d.result === 'otevřený');
+                    const displayRoles = contact.roles.filter((r) => r !== 'protistrana');
 
-            return (
-              <div
-                key={contact.id}
-                onClick={() => {
-                  setSelectedContact(contact);
-                  setIsDetailOpen(true);
-                }}
-                className="bg-white border border-stone-200 rounded-lg p-4 cursor-pointer hover:border-[#00D991] hover:shadow-xs transition-all duration-150 flex flex-col justify-between h-[155px] text-left"
-              >
-                <div className="space-y-1">
+                    return (
+                      <tr
+                        key={contact.id}
+                        onClick={() => {
+                          setSelectedContact(contact);
+                          setIsDetailOpen(true);
+                        }}
+                        className="border-b border-stone-100 dark:border-stone-900 last:border-0 hover:bg-stone-50 dark:hover:bg-stone-900/60 cursor-pointer transition-colors duration-100"
+                      >
+                        <td className="py-3 px-4 text-[13.5px] font-medium text-[#0B1F1A] dark:text-white whitespace-nowrap">
+                          {contact.full_name}
+                        </td>
+                        <td className="py-3 px-4 text-[12.5px] text-stone-500 dark:text-stone-400 tabular-nums whitespace-nowrap">
+                          {contact.phone || '—'}
+                        </td>
+                        <td className="py-3 px-4 text-[12.5px] text-stone-500 dark:text-stone-400 whitespace-nowrap">
+                          {contact.email || '—'}
+                        </td>
+                        <td className="py-3 px-4">
+                          <div className="flex flex-wrap gap-1">
+                            {displayRoles.length === 0 ? (
+                              <span className="text-[12px] text-stone-400">—</span>
+                            ) : (
+                              displayRoles.map((role) => (
+                                <span
+                                  key={role}
+                                  className="bg-stone-100 text-stone-600 dark:bg-stone-800 dark:text-stone-300 text-[9px] font-semibold px-2 py-0.5 rounded-full uppercase tracking-wider whitespace-nowrap"
+                                >
+                                  {role}
+                                </span>
+                              ))
+                            )}
+                          </div>
+                        </td>
+                        <td className="py-3 px-4">
+                          <span className={`text-[9.5px] font-semibold px-2 py-0.5 rounded-full uppercase tracking-wider whitespace-nowrap ${statusBadgeClass(contact.status)}`}>
+                            {contact.status}
+                          </span>
+                        </td>
+                        <td className="py-3 px-4">
+                          {contact.temperature ? (
+                            <span className={`text-[9.5px] font-semibold px-2 py-0.5 rounded-[4px] uppercase tracking-wider whitespace-nowrap ${tempBadgeClass(contact.temperature)}`}>
+                              {contact.temperature}
+                            </span>
+                          ) : (
+                            <span className="text-[12px] text-stone-400">—</span>
+                          )}
+                        </td>
+                        <td className="py-3 px-4">
+                          {activeDeal ? (
+                            <span className="text-[10.5px] text-emerald-600 dark:text-emerald-400 font-semibold uppercase tracking-wider flex items-center gap-1.5 whitespace-nowrap">
+                              <span className="h-1.5 w-1.5 rounded-full bg-[#00D991]" />
+                              {activeDeal.stage}
+                            </span>
+                          ) : (
+                            <span className="text-[12px] text-stone-400">—</span>
+                          )}
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          {/* Mobile cards */}
+          <div className="grid md:hidden grid-cols-1 sm:grid-cols-2 gap-3.5">
+            {filteredContacts.map((contact) => {
+              const cDeals = deals.filter((d) => d.buyer_id === contact.id);
+              const activeDeal = cDeals.find((d) => d.result === 'otevřený');
+              const displayRoles = contact.roles.filter((r) => r !== 'protistrana');
+
+              return (
+                <div
+                  key={contact.id}
+                  onClick={() => {
+                    setSelectedContact(contact);
+                    setIsDetailOpen(true);
+                  }}
+                  className="bg-white dark:bg-stone-950 border border-stone-200/60 dark:border-stone-800 rounded-xl p-4 cursor-pointer hover:border-[#00D991] hover:shadow-xs transition-all duration-150 flex flex-col gap-2.5 text-left"
+                >
                   <div className="flex justify-between items-start gap-2">
-                    <div className="font-display font-semibold text-[14px] text-foreground truncate max-w-[140px]">
+                    <div className="font-display font-semibold text-[14px] text-[#0B1F1A] dark:text-white truncate">
                       {contact.full_name}
                     </div>
-                    <span className={`text-[9px] font-semibold px-2 py-0.5 rounded-full uppercase tracking-wider shrink-0 ${
-                      contact.status === 'nový' ? 'bg-emerald-500/10 text-emerald-600' :
-                      contact.status === 'kontaktovaný' ? 'bg-amber-500/10 text-amber-600' :
-                      contact.status === 'kvalifikovaný' ? 'bg-sky-500/10 text-sky-600' :
-                      contact.status === 'klient' ? 'bg-indigo-500/10 text-indigo-600' :
-                      'bg-stone-500/10 text-stone-600'
-                    }`}>
+                    <span className={`text-[9px] font-semibold px-2 py-0.5 rounded-full uppercase tracking-wider shrink-0 ${statusBadgeClass(contact.status)}`}>
                       {contact.status}
                     </span>
                   </div>
-                  <div className="text-[11.5px] text-muted-foreground truncate font-mono">
+                  <div className="text-[11.5px] text-stone-500 dark:text-stone-400 truncate tabular-nums">
                     {contact.phone || contact.email || '—'}
                   </div>
-                </div>
-
-                <div className="space-y-2 mt-2">
-                  <div className="flex flex-wrap gap-1">
+                  <div className="flex flex-wrap items-center gap-1">
                     {displayRoles.map((role) => (
-                      <span key={role} className="bg-stone-100 text-stone-600 text-[8.5px] font-semibold px-2 py-0.5 rounded-full uppercase tracking-wider">
+                      <span key={role} className="bg-stone-100 text-stone-600 dark:bg-stone-800 dark:text-stone-300 text-[8.5px] font-semibold px-2 py-0.5 rounded-full uppercase tracking-wider">
                         {role}
                       </span>
                     ))}
+                    {contact.temperature && (
+                      <span className={`text-[8.5px] font-semibold px-2 py-0.5 rounded-[4px] uppercase tracking-wider ${tempBadgeClass(contact.temperature)}`}>
+                        {contact.temperature}
+                      </span>
+                    )}
                   </div>
-
                   {activeDeal && (
-                    <div className="text-[10px] text-emerald-600 font-bold uppercase tracking-wider flex items-center gap-1 mt-1 bg-emerald-500/5 py-1 px-1.5 rounded-md border border-emerald-500/10">
-                      <span className="h-1.5 w-1.5 rounded-full bg-[#00D991] animate-pulse" />
+                    <div className="text-[10px] text-emerald-600 dark:text-emerald-400 font-bold uppercase tracking-wider flex items-center gap-1 bg-emerald-500/5 py-1 px-1.5 rounded-md border border-emerald-500/10 w-fit">
+                      <span className="h-1.5 w-1.5 rounded-full bg-[#00D991]" />
                       <span className="truncate">Fáze: {activeDeal.stage}</span>
                     </div>
                   )}
                 </div>
-              </div>
-            );
-          })}
-        </div>
+              );
+            })}
+          </div>
+        </>
       )}
 
       {/* DETAIL DIALOG */}
