@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Property, Contact, Deal, Activity } from '@/types';
 import { createProperty, updateProperty, createContact, deleteProperty, createDeal, updateDeal } from '@/lib/db';
 import { cn } from '@/lib/utils';
@@ -387,7 +387,10 @@ export const PropertiesView: React.FC<PropertiesViewProps> = ({
   // Header options menu state
   const [isHeaderMenuOpen, setIsHeaderMenuOpen] = useState(false);
 
-  // Sync edits when selectedProperty changes
+  // Sync edits when selectedProperty changes. Tab/edit-state reset happens only
+  // when a different property is opened — a save updates the same property and
+  // must leave the user on the tab they were working in.
+  const openedPropertyIdRef = useRef<string | null>(null);
   useEffect(() => {
     if (selectedProperty) {
       setEditOwnerId(selectedProperty.owner_id);
@@ -446,21 +449,27 @@ export const PropertiesView: React.FC<PropertiesViewProps> = ({
       setCommissionVal(selectedProperty.commission_val ? selectedProperty.commission_val.toString() : '');
       setPhotoUrl(selectedProperty.attachments?.[0] || '');
 
-      // Reset tabs and sections edit states
-      setActiveDetailTab('prehled');
-      setIsEditingGeneral(false);
-      setIsEditingSpecifics(false);
-      setIsEditingNote(false);
-      setIsEditingCommission(false);
-      setIsAddingExpense(false);
-      setNewExpenseName('');
-      setNewExpenseValue('');
       setEditCommissionStatus(selectedProperty.commission_status || 'očekávaná');
-      setZajemciFilter('všichni');
-      setIsAddingBuyer(false);
-      setSearchBuyerQuery('');
-      setEditingDealId(null);
-      setIsHeaderMenuOpen(false);
+
+      // Reset tabs and sections edit states — only on opening a different property
+      if (openedPropertyIdRef.current !== selectedProperty.id) {
+        openedPropertyIdRef.current = selectedProperty.id;
+        setActiveDetailTab('prehled');
+        setIsEditingGeneral(false);
+        setIsEditingSpecifics(false);
+        setIsEditingNote(false);
+        setIsEditingCommission(false);
+        setIsAddingExpense(false);
+        setNewExpenseName('');
+        setNewExpenseValue('');
+        setZajemciFilter('všichni');
+        setIsAddingBuyer(false);
+        setSearchBuyerQuery('');
+        setEditingDealId(null);
+        setIsHeaderMenuOpen(false);
+      }
+    } else {
+      openedPropertyIdRef.current = null;
     }
   }, [selectedProperty]);
 
@@ -2688,7 +2697,7 @@ export const PropertiesView: React.FC<PropertiesViewProps> = ({
                     tab === 'prehled' ? 'Přehled' :
                     tab === 'informace' ? 'Informace' :
                     tab === 'zajemci' ? `Zájemci · ${propertyDeals.length}` :
-                    'Ekonomika';
+                    'Provize';
 
                   const active = activeDetailTab === tab;
                   return (
