@@ -953,6 +953,85 @@ export const PropertiesView: React.FC<PropertiesViewProps> = ({
   };
 
   // Tab 2: Informace - Save long text / note
+  /**
+   * Řádek „co teď" nad kartou. Nepřidává žádné pole k vyplnění — všechno se
+   * počítá z toho, co už v databázi leží (obchody, aktivity, historie ceny).
+   * Co spočítat nejde, se neukáže; prázdné místo je lepší než vymyšlený údaj.
+   */
+  /** Cena za metr podle druhu — u pozemku se počítá z výměry, ne z podlahy. */
+  const selectedPricePerM2 = (() => {
+    if (!selectedProperty) return null;
+    const area =
+      selectedProperty.flat_area ||
+      selectedProperty.house_area ||
+      selectedProperty.comm_floor_area ||
+      selectedProperty.land_size;
+    if (!area || area <= 0) return null;
+    return Math.round(selectedProperty.price / area).toLocaleString('cs-CZ');
+  })();
+
+  const propertySignals = (() => {
+    if (!selectedProperty) return [];
+    const now = Date.now();
+    const dayMs = 86400000;
+    /** Rozdíl v kalendářních dnech — jinak by včerejší večer hlásil „dnes". */
+    const daysAgo = (iso: string) => {
+      const a = new Date(iso); const b = new Date();
+      a.setHours(0, 0, 0, 0); b.setHours(0, 0, 0, 0);
+      return Math.round((b.getTime() - a.getTime()) / dayMs);
+    };
+    const out: { label: string; value: string; tone?: 'accent' | 'warn' }[] = [];
+
+    if (selectedProperty.created_at) {
+      const days = daysAgo(selectedProperty.created_at);
+      out.push({
+        label: 'přidáno',
+        value: days === 0 ? 'dnes' : days === 1 ? 'včera' : `před ${days} dny`,
+        tone: days > 90 ? 'warn' : undefined,
+      });
+    }
+
+    const propertyDeals = deals.filter((d) => d.property_id === selectedProperty.id);
+    const live = propertyDeals.filter((d) => d.result === 'otevřený');
+    out.push({
+      label: 'zájemci',
+      value: live.length === 0 ? 'zatím žádní' : live.length === 1 ? '1 aktivní' : `${live.length} aktivní`,
+      tone: live.length > 0 ? 'accent' : undefined,
+    });
+
+    const dealIds = new Set(propertyDeals.map((d) => d.id));
+    const upcoming = activities
+      .filter((a) => a.deal_id && dealIds.has(a.deal_id) && !a.done && new Date(a.when).getTime() >= now)
+      .sort((a, b) => new Date(a.when).getTime() - new Date(b.when).getTime())[0];
+    if (upcoming) {
+      const when = new Date(upcoming.when);
+      const inDays = Math.round((when.getTime() - now) / dayMs);
+      const den = inDays <= 0 ? 'dnes' : inDays === 1 ? 'zítra' : when.toLocaleDateString('cs-CZ', { day: 'numeric', month: 'numeric' });
+      const cas = when.toLocaleTimeString('cs-CZ', { hour: 'numeric', minute: '2-digit' });
+      out.push({ label: upcoming.type.toLowerCase(), value: `${den} ${cas}`, tone: 'accent' });
+    }
+
+    const lastChange = (selectedProperty.price_history ?? []).slice(-1)[0];
+    if (lastChange) {
+      const days = daysAgo(lastChange.changed_at);
+      const diff = Math.abs(lastChange.to - lastChange.from);
+      out.push({
+        label: lastChange.to < lastChange.from ? 'cena dolů' : 'cena nahoru',
+        value: `${diff.toLocaleString('cs-CZ')} Kč · ${days === 0 ? 'dnes' : `před ${days} dny`}`,
+      });
+    }
+
+    const lastActivity = activities
+      .filter((a) => a.deal_id && dealIds.has(a.deal_id) && new Date(a.when).getTime() <= now)
+      .sort((a, b) => new Date(b.when).getTime() - new Date(a.when).getTime())[0];
+    if (lastActivity) {
+      const days = daysAgo(lastActivity.when);
+      if (days >= 14) out.push({ label: 'bez odezvy', value: `${days} dní`, tone: 'warn' });
+    }
+
+    return out;
+  })();
+
   const documents = selectedProperty?.documents ?? [];
   const priceHistory = selectedProperty?.price_history ?? [];
 
@@ -2619,6 +2698,53 @@ export const PropertiesView: React.FC<PropertiesViewProps> = ({
           }}>
             <DialogContent showCloseButton={false} className="max-w-6xl lg:max-w-7xl w-[92vw] lg:w-full p-0 overflow-y-auto overflow-x-hidden sm:overflow-hidden border border-stone-200 dark:border-stone-850 bg-white dark:bg-stone-900 rounded-[14px] max-h-[92vh] !flex !flex-col gap-0 text-left font-sans shadow-2xl mobile-scrollbar-none">
               
+              {/* HERO — nemovitost je vizuální věc, ne řádek tabulky. Titulek,
+                  cena i adresa jsou přímo na fotce, takže hlavička pod ním
+                  nese jen vlastníka a nic se neopakuje. */}
+              <div className="relative flex-none h-[150px] sm:h-[176px] w-full overflow-hidden bg-[#E9E8E2] dark:bg-stone-800">
+                {photoUrl ? (
+                  <img src={photoUrl} alt="" className="absolute inset-0 w-full h-full object-cover" />
+                ) : (
+                  <div className="absolute inset-0 flex items-center justify-center">
+                    <svg width="46" height="46" viewBox="0 0 24 24" fill="none" stroke="rgba(11,31,26,0.18)" strokeWidth="1.2">
+                      <path d="M4.5 10.5L12 4l7.5 6.5V20h-5.5v-5.5h-4V20H4.5z" />
+                    </svg>
+                  </div>
+                )}
+                {/* Bez přechodu by byl bílý text na světlé fotce nečitelný. */}
+                <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/35 to-black/5" />
+
+                <div className="absolute left-0 right-0 bottom-0 p-4 sm:p-6 text-left">
+                  <div className="flex items-center gap-2 flex-wrap mb-1.5">
+                    <span className="text-[11.5px] font-semibold bg-white/90 text-[#00221F] px-2 py-[2px] rounded-[6px]">
+                      {selectedProperty.transaction === 'prodej' ? 'Prodej' : 'Pronájem'}
+                    </span>
+                    <span className="text-[11.5px] font-semibold bg-[#00D991] text-[#00221F] px-2 py-[2px] rounded-[6px]">
+                      {selectedProperty.offer_status}
+                    </span>
+                    {(selectedProperty.attachments?.length || 0) > 0 && (
+                      <span className="text-[11.5px] font-medium bg-black/45 text-white px-2 py-[2px] rounded-[6px]">
+                        {selectedProperty.attachments!.length} fotek
+                      </span>
+                    )}
+                  </div>
+
+                  <div className="font-display font-light text-white text-[26px] sm:text-[30px] leading-tight drop-shadow-sm">
+                    {describeProperty(selectedProperty)}
+                  </div>
+
+                  <div className="flex items-baseline gap-2.5 flex-wrap mt-1">
+                    <span className="text-white text-[22px] sm:text-[25px] font-semibold tabular-nums drop-shadow-sm">
+                      {selectedProperty.price.toLocaleString('cs-CZ')} Kč
+                    </span>
+                    {selectedPricePerM2 && (
+                      <span className="text-white/75 text-[13px] tabular-nums">{selectedPricePerM2} Kč/m²</span>
+                    )}
+                    <span className="text-white/75 text-[13px]">· {selectedProperty.address}</span>
+                  </div>
+                </div>
+              </div>
+
               {/* TOP HEADER BAR */}
               <div className="relative flex flex-col sm:flex-row gap-4 sm:gap-[18px] p-4 sm:p-6 pb-4.5 border-b border-stone-200/60 dark:border-stone-800 bg-white dark:bg-stone-900 items-start flex-none">
                 
@@ -2674,63 +2800,8 @@ export const PropertiesView: React.FC<PropertiesViewProps> = ({
                   </button>
                 </div>
 
-                {/* Thumbnail Icon */}
-                <div 
-                  className="relative w-full h-[200px] sm:w-[172px] sm:h-[120px] aspect-[16/10] sm:aspect-auto rounded-[10px] bg-[#E9E8E2] dark:bg-stone-800 flex-none flex items-center justify-center overflow-hidden border border-stone-200/40 dark:border-stone-800"
-                >
-                  {photoUrl ? (
-                    <img src={photoUrl} className="w-full h-full object-cover" alt="Náhled" />
-                  ) : (
-                    <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="rgba(11,31,26,0.2)" strokeWidth="1.4">
-                      <path d="M4.5 10.5L12 4l7.5 6.5V20h-5.5v-5.5h-4V20H4.5z" />
-                    </svg>
-                  )}
-                  <span className="absolute bottom-[6px] left-[6px] sm:left-auto sm:right-[6px] bg-[#00221F]/80 dark:bg-stone-900/80 text-white text-[11.5px] font-medium px-2 py-0.5 rounded-[5px]">
-                    {selectedProperty.attachments?.length || 0} fotek
-                  </span>
-                </div>
-
                 {/* Details Panel */}
                 <div className="flex-1 min-w-0 text-left font-sans mt-3.5 sm:mt-0">
-                  <div className="flex items-center gap-[10px] flex-wrap">
-                    <span className="text-[22px] font-semibold text-[#0B1F1A] dark:text-stone-100 leading-tight">
-                      {selectedProperty.kind === 'byt' 
-                        ? `Byt ${selectedProperty.flat_layout || ''}` 
-                        : selectedProperty.kind === 'dům' 
-                        ? `Dům ${selectedProperty.house_layout || ''}`
-                        : selectedProperty.kind === 'pozemek'
-                        ? (selectedProperty.land_type ? `Pozemek — ${selectedProperty.land_type}` : 'Pozemek')
-                        : selectedProperty.kind === 'komerční'
-                        ? (selectedProperty.comm_subtype ? `Komerční — ${selectedProperty.comm_subtype}` : 'Komerční nemovitost')
-                        : 'Garáž/ostatní'}
-                    </span>
-                    <span className="text-[12px] font-medium bg-[#00221F] text-white px-[9px] py-[2px] rounded-[6px]">
-                      {selectedProperty.transaction === 'prodej' ? 'Prodej' : 'Pronájem'}
-                    </span>
-                    <span className="text-[12px] font-medium bg-[#00D991] text-[#00221F] px-[9px] py-[2px] rounded-[6px]">
-                      {selectedProperty.offer_status === 'v nabídce' ? 'V nabídce' : selectedProperty.offer_status}
-                    </span>
-                  </div>
-                  
-                  <div className="flex items-baseline gap-[10px] mt-3 sm:mt-2.5 flex-wrap">
-                    <span className="text-[24px] font-semibold text-[#0B1F1A] dark:text-stone-100 tabular-nums">
-                      {selectedProperty.price.toLocaleString('cs-CZ')} Kč
-                    </span>
-                    {selectedProperty.kind === 'byt' && selectedProperty.flat_area && (
-                      <span className="text-[13px] text-stone-500 dark:text-stone-400 tabular-nums">
-                        {Math.round(selectedProperty.price / selectedProperty.flat_area).toLocaleString('cs-CZ')} Kč/m²
-                      </span>
-                    )}
-                  </div>
-
-                  <div className="text-[15px] text-[#0B1F1A] dark:text-stone-200 mt-3 font-semibold">
-                    {selectedProperty.address.split(',')[1]?.trim() || selectedProperty.address}
-                  </div>
-                  
-                  <div className="text-[13px] text-stone-500 dark:text-stone-400 mt-2 leading-relaxed">
-                    {selectedProperty.address}
-                  </div>
-
                   {ownerContact && (
                     <div className="flex items-center gap-[6px] mt-4 flex-wrap">
                       <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#0E8A5F" strokeWidth="1.8">
@@ -2805,6 +2876,30 @@ export const PropertiesView: React.FC<PropertiesViewProps> = ({
                 </div>
               </div>
 
+              {/* CO TEĎ — jediný řádek, který odpovídá na otázku „proč jsem sem
+                  přišel". Nic se neproklikává, všechno je spočítané z dat. */}
+              {propertySignals.length > 0 && (
+                <div className="flex items-center gap-x-6 gap-y-2 flex-wrap px-4 sm:px-6 py-3 border-b border-stone-200/60 dark:border-stone-800 bg-[#FAFAF8] dark:bg-stone-950 flex-none">
+                  {propertySignals.map((sig) => (
+                    <div key={sig.label} className="flex items-baseline gap-1.5 text-left">
+                      <span className="text-[11px] uppercase tracking-wider font-semibold text-stone-400 dark:text-stone-500">
+                        {sig.label}
+                      </span>
+                      <span
+                        className={cn(
+                          'text-[13.5px] font-semibold tabular-nums',
+                          sig.tone === 'accent' && 'text-[#0E8A5F] dark:text-[#00D991]',
+                          sig.tone === 'warn' && 'text-amber-600 dark:text-amber-500',
+                          !sig.tone && 'text-stone-800 dark:text-stone-200'
+                        )}
+                      >
+                        {sig.value}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              )}
+
               {/* TABS SELECTOR */}
               <div className="flex gap-4 sm:gap-[26px] px-4 sm:px-6 border-b border-stone-200/60 dark:border-stone-800 bg-white dark:bg-stone-900 overflow-x-auto scrollbar-none flex-none">
                 {(['prehled', 'informace', 'zajemci', 'ekonomika'] as const).map((tab) => {
@@ -2821,7 +2916,7 @@ export const PropertiesView: React.FC<PropertiesViewProps> = ({
                       onClick={() => setActiveDetailTab(tab)}
                       className="py-3 text-[14px] font-medium transition cursor-pointer border-b-2 text-left whitespace-nowrap"
                       style={{
-                        color: active ? '#0B1F1A' : 'rgba(11, 31, 26, 0.55)',
+                        color: active ? colors.textPrimary : colors.textMuted,
                         borderColor: active ? '#00D991' : 'transparent'
                       }}
                     >

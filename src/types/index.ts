@@ -81,6 +81,8 @@ export interface Property {
   commission_val: number | null;
   commission_status?: 'očekávaná' | 'potvrzená' | null;
   costs?: { name: string; value: number }[] | null;
+  /** Kdy nemovitost přibyla. U starších záznamů může chybět — dopočítat nejde. */
+  created_at?: string | null;
   /** Interní poznámka makléře — na rozdíl od facts_for_answers nejde k zájemcům. */
   note?: string | null;
   documents?: PropertyDocument[] | null;
