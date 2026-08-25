@@ -1644,10 +1644,50 @@ export const PropertiesView: React.FC<PropertiesViewProps> = ({
     (kindFilter !== 'vše' ? 1 : 0) +
     (statusFilter !== 'vše' ? 1 : 0);
 
+  // Filtry se nepoužijí hned při kliknutí. Makléř si je naklikne do konceptu
+  // a teprve „Použít filtry" je pustí na seznam — jedno překreslení místo
+  // jednoho na každé kliknutí.
+  const [draftTransaction, setDraftTransaction] = useState(transactionFilter);
+  const [draftKind, setDraftKind] = useState(kindFilter);
+  const [draftStatus, setDraftStatus] = useState(statusFilter);
+  const [confirmReset, setConfirmReset] = useState(false);
+
+  const draftFilterCount =
+    (draftTransaction !== 'vše' ? 1 : 0) +
+    (draftKind !== 'vše' ? 1 : 0) +
+    (draftStatus !== 'vše' ? 1 : 0);
+
+  const draftDiffers =
+    draftTransaction !== transactionFilter ||
+    draftKind !== kindFilter ||
+    draftStatus !== statusFilter;
+
+  /** Otevření panelu — koncept vždy začíná tím, co je právě použité. */
+  const openFilters = (open: boolean) => {
+    if (open) {
+      setDraftTransaction(transactionFilter);
+      setDraftKind(kindFilter);
+      setDraftStatus(statusFilter);
+    }
+    setConfirmReset(false);
+    return open;
+  };
+
+  const applyFilters = () => {
+    setTransactionFilter(draftTransaction);
+    setKindFilter(draftKind);
+    setStatusFilter(draftStatus);
+    setConfirmReset(false);
+    setIsDesktopFiltersOpen(false);
+    setIsMobileFiltersExpanded(false);
+  };
+
+  /** Reset jen v konceptu — na seznam se propíše až přes „Použít filtry". */
   const resetFilters = () => {
-    setTransactionFilter('vše');
-    setKindFilter('vše');
-    setStatusFilter('vše');
+    setDraftTransaction('vše');
+    setDraftKind('vše');
+    setDraftStatus('vše');
+    setConfirmReset(false);
   };
 
   // Shared filter sections (desktop panel + mobile drawer) — Sreality-like
@@ -1679,9 +1719,9 @@ export const PropertiesView: React.FC<PropertiesViewProps> = ({
           {(['vše', 'prodej', 'pronájem'] as const).map((t) => (
             <button
               key={t}
-              onClick={() => setTransactionFilter(t)}
+              onClick={() => setDraftTransaction(t)}
               className={`px-4 h-[30px] flex-1 sm:flex-none flex items-center justify-center rounded-[8px] text-[12.5px] font-medium transition-all duration-150 cursor-pointer ${
-                transactionFilter === t
+                draftTransaction === t
                   ? 'bg-white text-[#0B1F1A] shadow-xs dark:bg-stone-900 dark:text-white'
                   : 'text-stone-500 hover:text-stone-800 dark:text-stone-400 dark:hover:text-stone-200'
               }`}
@@ -1699,11 +1739,11 @@ export const PropertiesView: React.FC<PropertiesViewProps> = ({
         </div>
         <div className="grid grid-cols-3 sm:grid-cols-5 gap-2">
           {kindTiles.map(({ id, label, Icon }) => {
-            const active = kindFilter === id;
+            const active = draftKind === id;
             return (
               <button
                 key={id}
-                onClick={() => setKindFilter(active ? 'vše' : id)}
+                onClick={() => setDraftKind(active ? 'vše' : id)}
                 className={`flex flex-col items-center justify-center gap-1.5 py-3 rounded-[10px] border transition-all duration-150 cursor-pointer ${
                   active
                     ? 'border-transparent shadow-xs'
@@ -1729,11 +1769,11 @@ export const PropertiesView: React.FC<PropertiesViewProps> = ({
         </div>
         <div className="flex flex-wrap gap-2">
           {statusChips.map((st) => {
-            const active = statusFilter === st.id;
+            const active = draftStatus === st.id;
             return (
               <button
                 key={st.id}
-                onClick={() => setStatusFilter(active ? 'vše' : st.id)}
+                onClick={() => setDraftStatus(active ? 'vše' : st.id)}
                 className={`text-[12.5px] font-medium px-3.5 py-1.5 rounded-[10px] transition-all duration-150 border cursor-pointer ${
                   active
                     ? 'border-transparent shadow-xs'
@@ -1749,6 +1789,45 @@ export const PropertiesView: React.FC<PropertiesViewProps> = ({
             );
           })}
         </div>
+      </div>
+
+      {/* Potvrzení resetu a použití — filtry platí až odsud */}
+      <div className="flex items-center justify-between gap-3 pt-1 flex-wrap">
+        {confirmReset ? (
+          <div className="flex items-center gap-2 flex-wrap">
+            <span className="text-[12.5px]" style={{ color: colors.textSecondary }}>
+              Zrušit všechny filtry?
+            </span>
+            <button
+              onClick={resetFilters}
+              className="text-[12px] font-semibold px-2.5 py-1 rounded-[8px] border border-rose-300 text-rose-600 hover:bg-rose-50 dark:border-rose-500/40 dark:text-rose-400 dark:hover:bg-rose-950/40 cursor-pointer"
+            >
+              Ano, zrušit
+            </button>
+            <button
+              onClick={() => setConfirmReset(false)}
+              className="text-[12px] font-medium px-2.5 py-1 rounded-[8px] text-stone-500 hover:text-stone-800 dark:text-stone-400 dark:hover:text-stone-200 cursor-pointer"
+            >
+              Zpět
+            </button>
+          </div>
+        ) : (
+          <button
+            onClick={() => setConfirmReset(true)}
+            disabled={draftFilterCount === 0}
+            className="text-[12px] font-medium px-2.5 py-1 rounded-[8px] border border-stone-250/70 dark:border-white/10 text-stone-500 hover:text-stone-800 dark:text-stone-400 dark:hover:text-stone-200 cursor-pointer transition-all duration-150 disabled:opacity-40 disabled:cursor-default"
+          >
+            Resetovat filtry
+          </button>
+        )}
+
+        <button
+          onClick={applyFilters}
+          className="font-semibold text-[13px] px-4 h-9 rounded-[10px] cursor-pointer transition-all duration-150 shadow-xs hover:opacity-90"
+          style={{ backgroundColor: colors.accent, color: '#00221F' }}
+        >
+          {draftDiffers ? 'Použít filtry' : 'Hotovo'}
+        </button>
       </div>
     </div>
   );
@@ -1778,7 +1857,7 @@ export const PropertiesView: React.FC<PropertiesViewProps> = ({
       <div className="hidden md:flex items-center gap-2 py-1">
         {/* Search */}
         <div 
-          className="flex items-center gap-2 bg-white border border-stone-250/70 rounded-[10px] px-3.5 h-9 w-[180px] flex-none shadow-sm dark:bg-stone-900 dark:border-white/10"
+          className="flex items-center gap-2 bg-white border border-stone-250/70 rounded-[10px] px-3.5 h-9 w-[340px] flex-none shadow-sm dark:bg-stone-900 dark:border-white/10"
         >
           <Search className="h-3.5 w-3.5" style={{ color: colors.textMuted }} />
           <input
@@ -1791,13 +1870,10 @@ export const PropertiesView: React.FC<PropertiesViewProps> = ({
           />
         </div>
 
-        {/* Separator */}
-        <div className="w-[0.5px] h-5 bg-stone-300 dark:bg-white/15 flex-none" />
-
         {/* Filters button + dropdown panel */}
         <div className="relative flex-none">
           <button
-            onClick={() => setIsDesktopFiltersOpen(!isDesktopFiltersOpen)}
+            onClick={() => setIsDesktopFiltersOpen(openFilters(!isDesktopFiltersOpen))}
             className="flex items-center gap-1.5 px-3.5 h-9 rounded-[10px] border border-stone-250/70 bg-white dark:bg-stone-900 dark:border-white/10 font-medium text-[12.5px] shadow-sm cursor-pointer transition-all duration-150"
             style={{ color: colors.textPrimary }}
           >
@@ -1829,14 +1905,6 @@ export const PropertiesView: React.FC<PropertiesViewProps> = ({
                     Filtry
                   </span>
                   <div className="flex items-center gap-2">
-                    {activeFilterCount > 0 && (
-                      <button
-                        onClick={resetFilters}
-                        className="text-[12px] font-medium px-2.5 py-1 rounded-[8px] border border-stone-250/70 dark:border-white/10 text-stone-500 hover:text-stone-800 dark:text-stone-400 dark:hover:text-stone-200 cursor-pointer transition-all duration-150"
-                      >
-                        Resetovat filtry
-                      </button>
-                    )}
                     <button
                       onClick={() => setIsDesktopFiltersOpen(false)}
                       className="p-1.5 rounded-[8px] text-stone-400 hover:text-stone-700 hover:bg-stone-100 dark:hover:bg-stone-800 dark:hover:text-stone-200 cursor-pointer transition-all duration-150"
@@ -1883,7 +1951,7 @@ export const PropertiesView: React.FC<PropertiesViewProps> = ({
         <div className="flex items-center justify-between w-full">
           {/* Toggle Filter Button */}
           <button
-            onClick={() => setIsMobileFiltersExpanded(!isMobileFiltersExpanded)}
+            onClick={() => setIsMobileFiltersExpanded(openFilters(!isMobileFiltersExpanded))}
             className="flex items-center justify-center gap-1.5 px-4 h-9 rounded-[10px] border border-stone-250/70 bg-white dark:bg-stone-900 dark:border-white/10 font-medium text-[12.5px] shadow-sm cursor-pointer select-none"
             style={{ color: colors.textPrimary }}
           >
@@ -1945,14 +2013,6 @@ export const PropertiesView: React.FC<PropertiesViewProps> = ({
                 Filtry
               </span>
               <div className="flex items-center gap-2">
-                {activeFilterCount > 0 && (
-                  <button
-                    onClick={resetFilters}
-                    className="text-[12px] font-medium px-2.5 py-1 rounded-[8px] border border-stone-250/70 dark:border-white/10 text-stone-500 hover:text-stone-800 dark:text-stone-400 dark:hover:text-stone-200 cursor-pointer transition-all duration-150"
-                  >
-                    Resetovat filtry
-                  </button>
-                )}
                 <button
                   onClick={() => setIsMobileFiltersExpanded(false)}
                   className="p-1.5 rounded-[8px] text-stone-400 hover:text-stone-700 hover:bg-stone-100 dark:hover:bg-stone-800 dark:hover:text-stone-200 cursor-pointer transition-all duration-150"
