@@ -4,6 +4,7 @@ import { toast } from 'sonner';
 import { X, Plus, Trash2, Star, ChevronLeft, ChevronRight, GripVertical, Crop } from 'lucide-react';
 import { PhotoUploader } from '@/components/PhotoUploader';
 import { deleteStoredFile, mirrorRemotePhoto, isStoredPhoto } from '@/lib/storage';
+import { PhotoImg } from '@/components/ui/photo-img';
 import { cn } from '@/lib/utils';
 
 interface PhotoGalleryProps {
@@ -254,9 +255,10 @@ export const PhotoGallery: React.FC<PhotoGalleryProps> = ({
           <div className="flex-1 min-w-0 min-h-0 h-full flex flex-col items-center justify-center gap-4">
             <div className="flex-1 min-h-0 w-full flex items-center justify-center">
               <div className={cn('relative h-full aspect-[3/2] max-w-full rounded-lg overflow-hidden flex items-center justify-center', c.tile)}>
-                <img
+                <PhotoImg
                   key={order[openIndex]}
                   src={order[openIndex]}
+                  priority
                   alt=""
                   className="max-h-full max-w-full object-contain animate-in fade-in zoom-in-95 duration-200"
                 />
@@ -374,8 +376,10 @@ export const PhotoGallery: React.FC<PhotoGalleryProps> = ({
                       dragFrom.current === i && 'opacity-35 scale-95'
                     )}
                   >
-                    <img
+                    <PhotoImg
                       src={url}
+                      thumb
+                      priority={i < 6}
                       alt=""
                       draggable={false}
                       className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-[1.04]"

@@ -7,6 +7,7 @@ import { ChipPicker } from '@/components/ui/chip-picker';
 import { PhotoGallery } from '@/components/PhotoGallery';
 import { uploadPropertyDocument, deleteStoredFile, mirrorRemotePhoto } from '@/lib/storage';
 import { extractListingPhotos } from '@/lib/listingPhotos';
+import { PhotoImg } from '@/components/ui/photo-img';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -2216,9 +2217,10 @@ export const PropertiesView: React.FC<PropertiesViewProps> = ({
                   style={{ backgroundColor: colors.propPlaceholderBg, borderColor: theme === 'light' ? 'rgba(11,31,26,0.08)' : 'rgba(255,255,255,0.05)' }}
                 >
                   {hasPhoto ? (
-                    <img 
-                      src={prop.attachments?.[0] || ''} 
-                      alt={displayTitle} 
+                    <PhotoImg
+                      src={prop.attachments?.[0] || ''}
+                      thumb
+                      alt={displayTitle}
                       className="w-full h-full object-cover group-hover:scale-[1.03] transition-transform duration-300"
                     />
                   ) : (
@@ -2717,7 +2719,7 @@ export const PropertiesView: React.FC<PropertiesViewProps> = ({
                   className="group relative w-full aspect-[3/2] sm:w-auto sm:h-auto sm:self-stretch sm:aspect-[3/2] sm:min-h-[130px] sm:max-h-[190px] rounded-[10px] bg-[#E9E8E2] dark:bg-stone-800 flex-none flex items-center justify-center overflow-hidden border border-stone-200/40 dark:border-stone-800 cursor-zoom-in"
                 >
                   {photoUrl ? (
-                    <img src={photoUrl} className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-[1.03]" alt="Náhled" />
+                    <PhotoImg src={photoUrl} thumb priority className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-[1.03]" alt="Náhled" />
                   ) : (
                     <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="rgba(11,31,26,0.2)" strokeWidth="1.4">
                       <path d="M4.5 10.5L12 4l7.5 6.5V20h-5.5v-5.5h-4V20H4.5z" />

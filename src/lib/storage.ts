@@ -12,11 +12,44 @@ export const PHOTO_TARGET_HEIGHT = 800;
 export const PHOTO_ASPECT = PHOTO_TARGET_WIDTH / PHOTO_TARGET_HEIGHT;
 
 /**
+ * Náhled do mřížky. Dlaždice má na desktopu kolem 300 px, takže plná fotka
+ * je zbytečně velká — mřížka z 25 fotek jinak stáhne přes 1,5 MB.
+ */
+export const THUMB_WIDTH = 480;
+export const THUMB_HEIGHT = Math.round(THUMB_WIDTH / PHOTO_ASPECT);
+const THUMB_SUFFIX = '_thumb';
+
+/** Adresa náhledu se odvozuje od adresy fotky, aby nebylo nutné měnit schéma. */
+export function thumbUrlFor(url: string): string {
+  if (!isStoredPhotoUrl(url)) return url;
+  return url.replace(/\.(jpg|jpeg|png|webp)(\?|$)/i, `${THUMB_SUFFIX}.$1$2`);
+}
+
+function isStoredPhotoUrl(url: string): boolean {
+  return url.includes(`/storage/v1/object/public/${PROPERTY_PHOTO_BUCKET}/`);
+}
+
+/** Zmenší už načtený obrázek na náhled. */
+function scaleToBlob(image: CanvasImageSource, width: number, height: number, quality: number): Promise<Blob> {
+  const canvas = document.createElement('canvas');
+  canvas.width = width;
+  canvas.height = height;
+  const ctx = canvas.getContext('2d');
+  if (!ctx) return Promise.reject(new Error('Prohlížeč nepodporuje canvas.'));
+  ctx.imageSmoothingQuality = 'high';
+  ctx.drawImage(image, 0, 0, width, height);
+  return new Promise((resolve, reject) =>
+    canvas.toBlob((b) => (b ? resolve(b) : reject(new Error('Náhled se nepodařilo vytvořit.'))), 'image/jpeg', quality)
+  );
+}
+
+/**
  * Nahraje oříznutou fotku do Supabase Storage a vrátí veřejnou URL.
  * Chybu bucketu hlásíme srozumitelně — bez spuštěné migrace neexistuje.
  */
 export async function uploadPropertyPhoto(blob: Blob): Promise<string> {
-  const name = `${Date.now()}-${Math.random().toString(36).slice(2, 8)}.jpg`;
+  const stem = `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+  const name = `${stem}.jpg`;
 
   const { error } = await supabase.storage
     .from(PROPERTY_PHOTO_BUCKET)
@@ -32,8 +65,48 @@ export async function uploadPropertyPhoto(blob: Blob): Promise<string> {
     throw new Error(`Nahrání fotky selhalo: ${message}`);
   }
 
+  // Náhled nahráváme rovnou vedle fotky. Selhání tu nesmí shodit uložení —
+  // mřížka si v takovém případě vezme plnou fotku.
+  try {
+    const bitmap = await createImageBitmap(blob);
+    const thumb = await scaleToBlob(bitmap, THUMB_WIDTH, THUMB_HEIGHT, 0.72);
+    bitmap.close();
+    await supabase.storage
+      .from(PROPERTY_PHOTO_BUCKET)
+      .upload(`${stem}${THUMB_SUFFIX}.jpg`, thumb, { contentType: 'image/jpeg', cacheControl: '31536000' });
+  } catch (e) {
+    console.warn('Náhled se nevytvořil, mřížka použije plnou fotku:', e);
+  }
+
   const { data } = supabase.storage.from(PROPERTY_PHOTO_BUCKET).getPublicUrl(name);
   return data.publicUrl;
+}
+
+/**
+ * Dodělá náhled k fotce, která už v úložišti leží (přenesená z inzerátu nebo
+ * nahraná dřív, než náhledy existovaly). Vrací true, když náhled vznikl.
+ */
+export async function ensureThumb(photoUrl: string): Promise<boolean> {
+  if (!isStoredPhotoUrl(photoUrl)) return false;
+
+  const key = decodeURIComponent(
+    photoUrl.split(`/storage/v1/object/public/${PROPERTY_PHOTO_BUCKET}/`)[1]?.split('?')[0] ?? ''
+  );
+  if (!key || key.includes(THUMB_SUFFIX)) return false;
+
+  const thumbKey = key.replace(/\.(jpg|jpeg|png|webp)$/i, `${THUMB_SUFFIX}.$1`);
+
+  // Náš bucket posílá hlavičku CORS, takže se obrázek dá vzít na canvas.
+  const res = await fetch(photoUrl);
+  if (!res.ok) return false;
+  const bitmap = await createImageBitmap(await res.blob());
+  const thumb = await scaleToBlob(bitmap, THUMB_WIDTH, THUMB_HEIGHT, 0.72);
+  bitmap.close();
+
+  const { error } = await supabase.storage
+    .from(PROPERTY_PHOTO_BUCKET)
+    .upload(thumbKey, thumb, { contentType: 'image/jpeg', cacheControl: '31536000', upsert: true });
+  return !error;
 }
 
 /** Vyřízne zvolenou oblast a přeškáluje ji na jednotný rozměr. */
@@ -169,10 +242,11 @@ export async function mirrorRemotePhoto(url: string): Promise<string> {
   });
   if (error) throw new Error(error.message || 'Fotku se nepodařilo zkopírovat.');
   if (!data?.url) throw new Error(data?.error || 'Fotku se nepodařilo zkopírovat.');
-  return data.url as string;
+
+  const stored = data.url as string;
+  await ensureThumb(stored).catch(() => false);
+  return stored;
 }
 
 /** Leží fotka u nás, nebo pořád na cizím serveru? */
-export function isStoredPhoto(url: string): boolean {
-  return url.includes(`/storage/v1/object/public/${PROPERTY_PHOTO_BUCKET}/`);
-}
+export const isStoredPhoto = isStoredPhotoUrl;

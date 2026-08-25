@@ -106,7 +106,7 @@ Deno.serve(async (req) => {
       apikey: serviceKey,
       Authorization: `Bearer ${serviceKey}`,
       'Content-Type': type,
-      'Cache-Control': '31536000',
+      'Cache-Control': 'max-age=31536000',
     },
     body: bytes,
   });
