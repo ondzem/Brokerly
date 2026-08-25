@@ -9,6 +9,9 @@ interface PhotoGalleryProps {
   onChange: (photos: string[]) => void | Promise<void>;
   onClose: () => void;
   title?: string;
+  /** Otevřít rovnou na přidávání — z tlačítka „Přidat" na kartě. */
+  startInAdd?: boolean;
+  theme?: 'light' | 'dark';
 }
 
 /**
@@ -24,9 +27,30 @@ export const PhotoGallery: React.FC<PhotoGalleryProps> = ({
   onChange,
   onClose,
   title,
+  startInAdd = false,
+  theme = 'dark',
 }) => {
   const [openIndex, setOpenIndex] = useState<number | null>(null);
-  const [adding, setAdding] = useState(false);
+  const [adding, setAdding] = useState(startInAdd);
+
+  // Galerie drží režim aplikace — ve světlém by černé plátno bilo do očí.
+  const light = theme === 'light';
+  const c = {
+    canvas: light ? 'bg-[#FAFAF8]' : 'bg-[#08110E]',
+    title: light ? 'text-[#0B1F1A]' : 'text-white',
+    sub: light ? 'text-stone-500' : 'text-white/50',
+    ghostBtn: light
+      ? 'border-stone-250/80 text-stone-500 hover:text-stone-900 hover:border-stone-400'
+      : 'border-white/20 text-white/80 hover:text-white hover:border-white/40',
+    tile: light ? 'bg-stone-100' : 'bg-white/5',
+    arrow: light
+      ? 'bg-stone-900/5 hover:bg-stone-900/10 text-[#0B1F1A]'
+      : 'bg-white/10 hover:bg-white/20 text-white',
+    danger: light
+      ? 'border-rose-300 text-rose-600 hover:border-rose-500'
+      : 'border-rose-400/40 text-rose-300 hover:border-rose-400',
+    emptyText: light ? 'text-stone-600' : 'text-white/70',
+  };
 
   const step = useCallback(
     (delta: number) => {
@@ -73,14 +97,14 @@ export const PhotoGallery: React.FC<PhotoGalleryProps> = ({
   // Do <body>, ne dovnitř dialogu: jeho překryv má vlastní vrstvu a galerii
   // by překryl, takže by fotky vycházely zašedlé.
   return createPortal(
-    <div className="fixed inset-0 z-[9999] bg-[#08110E] flex flex-col animate-in fade-in duration-200">
+    <div className={cn('fixed inset-0 z-[9999] flex flex-col animate-in fade-in duration-200', c.canvas)}>
       {/* Lišta */}
       <div className="flex items-center justify-between gap-3 px-5 sm:px-8 py-4 flex-none">
         <div className="min-w-0">
-          <div className="text-white text-[15px] font-semibold truncate">
+          <div className={cn('text-[15px] font-semibold truncate', c.title)}>
             {title || 'Fotky nemovitosti'}
           </div>
-          <div className="text-white/50 text-[12.5px]">
+          <div className={cn('text-[12.5px]', c.sub)}>
             {photos.length === 0
               ? 'zatím žádné fotky'
               : openIndex !== null
@@ -102,7 +126,7 @@ export const PhotoGallery: React.FC<PhotoGalleryProps> = ({
           <button
             onClick={() => (openIndex !== null ? setOpenIndex(null) : adding ? setAdding(false) : onClose())}
             aria-label="Zavřít"
-            className="w-9 h-9 rounded-[10px] border border-white/20 text-white/80 hover:text-white hover:border-white/40 flex items-center justify-center cursor-pointer"
+            className={cn('w-9 h-9 rounded-[10px] border flex items-center justify-center cursor-pointer', c.ghostBtn)}
           >
             <X className="w-4 h-4" />
           </button>
@@ -129,7 +153,7 @@ export const PhotoGallery: React.FC<PhotoGalleryProps> = ({
             <button
               onClick={() => step(-1)}
               aria-label="Předchozí"
-              className="w-10 h-10 rounded-full bg-white/10 hover:bg-white/20 text-white flex items-center justify-center flex-none cursor-pointer"
+              className={cn('w-10 h-10 rounded-full flex items-center justify-center flex-none cursor-pointer', c.arrow)}
             >
               <ChevronLeft className="w-5 h-5" />
             </button>
@@ -148,14 +172,14 @@ export const PhotoGallery: React.FC<PhotoGalleryProps> = ({
               <button
                 onClick={() => makeCover(openIndex)}
                 disabled={openIndex === 0}
-                className="flex items-center gap-1.5 h-9 px-3.5 rounded-[10px] border border-white/20 text-white/80 text-[12.5px] font-medium cursor-pointer hover:border-white/40 disabled:opacity-40 disabled:cursor-default"
+                className={cn('flex items-center gap-1.5 h-9 px-3.5 rounded-[10px] border text-[12.5px] font-medium cursor-pointer disabled:opacity-40 disabled:cursor-default', c.ghostBtn)}
               >
                 <Star className="w-3.5 h-3.5" />
                 {openIndex === 0 ? 'Hlavní fotka' : 'Nastavit jako hlavní'}
               </button>
               <button
                 onClick={() => remove(openIndex)}
-                className="flex items-center gap-1.5 h-9 px-3.5 rounded-[10px] border border-rose-400/40 text-rose-300 text-[12.5px] font-medium cursor-pointer hover:border-rose-400"
+                className={cn('flex items-center gap-1.5 h-9 px-3.5 rounded-[10px] border text-[12.5px] font-medium cursor-pointer', c.danger)}
               >
                 <Trash2 className="w-3.5 h-3.5" />
                 Smazat
@@ -167,7 +191,7 @@ export const PhotoGallery: React.FC<PhotoGalleryProps> = ({
             <button
               onClick={() => step(1)}
               aria-label="Další"
-              className="w-10 h-10 rounded-full bg-white/10 hover:bg-white/20 text-white flex items-center justify-center flex-none cursor-pointer"
+              className={cn('w-10 h-10 rounded-full flex items-center justify-center flex-none cursor-pointer', c.arrow)}
             >
               <ChevronRight className="w-5 h-5" />
             </button>
@@ -178,7 +202,7 @@ export const PhotoGallery: React.FC<PhotoGalleryProps> = ({
         <div className="flex-1 overflow-y-auto px-5 sm:px-8 pb-10">
           {photos.length === 0 ? (
             <div className="h-full flex flex-col items-center justify-center gap-3 text-center">
-              <div className="text-white/70 text-[15px] font-medium">Zatím tu nejsou žádné fotky</div>
+              <div className={cn('text-[15px] font-medium', c.emptyText)}>Zatím tu nejsou žádné fotky</div>
               <button
                 onClick={() => setAdding(true)}
                 className="flex items-center gap-1.5 h-9 px-3.5 rounded-[10px] bg-[#00D991] text-[#00221F] text-[13px] font-semibold cursor-pointer hover:opacity-90"
@@ -195,7 +219,7 @@ export const PhotoGallery: React.FC<PhotoGalleryProps> = ({
                   onClick={() => setOpenIndex(i)}
                   style={{ animationDelay: `${Math.min(i, 12) * 45}ms` }}
                   className={cn(
-                    'group relative aspect-[3/2] rounded-xl overflow-hidden bg-white/5 cursor-zoom-in',
+                    'group relative aspect-[3/2] rounded-xl overflow-hidden cursor-zoom-in', c.tile,
                     'animate-in fade-in slide-in-from-bottom-4 fill-mode-backwards duration-300'
                   )}
                 >

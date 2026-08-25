@@ -260,6 +260,7 @@ export const PropertiesView: React.FC<PropertiesViewProps> = ({
   const [editNote, setEditNote] = useState('');
   const [uploadingDoc, setUploadingDoc] = useState(false);
   const [galleryOpen, setGalleryOpen] = useState(false);
+  const [galleryStartsAdding, setGalleryStartsAdding] = useState(false);
   const docInputRef = useRef<HTMLInputElement>(null);
   const [photoPending, setPhotoPending] = useState(false);   // načtená fotka bez potvrzeného ořezu
   const [photoWarning, setPhotoWarning] = useState(false);   // upozornění „přijdete o ni"
@@ -2696,12 +2697,26 @@ export const PropertiesView: React.FC<PropertiesViewProps> = ({
                       <path d="M4.5 10.5L12 4l7.5 6.5V20h-5.5v-5.5h-4V20H4.5z" />
                     </svg>
                   )}
-                  <span className="absolute bottom-[6px] left-[6px] sm:left-auto sm:right-[6px] bg-[#00221F]/80 dark:bg-stone-900/80 text-white text-[11.5px] font-medium px-2 py-0.5 rounded-[5px]">
-                    {selectedProperty.attachments?.length
-                      ? `${selectedProperty.attachments.length} fotek`
-                      : '+ přidat fotky'}
-                  </span>
                   <span className="absolute inset-0 bg-[#00221F]/0 group-hover:bg-[#00221F]/20 transition-colors" />
+
+                  <span className="absolute bottom-[6px] left-[6px] right-[6px] flex items-end justify-between gap-2 pointer-events-none">
+                    <span className="bg-[#00221F]/80 text-white text-[11.5px] font-medium px-2 py-0.5 rounded-[5px]">
+                      {selectedProperty.attachments?.length
+                        ? `${selectedProperty.attachments.length} ${selectedProperty.attachments.length === 1 ? 'fotka' : selectedProperty.attachments.length < 5 ? 'fotky' : 'fotek'}`
+                        : 'bez fotek'}
+                    </span>
+                    <span
+                      role="button"
+                      tabIndex={0}
+                      aria-label="Přidat fotky"
+                      onClick={(e) => { e.stopPropagation(); setGalleryStartsAdding(true); setGalleryOpen(true); }}
+                      onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); e.stopPropagation(); setGalleryStartsAdding(true); setGalleryOpen(true); } }}
+                      className="pointer-events-auto flex items-center gap-1 bg-[#00D991] text-[#00221F] text-[11.5px] font-semibold px-2 py-0.5 rounded-[5px] cursor-pointer hover:opacity-90 shadow-sm"
+                    >
+                      <Plus className="w-3 h-3" />
+                      Přidat
+                    </span>
+                  </span>
                 </button>
 
                 {/* Details Panel */}
@@ -4642,7 +4657,9 @@ export const PropertiesView: React.FC<PropertiesViewProps> = ({
               <PhotoGallery
                 photos={selectedProperty.attachments ?? []}
                 title={describeProperty(selectedProperty) + ' · ' + selectedProperty.address}
-                onClose={() => setGalleryOpen(false)}
+                startInAdd={galleryStartsAdding}
+                theme={theme}
+                onClose={() => { setGalleryOpen(false); setGalleryStartsAdding(false); }}
                 onChange={async (next) => {
                   try {
                     const updated = await updateProperty(selectedProperty.id, {
