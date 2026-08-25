@@ -305,15 +305,15 @@ export const PhotoUploader: React.FC<PhotoUploaderProps> = ({ photos, onChange, 
             )}
           </div>
 
-          <div className="flex items-center gap-2 flex-wrap">
-            <Button type="button" onClick={confirmCrop} disabled={busy} className="h-10 text-xs">
+          <div className="flex items-center gap-2.5 flex-wrap pt-1">
+            <Button type="button" onClick={confirmCrop} disabled={busy} className="h-10 px-4 text-[13px] font-semibold">
               <Check className="w-4 h-4" />
               {busy ? 'Ukládám…' : 'Použít výřez'}
             </Button>
             <Button
               type="button"
               variant="outline"
-              className="h-10 text-xs"
+              className="h-10 px-4 text-[13px] font-medium"
               disabled={busy}
               onClick={() => setCrop(initialCrop(natural.width, natural.height))}
             >
@@ -324,8 +324,9 @@ export const PhotoUploader: React.FC<PhotoUploaderProps> = ({ photos, onChange, 
               type="button"
               onClick={skipCurrent}
               disabled={busy}
-              className="text-[12.5px] text-stone-400 hover:text-stone-700 dark:hover:text-stone-200 cursor-pointer"
+              className="inline-flex items-center gap-1.5 h-10 px-4 rounded-md border border-rose-300 text-rose-600 text-[13px] font-medium cursor-pointer hover:bg-rose-50 dark:border-rose-500/40 dark:text-rose-400 dark:hover:bg-rose-950/30 disabled:opacity-50"
             >
+              <X className="w-3.5 h-3.5" />
               Zahodit
             </button>
           </div>
@@ -340,18 +341,18 @@ export const PhotoUploader: React.FC<PhotoUploaderProps> = ({ photos, onChange, 
           onDrop={(e) => { e.preventDefault(); setDragOver(false); acceptFiles(e.dataTransfer.files); }}
           onClick={() => fileInputRef.current?.click()}
           className={cn(
-            'rounded-xl border-2 border-dashed px-4 py-8 text-center cursor-pointer transition-colors',
+            'rounded-2xl border-2 border-dashed px-6 py-10 sm:py-16 text-center cursor-pointer transition-colors',
             dragOver
               ? 'border-[#0E8A5F] bg-[#0E8A5F]/[0.07]'
               : 'border-stone-300 dark:border-stone-700 hover:border-[#0E8A5F] hover:bg-[#0E8A5F]/[0.03]'
           )}
         >
-          <Upload className={cn('w-6 h-6 mx-auto mb-2', dragOver ? 'text-[#0E8A5F]' : 'text-stone-300')} />
-          <div className="text-[13.5px] font-medium text-stone-900 dark:text-stone-100">
+          <Upload className={cn('w-8 h-8 sm:w-10 sm:h-10 mx-auto mb-3', dragOver ? 'text-[#0E8A5F]' : 'text-stone-300 dark:text-stone-600')} />
+          <div className="text-[15px] sm:text-[16px] font-semibold text-stone-900 dark:text-stone-100">
             Přetáhněte fotky sem
           </div>
-          <div className="text-[12px] text-stone-400 mt-0.5">
-            nebo klikněte a vyberte ze složky · JPG, PNG, WebP
+          <div className="text-[12.5px] text-stone-400 mt-1.5">
+            nebo klikněte a vyberte ze složky · JPG, PNG, WebP · můžete najednou víc
           </div>
           <input
             ref={fileInputRef}

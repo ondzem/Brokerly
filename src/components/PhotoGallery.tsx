@@ -36,6 +36,14 @@ export const PhotoGallery: React.FC<PhotoGalleryProps> = ({
   const [addedCount, setAddedCount] = useState(0);
   const dragFrom = useRef<number | null>(null);
   const [dropAt, setDropAt] = useState<number | null>(null);
+  // Mřížka čekala na odpověď databáze, takže fotka skočila na nové místo
+  // se zpožděním. Pořadí se drží lokálně, uložení běží na pozadí.
+  const [order, setOrder] = useState<string[]>(photos);
+
+  const apply = (next: string[]) => {
+    setOrder(next);
+    void onChange(next);
+  };
 
   // Galerie drží režim aplikace — ve světlém by černé plátno bilo do očí.
   const light = theme === 'light';
@@ -56,14 +64,16 @@ export const PhotoGallery: React.FC<PhotoGalleryProps> = ({
     emptyText: light ? 'text-stone-600' : 'text-white/70',
   };
 
+  useEffect(() => { setOrder(photos); }, [photos]);
+
   const step = useCallback(
     (delta: number) => {
       setOpenIndex((i) => {
-        if (i === null || photos.length === 0) return i;
-        return (i + delta + photos.length) % photos.length;
+        if (i === null || order.length === 0) return i;
+        return (i + delta + order.length) % order.length;
       });
     },
-    [photos.length]
+    [order.length]
   );
 
   // Klávesnice: v detailu listuje, jinak zavírá. Bez toho by se z galerie
@@ -85,16 +95,16 @@ export const PhotoGallery: React.FC<PhotoGalleryProps> = ({
   }, [openIndex, adding, onClose, step]);
 
   const remove = (index: number) => {
-    void onChange(photos.filter((_, i) => i !== index));
+    apply(order.filter((_, i) => i !== index));
     setOpenIndex(null);
   };
 
   /** Hlavní fotka = první v poli; používá ji karta i seznam nemovitostí. */
   const makeCover = (index: number) => {
     if (index === 0) return;
-    const next = [...photos];
+    const next = [...order];
     const [picked] = next.splice(index, 1);
-    void onChange([picked, ...next]);
+    apply([picked, ...next]);
     setOpenIndex(0);
   };
 
@@ -107,10 +117,10 @@ export const PhotoGallery: React.FC<PhotoGalleryProps> = ({
    */
   const movePhotoTo = (from: number, insertAt: number) => {
     if (insertAt === from || insertAt === from + 1) return;
-    const next = [...photos];
+    const next = [...order];
     const [picked] = next.splice(from, 1);
     next.splice(insertAt > from ? insertAt - 1 : insertAt, 0, picked);
-    void onChange(next);
+    apply(next);
   };
 
   // Po dokončení ořezu se vrátíme do mřížky — uživatel chce vidět, co přidal,
@@ -131,11 +141,11 @@ export const PhotoGallery: React.FC<PhotoGalleryProps> = ({
             {title || 'Fotky nemovitosti'}
           </div>
           <div className={cn('text-[12.5px]', c.sub)}>
-            {photos.length === 0
+            {order.length === 0
               ? 'zatím žádné fotky'
               : openIndex !== null
-                ? `${openIndex + 1} z ${photos.length}`
-                : `${photos.length} ${photos.length === 1 ? 'fotka' : photos.length < 5 ? 'fotky' : 'fotek'}`}
+                ? `${openIndex + 1} z ${order.length}`
+                : `${order.length} ${order.length === 1 ? 'fotka' : order.length < 5 ? 'fotky' : 'fotek'}`}
           </div>
         </div>
 
@@ -161,35 +171,37 @@ export const PhotoGallery: React.FC<PhotoGalleryProps> = ({
 
       {/* Přidávání — ořez řeší PhotoUploader, formát tak zůstává jednotný */}
       {adding ? (
-        <div className="flex-1 min-h-0 overflow-y-auto px-5 sm:px-8 pb-10">
-          <div className="max-w-2xl py-2 sm:py-6 text-left">
-            <div className={cn('text-[19px] font-semibold mb-1', c.title)}>Přidat fotky</div>
-            <div className={cn('text-[13px] mb-5', c.sub)}>
+        <div className="flex-1 min-h-0 overflow-y-auto px-5 sm:px-8 pb-10 flex items-center justify-center">
+          <div className="w-full max-w-3xl mx-auto py-6 text-center">
+            <div className={cn('font-display font-light text-[28px] sm:text-[34px] leading-tight', c.title)}>
+              Přidat fotky
+            </div>
+            <div className={cn('text-[13.5px] mt-2 mb-7 max-w-lg mx-auto leading-relaxed', c.sub)}>
               Každou fotku ořízněte na stejný formát 3:2 — v galerii i na kartě pak
-              drží jednu velikost.
+              všechny drží jednu velikost.
             </div>
 
             <PhotoUploader
-              photos={photos}
+              photos={order}
               hideExisting
               onPendingChange={setPendingCrop}
               onChange={(next) => {
-                if (next.length > photos.length) setAddedCount((n) => n + 1);
-                void onChange(next);
+                if (next.length > order.length) setAddedCount((n) => n + 1);
+                apply(next);
               }}
             />
 
-            <div className="flex items-center gap-3 mt-6">
+            <div className="flex items-center justify-center gap-3 mt-7 flex-wrap">
               <button
                 onClick={() => { setAdding(false); setAddedCount(0); }}
-                className="h-9 px-4 rounded-[10px] bg-[#00D991] text-[#00221F] text-[13px] font-semibold cursor-pointer hover:opacity-90"
+                className="h-10 px-5 rounded-[10px] bg-[#00D991] text-[#00221F] text-[13.5px] font-semibold cursor-pointer hover:opacity-90"
               >
                 Zpět do galerie
               </button>
               <span className={cn('text-[12.5px]', c.sub)}>
-                {photos.length === 0
+                {order.length === 0
                   ? 'zatím žádné fotky'
-                  : `v galerii ${photos.length} ${photos.length === 1 ? 'fotka' : photos.length < 5 ? 'fotky' : 'fotek'}`}
+                  : `v galerii ${order.length} ${order.length === 1 ? 'fotka' : order.length < 5 ? 'fotky' : 'fotek'}`}
               </span>
             </div>
           </div>
@@ -197,7 +209,7 @@ export const PhotoGallery: React.FC<PhotoGalleryProps> = ({
       ) : openIndex !== null ? (
         /* Detail jedné fotky */
         <div className="flex-1 min-h-0 flex items-center gap-2 px-2 sm:px-6 pb-6">
-          {photos.length > 1 && (
+          {order.length > 1 && (
             <button
               onClick={() => step(-1)}
               aria-label="Předchozí"
@@ -211,8 +223,8 @@ export const PhotoGallery: React.FC<PhotoGalleryProps> = ({
             <div className="flex-1 min-h-0 w-full flex items-center justify-center">
               <div className={cn('relative h-full aspect-[3/2] max-w-full rounded-lg overflow-hidden flex items-center justify-center', c.tile)}>
                 <img
-                  key={photos[openIndex]}
-                  src={photos[openIndex]}
+                  key={order[openIndex]}
+                  src={order[openIndex]}
                   alt=""
                   className="max-h-full max-w-full object-contain animate-in fade-in zoom-in-95 duration-200"
                 />
@@ -237,7 +249,7 @@ export const PhotoGallery: React.FC<PhotoGalleryProps> = ({
             </div>
           </div>
 
-          {photos.length > 1 && (
+          {order.length > 1 && (
             <button
               onClick={() => step(1)}
               aria-label="Další"
@@ -250,7 +262,7 @@ export const PhotoGallery: React.FC<PhotoGalleryProps> = ({
       ) : (
         /* Mřížka */
         <div className="flex-1 overflow-y-auto px-5 sm:px-8 pb-10">
-          {photos.length === 0 ? (
+          {order.length === 0 ? (
             <div className="h-full flex flex-col items-center justify-center gap-3 text-center">
               <div className={cn('text-[15px] font-medium', c.emptyText)}>Zatím tu nejsou žádné fotky</div>
               <button
@@ -263,8 +275,8 @@ export const PhotoGallery: React.FC<PhotoGalleryProps> = ({
             </div>
           ) : (
             <>
-            {photos.length > 1 && (
-              <div className={cn('text-[12px] mb-3', c.sub)}>
+            {order.length > 1 && (
+              <div className={cn('text-[12.5px] pt-2 pb-6', c.sub)}>
                 Přetažením změníte pořadí — zelená čára ukáže, kam fotka spadne · první je hlavní
               </div>
             )}
@@ -278,7 +290,7 @@ export const PhotoGallery: React.FC<PhotoGalleryProps> = ({
               }}
               className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-5"
             >
-              {photos.map((url, i) => (
+              {order.map((url, i) => (
                 <div key={url} className="relative">
                   {/* Čára v mezeře ukazuje, kam fotka spadne. */}
                   <span
@@ -288,12 +300,12 @@ export const PhotoGallery: React.FC<PhotoGalleryProps> = ({
                       dropAt === i ? 'opacity-100' : 'opacity-0'
                     )}
                   />
-                  {i === photos.length - 1 && (
+                  {i === order.length - 1 && (
                     <span
                       aria-hidden
                       className={cn(
                         'absolute -right-2 sm:-right-2.5 top-0 bottom-0 w-[3px] rounded-full bg-[#00D991] transition-opacity',
-                        dropAt === photos.length ? 'opacity-100' : 'opacity-0'
+                        dropAt === order.length ? 'opacity-100' : 'opacity-0'
                       )}
                     />
                   )}
@@ -309,7 +321,9 @@ export const PhotoGallery: React.FC<PhotoGalleryProps> = ({
                     }}
                     onDrop={(e) => {
                       e.preventDefault();
-                      if (dragFrom.current !== null && dropAt !== null) movePhotoTo(dragFrom.current, dropAt);
+                      const r = e.currentTarget.getBoundingClientRect();
+                      const at = e.clientX < r.left + r.width / 2 ? i : i + 1;
+                      if (dragFrom.current !== null) movePhotoTo(dragFrom.current, at);
                       dragFrom.current = null;
                       setDropAt(null);
                     }}
