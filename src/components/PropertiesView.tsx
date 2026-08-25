@@ -4,6 +4,7 @@ import { createProperty, updateProperty, createContact, deleteProperty, createDe
 import { cn } from '@/lib/utils';
 import { OptionSelect } from '@/components/ui/option-select';
 import { ChipPicker } from '@/components/ui/chip-picker';
+import { PhotoGallery } from '@/components/PhotoGallery';
 import { uploadPropertyDocument } from '@/lib/storage';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -258,6 +259,7 @@ export const PropertiesView: React.FC<PropertiesViewProps> = ({
   const [photoUrls, setPhotoUrls] = useState<string[]>([]);
   const [editNote, setEditNote] = useState('');
   const [uploadingDoc, setUploadingDoc] = useState(false);
+  const [galleryOpen, setGalleryOpen] = useState(false);
   const docInputRef = useRef<HTMLInputElement>(null);
   const [photoPending, setPhotoPending] = useState(false);   // načtená fotka bez potvrzeného ořezu
   const [photoWarning, setPhotoWarning] = useState(false);   // upozornění „přijdete o ni"
@@ -2625,7 +2627,7 @@ export const PropertiesView: React.FC<PropertiesViewProps> = ({
             <DialogContent showCloseButton={false} className="max-w-6xl lg:max-w-7xl w-[92vw] lg:w-full p-0 overflow-y-auto overflow-x-hidden border border-stone-200 dark:border-stone-850 bg-white dark:bg-stone-900 rounded-[14px] max-h-[92vh] !flex !flex-col gap-0 text-left font-sans shadow-2xl mobile-scrollbar-none">
               
               {/* TOP HEADER BAR */}
-              <div className="relative flex flex-col sm:flex-row gap-4 sm:gap-[18px] p-4 sm:p-6 pb-4.5 border-b border-stone-200/60 dark:border-stone-800 bg-white dark:bg-stone-900 items-start flex-none">
+              <div className="relative flex flex-col sm:flex-row gap-4 sm:gap-[18px] p-4 sm:p-6 pb-4.5 border-b border-stone-200/60 dark:border-stone-800 bg-white dark:bg-stone-900 items-start sm:items-stretch flex-none">
                 
                 {/* Mobile Actions Row: Renders at the very top on mobile, before the photo to prevent overlap */}
                 <div className="flex sm:hidden justify-end gap-2 w-full mb-2 flex-none">
@@ -2681,20 +2683,26 @@ export const PropertiesView: React.FC<PropertiesViewProps> = ({
 
                 {/* Details Panel */}
                 {/* Thumbnail Icon */}
-                <div 
-                  className="relative w-full h-[200px] sm:w-[172px] sm:h-[120px] aspect-[16/10] sm:aspect-auto rounded-[10px] bg-[#E9E8E2] dark:bg-stone-800 flex-none flex items-center justify-center overflow-hidden border border-stone-200/40 dark:border-stone-800"
+                <button
+                  type="button"
+                  onClick={() => setGalleryOpen(true)}
+                  aria-label="Otevřít galerii fotek"
+                  className="group relative w-full aspect-[3/2] sm:w-auto sm:h-auto sm:self-stretch sm:aspect-[3/2] sm:min-h-[130px] sm:max-h-[190px] rounded-[10px] bg-[#E9E8E2] dark:bg-stone-800 flex-none flex items-center justify-center overflow-hidden border border-stone-200/40 dark:border-stone-800 cursor-zoom-in"
                 >
                   {photoUrl ? (
-                    <img src={photoUrl} className="w-full h-full object-cover" alt="Náhled" />
+                    <img src={photoUrl} className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-[1.03]" alt="Náhled" />
                   ) : (
                     <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="rgba(11,31,26,0.2)" strokeWidth="1.4">
                       <path d="M4.5 10.5L12 4l7.5 6.5V20h-5.5v-5.5h-4V20H4.5z" />
                     </svg>
                   )}
                   <span className="absolute bottom-[6px] left-[6px] sm:left-auto sm:right-[6px] bg-[#00221F]/80 dark:bg-stone-900/80 text-white text-[11.5px] font-medium px-2 py-0.5 rounded-[5px]">
-                    {selectedProperty.attachments?.length || 0} fotek
+                    {selectedProperty.attachments?.length
+                      ? `${selectedProperty.attachments.length} fotek`
+                      : '+ přidat fotky'}
                   </span>
-                </div>
+                  <span className="absolute inset-0 bg-[#00221F]/0 group-hover:bg-[#00221F]/20 transition-colors" />
+                </button>
 
                 {/* Details Panel */}
                 <div className="flex-1 min-w-0 text-left font-sans mt-3.5 sm:mt-0">
@@ -4629,6 +4637,26 @@ export const PropertiesView: React.FC<PropertiesViewProps> = ({
               </div>
 
             </DialogContent>
+
+            {galleryOpen && selectedProperty && (
+              <PhotoGallery
+                photos={selectedProperty.attachments ?? []}
+                title={describeProperty(selectedProperty) + ' · ' + selectedProperty.address}
+                onClose={() => setGalleryOpen(false)}
+                onChange={async (next) => {
+                  try {
+                    const updated = await updateProperty(selectedProperty.id, {
+                      attachments: next.length > 0 ? next : null,
+                    });
+                    setSelectedProperty(updated);
+                    setPhotoUrl(updated.attachments?.[0] || '');
+                    onRefresh();
+                  } catch (e: any) {
+                    toast.error(e.message || 'Fotky se nepodařilo uložit.');
+                  }
+                }}
+              />
+            )}
           </Dialog>
         );
       })()}
