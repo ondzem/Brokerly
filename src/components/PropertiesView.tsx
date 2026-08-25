@@ -15,7 +15,7 @@ import { Card, CardContent, CardTitle, CardDescription } from '@/components/ui/c
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { toast } from 'sonner';
 import { PhotoUploader } from '@/components/PhotoUploader';
-import { Search, Plus, Home, User, Briefcase, DollarSign, MapPin, LayoutGrid, List, SlidersHorizontal, FileText, CheckCircle2, Trash2, Edit, X, ChevronRight, Calendar, ArrowRight, Upload, Sparkles, FileUp, MoreHorizontal, Building2, Trees, Store, Warehouse, AlertTriangle } from 'lucide-react';
+import { Search, Plus, Home, User, Briefcase, DollarSign, MapPin, LayoutGrid, List, SlidersHorizontal, FileText, CheckCircle2, Trash2, Edit, X, ChevronRight, Calendar, ArrowRight, Upload, Sparkles, FileUp, MoreHorizontal, Building2, Trees, Store, Warehouse, AlertTriangle, Download } from 'lucide-react';
 
 const KIND_OPTIONS = [
   { id: 'byt', label: 'byt' },
@@ -991,6 +991,27 @@ export const PropertiesView: React.FC<PropertiesViewProps> = ({
       toast.error(e.message || 'Dokument se nepodařilo nahrát.');
     } finally {
       setUploadingDoc(false);
+    }
+  };
+
+  /**
+   * Stažení pod původním názvem. Prostý odkaz s `download` u souboru z jiné
+   * domény atribut ignoruje a soubor jen otevře, proto přes blob.
+   */
+  const handleDownloadDocument = async (doc: PropertyDocument) => {
+    try {
+      const res = await fetch(doc.url);
+      if (!res.ok) throw new Error(`Soubor se nepodařilo stáhnout (${res.status}).`);
+      const url = URL.createObjectURL(await res.blob());
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = doc.name;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      URL.revokeObjectURL(url);
+    } catch (e: any) {
+      toast.error(e.message || 'Stažení se nepodařilo.');
     }
   };
 
@@ -2700,7 +2721,7 @@ export const PropertiesView: React.FC<PropertiesViewProps> = ({
                   <span className="absolute inset-0 bg-[#00221F]/0 group-hover:bg-[#00221F]/20 transition-colors" />
 
                   <span className="absolute bottom-[6px] left-[6px] right-[6px] flex items-end justify-between gap-2 pointer-events-none">
-                    <span className="bg-[#00221F]/80 text-white text-[11.5px] font-medium px-2 py-0.5 rounded-[5px]">
+                    <span className="inline-flex items-center h-[22px] bg-[#00221F]/80 text-white text-[11.5px] font-medium px-2 rounded-[5px]">
                       {selectedProperty.attachments?.length
                         ? `${selectedProperty.attachments.length} ${selectedProperty.attachments.length === 1 ? 'fotka' : selectedProperty.attachments.length < 5 ? 'fotky' : 'fotek'}`
                         : 'bez fotek'}
@@ -2711,7 +2732,7 @@ export const PropertiesView: React.FC<PropertiesViewProps> = ({
                       aria-label="Přidat fotky"
                       onClick={(e) => { e.stopPropagation(); setGalleryStartsAdding(true); setGalleryOpen(true); }}
                       onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); e.stopPropagation(); setGalleryStartsAdding(true); setGalleryOpen(true); } }}
-                      className="pointer-events-auto flex items-center gap-1 bg-[#00D991] text-[#00221F] text-[11.5px] font-semibold px-2 py-0.5 rounded-[5px] cursor-pointer hover:opacity-90 shadow-sm"
+                      className="pointer-events-auto inline-flex items-center gap-1 h-[22px] bg-[#00D991] text-[#00221F] text-[11.5px] font-semibold px-2 rounded-[5px] cursor-pointer hover:opacity-90 shadow-sm"
                     >
                       <Plus className="w-3 h-3" />
                       Přidat
@@ -3962,7 +3983,7 @@ export const PropertiesView: React.FC<PropertiesViewProps> = ({
                           ref={docInputRef}
                           type="file"
                           multiple
-                          accept=".pdf,.doc,.docx,image/*"
+                          accept=".pdf,.doc,.docx,.xls,.xlsx,.txt,.csv,.zip,image/*"
                           className="hidden"
                           onChange={(e) => { void handleUploadDocuments(e.target.files); e.target.value = ''; }}
                         />
@@ -3995,6 +4016,7 @@ export const PropertiesView: React.FC<PropertiesViewProps> = ({
                                   href={doc.url}
                                   target="_blank"
                                   rel="noreferrer"
+                                  title="Otevřít — odtud se dá i vytisknout"
                                   className="flex items-center gap-2 text-left min-w-0 hover:underline"
                                 >
                                   <FileText className="w-3.5 h-3.5 text-stone-400 flex-none" />
@@ -4005,13 +4027,24 @@ export const PropertiesView: React.FC<PropertiesViewProps> = ({
                                     {formatDocMeta(doc)}
                                   </span>
                                 </a>
-                                <button
-                                  onClick={() => void handleRemoveDocument(idx)}
-                                  className="text-stone-400 hover:text-red-500 cursor-pointer flex-none"
-                                  aria-label={`Odebrat ${doc.name}`}
-                                >
-                                  <Trash2 className="w-3.5 h-3.5" />
-                                </button>
+                                <div className="flex items-center gap-1 flex-none">
+                                  <button
+                                    onClick={() => void handleDownloadDocument(doc)}
+                                    className="w-7 h-7 rounded-md flex items-center justify-center text-stone-400 hover:text-[#0E8A5F] hover:bg-stone-100 dark:hover:bg-stone-800 cursor-pointer"
+                                    aria-label={`Stáhnout ${doc.name}`}
+                                    title="Stáhnout"
+                                  >
+                                    <Download className="w-3.5 h-3.5" />
+                                  </button>
+                                  <button
+                                    onClick={() => void handleRemoveDocument(idx)}
+                                    className="w-7 h-7 rounded-md flex items-center justify-center text-stone-400 hover:text-red-500 hover:bg-stone-100 dark:hover:bg-stone-800 cursor-pointer"
+                                    aria-label={`Odebrat ${doc.name}`}
+                                    title="Odebrat"
+                                  >
+                                    <Trash2 className="w-3.5 h-3.5" />
+                                  </button>
+                                </div>
                               </div>
                             ))}
                           </div>
@@ -5368,6 +5401,12 @@ export const PropertiesView: React.FC<PropertiesViewProps> = ({
                         </div>
                       )}
 
+                      <p className="text-[13px] text-stone-500 dark:text-stone-400 leading-relaxed">
+                        Každou fotku ořízněte na stejný formát 3:2 — v galerii i na kartě pak
+                        všechny drží jednu velikost. První je hlavní, pořadí změníte později
+                        přetažením v galerii.
+                      </p>
+
                       <PhotoUploader
                         photos={photoUrls}
                         onChange={setPhotoUrls}
@@ -5375,9 +5414,8 @@ export const PropertiesView: React.FC<PropertiesViewProps> = ({
                       />
 
                       <p className="text-[11.5px] text-stone-400">
-                        Fotky jsou nepovinné — dají se doplnit kdykoli později na kartě nemovitosti.
-                        Všechny se ořezávají na stejný formát 3:2, aby karty vypadaly jednotně.
-                        První fotka je hlavní. Při importu z inzerátu se doplní sama.
+                        Nepovinné — dají se doplnit kdykoli později na kartě nemovitosti.
+                        Při importu z inzerátu se doplní samy.
                       </p>
                     </div>
                   )}
