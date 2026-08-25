@@ -13,6 +13,8 @@ interface PhotoUploaderProps {
   onChange: (photos: string[]) => void;
   /** Hlásí ven, že je načtená fotka bez potvrzeného ořezu — průvodce na ni upozorní. */
   onPendingChange?: (pending: boolean) => void;
+  /** V galerii už hotové fotky ukazuje mřížka — zdvojovat je tady nemá smysl. */
+  hideExisting?: boolean;
 }
 
 /** Největší ořez v daném poměru, který se vejde do rozměrů obrázku. */
@@ -31,7 +33,7 @@ function initialCrop(naturalWidth: number, naturalHeight: number): Rect {
   };
 }
 
-export const PhotoUploader: React.FC<PhotoUploaderProps> = ({ photos, onChange, onPendingChange }) => {
+export const PhotoUploader: React.FC<PhotoUploaderProps> = ({ photos, onChange, onPendingChange, hideExisting = false }) => {
   const [dragOver, setDragOver] = useState(false);
   const [queue, setQueue] = useState<string[]>([]); // data URL fotek čekajících na ořez
   const [crop, setCrop] = useState<Rect | null>(null);
@@ -211,7 +213,7 @@ export const PhotoUploader: React.FC<PhotoUploaderProps> = ({ photos, onChange, 
   return (
     <div className="space-y-4">
       {/* Hotové fotky */}
-      {photos.length > 0 && (
+      {!hideExisting && photos.length > 0 && (
         <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
           {photos.map((url, i) => (
             <div key={url} className="relative">

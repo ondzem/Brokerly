@@ -1,6 +1,6 @@
-import React, { useCallback, useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
-import { X, Plus, Trash2, Star, ChevronLeft, ChevronRight } from 'lucide-react';
+import { X, Plus, Trash2, Star, ChevronLeft, ChevronRight, GripVertical } from 'lucide-react';
 import { PhotoUploader } from '@/components/PhotoUploader';
 import { cn } from '@/lib/utils';
 
@@ -32,6 +32,10 @@ export const PhotoGallery: React.FC<PhotoGalleryProps> = ({
 }) => {
   const [openIndex, setOpenIndex] = useState<number | null>(null);
   const [adding, setAdding] = useState(startInAdd);
+  const [pendingCrop, setPendingCrop] = useState(false);
+  const [addedCount, setAddedCount] = useState(0);
+  const dragFrom = useRef<number | null>(null);
+  const [dragOver, setDragOver] = useState<number | null>(null);
 
   // Galerie drží režim aplikace — ve světlém by černé plátno bilo do očí.
   const light = theme === 'light';
@@ -96,6 +100,24 @@ export const PhotoGallery: React.FC<PhotoGalleryProps> = ({
 
   // Do <body>, ne dovnitř dialogu: jeho překryv má vlastní vrstvu a galerii
   // by překryl, takže by fotky vycházely zašedlé.
+  /** Pořadí v poli je pořadí zobrazení; první fotka je zároveň hlavní. */
+  const movePhoto = (from: number, to: number) => {
+    if (from === to) return;
+    const next = [...photos];
+    const [picked] = next.splice(from, 1);
+    next.splice(to, 0, picked);
+    void onChange(next);
+  };
+
+  // Po dokončení ořezu se vrátíme do mřížky — uživatel chce vidět, co přidal,
+  // ne prázdnou plochu na přetažení.
+  useEffect(() => {
+    if (adding && addedCount > 0 && !pendingCrop) {
+      const t = setTimeout(() => { setAdding(false); setAddedCount(0); }, 400);
+      return () => clearTimeout(t);
+    }
+  }, [adding, addedCount, pendingCrop]);
+
   return createPortal(
     <div className={cn('fixed inset-0 z-[9999] flex flex-col animate-in fade-in duration-200', c.canvas)}>
       {/* Lišta */}
@@ -135,15 +157,37 @@ export const PhotoGallery: React.FC<PhotoGalleryProps> = ({
 
       {/* Přidávání — ořez řeší PhotoUploader, formát tak zůstává jednotný */}
       {adding ? (
-        <div className="flex-1 overflow-y-auto px-5 sm:px-8 pb-8">
-          <div className="max-w-3xl mx-auto bg-white dark:bg-stone-900 rounded-xl p-5">
-            <PhotoUploader photos={photos} onChange={(next) => void onChange(next)} />
-            <button
-              onClick={() => setAdding(false)}
-              className="mt-4 h-9 px-4 rounded-[10px] bg-[#00D991] text-[#00221F] text-[13px] font-semibold cursor-pointer hover:opacity-90"
-            >
-              Hotovo
-            </button>
+        <div className="flex-1 min-h-0 overflow-y-auto px-5 sm:px-8 pb-10">
+          <div className="max-w-2xl mx-auto py-2 sm:py-6">
+            <div className={cn('text-[19px] font-semibold mb-1', c.title)}>Přidat fotky</div>
+            <div className={cn('text-[13px] mb-5', c.sub)}>
+              Každou fotku ořízněte na stejný formát 3:2 — v galerii i na kartě pak
+              drží jednu velikost.
+            </div>
+
+            <PhotoUploader
+              photos={photos}
+              hideExisting
+              onPendingChange={setPendingCrop}
+              onChange={(next) => {
+                if (next.length > photos.length) setAddedCount((n) => n + 1);
+                void onChange(next);
+              }}
+            />
+
+            <div className="flex items-center gap-3 mt-6">
+              <button
+                onClick={() => { setAdding(false); setAddedCount(0); }}
+                className="h-9 px-4 rounded-[10px] bg-[#00D991] text-[#00221F] text-[13px] font-semibold cursor-pointer hover:opacity-90"
+              >
+                Zpět do galerie
+              </button>
+              <span className={cn('text-[12.5px]', c.sub)}>
+                {photos.length === 0
+                  ? 'zatím žádné fotky'
+                  : `v galerii ${photos.length} ${photos.length === 1 ? 'fotka' : photos.length < 5 ? 'fotky' : 'fotek'}`}
+              </span>
+            </div>
           </div>
         </div>
       ) : openIndex !== null ? (
@@ -161,12 +205,14 @@ export const PhotoGallery: React.FC<PhotoGalleryProps> = ({
 
           <div className="flex-1 min-w-0 min-h-0 h-full flex flex-col items-center justify-center gap-4">
             <div className="flex-1 min-h-0 w-full flex items-center justify-center">
-              <img
-                key={photos[openIndex]}
-                src={photos[openIndex]}
-                alt=""
-                className="max-h-full max-w-full object-contain rounded-lg animate-in fade-in zoom-in-95 duration-200"
-              />
+              <div className={cn('relative h-full aspect-[3/2] max-w-full rounded-lg overflow-hidden flex items-center justify-center', c.tile)}>
+                <img
+                  key={photos[openIndex]}
+                  src={photos[openIndex]}
+                  alt=""
+                  className="max-h-full max-w-full object-contain animate-in fade-in zoom-in-95 duration-200"
+                />
+              </div>
             </div>
             <div className="flex items-center gap-2 flex-none">
               <button
@@ -212,20 +258,40 @@ export const PhotoGallery: React.FC<PhotoGalleryProps> = ({
               </button>
             </div>
           ) : (
+            <>
+            {photos.length > 1 && (
+              <div className={cn('text-[12px] mb-3', c.sub)}>
+                Přetažením změníte pořadí · první fotka je hlavní
+              </div>
+            )}
             <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-3 sm:gap-4">
               {photos.map((url, i) => (
                 <button
                   key={url}
                   onClick={() => setOpenIndex(i)}
+                  draggable
+                  onDragStart={() => { dragFrom.current = i; }}
+                  onDragOver={(e) => { e.preventDefault(); setDragOver(i); }}
+                  onDragLeave={() => setDragOver((d) => (d === i ? null : d))}
+                  onDrop={(e) => {
+                    e.preventDefault();
+                    if (dragFrom.current !== null) movePhoto(dragFrom.current, i);
+                    dragFrom.current = null;
+                    setDragOver(null);
+                  }}
+                  onDragEnd={() => { dragFrom.current = null; setDragOver(null); }}
                   style={{ animationDelay: `${Math.min(i, 12) * 45}ms` }}
                   className={cn(
-                    'group relative aspect-[3/2] rounded-xl overflow-hidden cursor-zoom-in', c.tile,
-                    'animate-in fade-in slide-in-from-bottom-4 fill-mode-backwards duration-300'
+                    'group relative aspect-[3/2] rounded-xl overflow-hidden cursor-zoom-in transition-all', c.tile,
+                    'animate-in fade-in slide-in-from-bottom-4 fill-mode-backwards duration-300',
+                    dragOver === i && dragFrom.current !== i && 'ring-2 ring-[#00D991] scale-[1.03]',
+                    dragFrom.current === i && 'opacity-40'
                   )}
                 >
                   <img
                     src={url}
                     alt=""
+                    draggable={false}
                     className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-[1.04]"
                   />
                   {i === 0 && (
@@ -233,9 +299,15 @@ export const PhotoGallery: React.FC<PhotoGalleryProps> = ({
                       HLAVNÍ
                     </span>
                   )}
+                  <span className={cn(
+                    'absolute top-2 right-2 w-6 h-6 rounded-md bg-black/45 text-white items-center justify-center hidden sm:flex opacity-0 group-hover:opacity-100 transition-opacity cursor-grab active:cursor-grabbing'
+                  )}>
+                    <GripVertical className="w-3.5 h-3.5" />
+                  </span>
                 </button>
               ))}
             </div>
+            </>
           )}
         </div>
       )}
