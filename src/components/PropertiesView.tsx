@@ -5,7 +5,7 @@ import { cn } from '@/lib/utils';
 import { OptionSelect } from '@/components/ui/option-select';
 import { ChipPicker } from '@/components/ui/chip-picker';
 import { PhotoGallery } from '@/components/PhotoGallery';
-import { uploadPropertyDocument } from '@/lib/storage';
+import { uploadPropertyDocument, deleteStoredFile } from '@/lib/storage';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -1018,9 +1018,12 @@ export const PropertiesView: React.FC<PropertiesViewProps> = ({
   const handleRemoveDocument = async (index: number) => {
     if (!selectedProperty) return;
     try {
+      const removed = documents[index];
       const updated = await updateProperty(selectedProperty.id, {
         documents: documents.filter((_, i) => i !== index),
       });
+      // Až po úspěšném zápisu — jinak by soubor zmizel, ale odkaz zůstal.
+      if (removed) void deleteStoredFile(removed.url);
       setSelectedProperty(updated);
       onRefresh();
       toast.success('Dokument byl odebrán.');

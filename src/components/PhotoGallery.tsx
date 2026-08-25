@@ -2,6 +2,7 @@ import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { X, Plus, Trash2, Star, ChevronLeft, ChevronRight, GripVertical } from 'lucide-react';
 import { PhotoUploader } from '@/components/PhotoUploader';
+import { deleteStoredFile } from '@/lib/storage';
 import { cn } from '@/lib/utils';
 
 interface PhotoGalleryProps {
@@ -95,8 +96,11 @@ export const PhotoGallery: React.FC<PhotoGalleryProps> = ({
   }, [openIndex, adding, onClose, step]);
 
   const remove = (index: number) => {
+    const removed = order[index];
     apply(order.filter((_, i) => i !== index));
     setOpenIndex(null);
+    // Fotka z importu leží na cizím serveru — deleteStoredFile ji přeskočí.
+    if (removed) void deleteStoredFile(removed);
   };
 
   /** Hlavní fotka = první v poli; používá ji karta i seznam nemovitostí. */

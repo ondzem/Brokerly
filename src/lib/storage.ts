@@ -103,3 +103,24 @@ export async function uploadPropertyDocument(file: File): Promise<string> {
 
   return supabase.storage.from(PROPERTY_DOCUMENT_BUCKET).getPublicUrl(key).data.publicUrl;
 }
+
+/**
+ * Smaže soubor z našeho úložiště podle veřejné URL.
+ *
+ * Fotky stažené při importu inzerátu leží na cizím serveru — takovou URL
+ * poznáme podle toho, že v ní není cesta k našemu bucketu, a mlčky ji
+ * přeskočíme. Selhání mazání se nehlásí uživateli: odkaz už zmizel, osiřelý
+ * soubor je náš problém, ne jeho.
+ */
+export async function deleteStoredFile(url: string): Promise<void> {
+  for (const bucket of [PROPERTY_PHOTO_BUCKET, PROPERTY_DOCUMENT_BUCKET]) {
+    const marker = `/storage/v1/object/public/${bucket}/`;
+    const at = url.indexOf(marker);
+    if (at === -1) continue;
+
+    const key = decodeURIComponent(url.slice(at + marker.length).split('?')[0]);
+    const { error } = await supabase.storage.from(bucket).remove([key]);
+    if (error) console.warn(`Soubor ${key} zůstal v úložišti:`, error.message);
+    return;
+  }
+}
