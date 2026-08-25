@@ -1,8 +1,9 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
-import { X, Plus, Trash2, Star, ChevronLeft, ChevronRight, GripVertical } from 'lucide-react';
+import { toast } from 'sonner';
+import { X, Plus, Trash2, Star, ChevronLeft, ChevronRight, GripVertical, Crop } from 'lucide-react';
 import { PhotoUploader } from '@/components/PhotoUploader';
-import { deleteStoredFile } from '@/lib/storage';
+import { deleteStoredFile, mirrorRemotePhoto, isStoredPhoto } from '@/lib/storage';
 import { cn } from '@/lib/utils';
 
 interface PhotoGalleryProps {
@@ -34,12 +35,30 @@ export const PhotoGallery: React.FC<PhotoGalleryProps> = ({
   const [openIndex, setOpenIndex] = useState<number | null>(null);
   const [adding, setAdding] = useState(startInAdd);
   const [pendingCrop, setPendingCrop] = useState(false);
+  const [mirroring, setMirroring] = useState<string | null>(null);
+  const [recropping, setRecropping] = useState<string | null>(null);
   const [addedCount, setAddedCount] = useState(0);
   const dragFrom = useRef<number | null>(null);
   const [dropAt, setDropAt] = useState<number | null>(null);
   // Mřížka čekala na odpověď databáze, takže fotka skočila na nové místo
   // se zpožděním. Pořadí se drží lokálně, uložení běží na pozadí.
   const [order, setOrder] = useState<string[]>(photos);
+
+  /**
+   * Přenese fotku z portálu do našeho úložiště. Cizí odkaz zmizí, jakmile
+   * portál inzerát stáhne — tohle je jediná obrana.
+   */
+  const mirrorOne = async (url: string) => {
+    setMirroring(url);
+    try {
+      const mine = await mirrorRemotePhoto(url);
+      apply(order.map((u) => (u === url ? mine : u)));
+    } catch (e: any) {
+      toast.error(e.message || 'Fotku se nepodařilo přenést.');
+    } finally {
+      setMirroring(null);
+    }
+  };
 
   const apply = (next: string[]) => {
     setOrder(next);
@@ -178,7 +197,7 @@ export const PhotoGallery: React.FC<PhotoGalleryProps> = ({
         <div className="flex-1 min-h-0 overflow-y-auto px-5 sm:px-8 pb-10 flex items-center justify-center">
           <div className="w-full max-w-3xl mx-auto py-6 text-center">
             <div className={cn('font-display font-light text-[28px] sm:text-[34px] leading-tight', c.title)}>
-              Přidat fotky
+              {recropping ? 'Oříznout fotku' : 'Přidat fotky'}
             </div>
             <div className={cn('text-[13.5px] mt-2 mb-7 max-w-lg mx-auto leading-relaxed', c.sub)}>
               Každou fotku ořízněte na stejný formát 3:2 — v galerii i na kartě pak
@@ -189,7 +208,16 @@ export const PhotoGallery: React.FC<PhotoGalleryProps> = ({
               photos={order}
               hideExisting
               onPendingChange={setPendingCrop}
+              seedUrl={recropping}
               onChange={(next) => {
+                if (recropping && next.length > order.length) {
+                  const fresh = next[next.length - 1];
+                  apply(order.map((u) => (u === recropping ? fresh : u)));
+                  void deleteStoredFile(recropping);
+                  setRecropping(null);
+                  setAdding(false);
+                  return;
+                }
                 if (next.length > order.length) setAddedCount((n) => n + 1);
                 apply(next);
               }}
@@ -197,7 +225,7 @@ export const PhotoGallery: React.FC<PhotoGalleryProps> = ({
 
             <div className="flex items-center justify-center gap-3 mt-7 flex-wrap">
               <button
-                onClick={() => { setAdding(false); setAddedCount(0); }}
+                onClick={() => { setAdding(false); setAddedCount(0); setRecropping(null); }}
                 className="h-10 px-5 rounded-[10px] bg-[#00D991] text-[#00221F] text-[13.5px] font-semibold cursor-pointer hover:opacity-90"
               >
                 Zpět do galerie
@@ -242,6 +270,13 @@ export const PhotoGallery: React.FC<PhotoGalleryProps> = ({
               >
                 <Star className="w-3.5 h-3.5" />
                 {openIndex === 0 ? 'Hlavní fotka' : 'Nastavit jako hlavní'}
+              </button>
+              <button
+                onClick={() => { setRecropping(order[openIndex]); setOpenIndex(null); setAdding(true); }}
+                className={cn('flex items-center gap-1.5 h-9 px-3.5 rounded-[10px] border text-[12.5px] font-medium cursor-pointer', c.ghostBtn)}
+              >
+                <Crop className="w-3.5 h-3.5" />
+                Oříznout
               </button>
               <button
                 onClick={() => remove(openIndex)}
@@ -348,6 +383,18 @@ export const PhotoGallery: React.FC<PhotoGalleryProps> = ({
                     {i === 0 && (
                       <span className="absolute top-2 left-2 bg-[#00D991] text-[#00221F] text-[10.5px] font-bold px-2 py-0.5 rounded-[5px]">
                         HLAVNÍ
+                      </span>
+                    )}
+                    {!isStoredPhoto(url) && (
+                      <span
+                        role="button"
+                        tabIndex={0}
+                        title="Fotka leží na serveru portálu. Až inzerát stáhnou, zmizí i odsud."
+                        onClick={(e) => { e.stopPropagation(); void mirrorOne(url); }}
+                        onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); e.stopPropagation(); void mirrorOne(url); } }}
+                        className="absolute bottom-2 right-2 inline-flex items-center gap-1 h-6 px-2 rounded-[5px] bg-amber-500 text-[#241a00] text-[10.5px] font-bold cursor-pointer hover:opacity-90"
+                      >
+                        {mirroring === url ? 'Přenáším…' : 'uložit k nám'}
                       </span>
                     )}
                     <span className="absolute top-2 right-2 w-6 h-6 rounded-md bg-black/45 text-white items-center justify-center hidden sm:flex opacity-0 group-hover:opacity-100 transition-opacity cursor-grab active:cursor-grabbing">

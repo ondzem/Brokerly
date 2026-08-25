@@ -370,6 +370,13 @@ not yet recorded in `_brokerly_migrations` via the Management API. It needs
 `SUPABASE_ACCESS_TOKEN` in `.env.local`; without it, say so and hand the user the
 SQL rather than asking them to work out what to paste.
 
+**Edge functions deploy with `supabase functions deploy <name> --project-ref
+xmfjnrwypcbektwatbil --no-verify-jwt`**, with `SUPABASE_ACCESS_TOKEN` from
+`.env.local` exported first. The Management API's function endpoint rejects a
+plain-text body; the CLI works and needs no Docker. Their runtime injects
+`SUPABASE_SERVICE_ROLE_KEY` in the newer `sb_secret_…` form, which Storage wants
+in the `apikey` header — as a Bearer token it fails with `Invalid Compact JWS`.
+
 **Supabase is one shared database**, not one per developer. A destructive migration
 or a deletion hits both people at once — confirm before running one.
 

@@ -124,3 +124,56 @@ export async function deleteStoredFile(url: string): Promise<void> {
     return;
   }
 }
+
+/**
+ * Adresy téže fotky od největší po původní.
+ *
+ * Portály vracejí v og:image často jen náhled — RE/MAX `_th350` je 350 px,
+ * Sreality servíruje z `/thumbs/` deseti­kilobajtový obrázek. Velikost se
+ * odhadnout dá, ale ne spolehlivě, proto vracíme seznam: server zkusí jednu
+ * po druhé a první funkční si nechá. Špatný odhad tak nikdy fotku neztratí.
+ */
+export function photoSizeCandidates(url: string): string[] {
+  const out: string[] = [];
+  try {
+    const u = new URL(url);
+
+    // Sreality: velikost řídí parametr fl=res,šířka,výška
+    if (u.hostname.endsWith('sdn.cz')) {
+      const big = new URL(u.toString());
+      big.searchParams.set('fl', 'res,1600,1600,3');
+      out.push(big.toString());
+    }
+
+    // RE/MAX: _th350 je náhled, plná fotka bývá bez přípony velikosti
+    if (/_th\d+\.(jpe?g|png|webp)$/i.test(u.pathname)) {
+      out.push(url.replace(/_th\d+(\.[a-z]+)$/i, '_th1920$1'));
+      out.push(url.replace(/_th\d+(\.[a-z]+)$/i, '$1'));
+    }
+
+    // iDNES a další: /thumbs/ je zmenšenina, /images/ bývá originál
+    if (u.pathname.includes('/thumbs/')) {
+      out.push(url.replace('/thumbs/', '/images/'));
+    }
+  } catch {
+    /* neplatná adresa — vrátíme jen původní */
+  }
+
+  out.push(url);
+  return [...new Set(out)];
+}
+
+/** Zrcadlí fotku z portálu do našeho úložiště přes serverovou funkci. */
+export async function mirrorRemotePhoto(url: string): Promise<string> {
+  const { data, error } = await supabase.functions.invoke('mirror-photo', {
+    body: { urls: photoSizeCandidates(url) },
+  });
+  if (error) throw new Error(error.message || 'Fotku se nepodařilo zkopírovat.');
+  if (!data?.url) throw new Error(data?.error || 'Fotku se nepodařilo zkopírovat.');
+  return data.url as string;
+}
+
+/** Leží fotka u nás, nebo pořád na cizím serveru? */
+export function isStoredPhoto(url: string): boolean {
+  return url.includes(`/storage/v1/object/public/${PROPERTY_PHOTO_BUCKET}/`);
+}

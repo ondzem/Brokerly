@@ -15,6 +15,8 @@ interface PhotoUploaderProps {
   onPendingChange?: (pending: boolean) => void;
   /** V galerii už hotové fotky ukazuje mřížka — zdvojovat je tady nemá smysl. */
   hideExisting?: boolean;
+  /** Otevřít rovnou ořez téhle fotky (doříznutí už nahrané). */
+  seedUrl?: string | null;
 }
 
 /** Největší ořez v daném poměru, který se vejde do rozměrů obrázku. */
@@ -33,7 +35,7 @@ function initialCrop(naturalWidth: number, naturalHeight: number): Rect {
   };
 }
 
-export const PhotoUploader: React.FC<PhotoUploaderProps> = ({ photos, onChange, onPendingChange, hideExisting = false }) => {
+export const PhotoUploader: React.FC<PhotoUploaderProps> = ({ photos, onChange, onPendingChange, hideExisting = false, seedUrl = null }) => {
   const [dragOver, setDragOver] = useState(false);
   const [queue, setQueue] = useState<string[]>([]); // data URL fotek čekajících na ořez
   const [crop, setCrop] = useState<Rect | null>(null);
@@ -51,6 +53,24 @@ export const PhotoUploader: React.FC<PhotoUploaderProps> = ({ photos, onChange, 
   useEffect(() => {
     onPendingChange?.(queue.length > 0);
   }, [queue.length, onPendingChange]);
+
+  // Doříznutí už nahrané fotky. Musí projít přes data URL, jinak canvas
+  // odmítne toBlob u obrázku z jiné domény.
+  useEffect(() => {
+    if (!seedUrl) return;
+    let alive = true;
+    fetch(seedUrl)
+      .then((r) => r.blob())
+      .then((b) => new Promise<string>((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = () => resolve(String(reader.result));
+        reader.onerror = () => reject(new Error('Fotku se nepodařilo načíst.'));
+        reader.readAsDataURL(b);
+      }))
+      .then((dataUrl) => { if (alive) setQueue([dataUrl]); })
+      .catch((e) => toast.error(e.message));
+    return () => { alive = false; };
+  }, [seedUrl]);
 
   const acceptFiles = useCallback((files: FileList | null) => {
     if (!files || files.length === 0) return;

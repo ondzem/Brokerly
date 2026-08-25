@@ -5,7 +5,7 @@ import { cn } from '@/lib/utils';
 import { OptionSelect } from '@/components/ui/option-select';
 import { ChipPicker } from '@/components/ui/chip-picker';
 import { PhotoGallery } from '@/components/PhotoGallery';
-import { uploadPropertyDocument, deleteStoredFile } from '@/lib/storage';
+import { uploadPropertyDocument, deleteStoredFile, mirrorRemotePhoto } from '@/lib/storage';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -1483,10 +1483,23 @@ export const PropertiesView: React.FC<PropertiesViewProps> = ({
         }
       };
 
-      // Set DOM photo URL state immediately
+      // Fotku z inzerátu si okamžitě ukážeme z původní adresy, ať makléř nečeká,
+      // a na pozadí ji zkopírujeme k nám. Portál totiž inzerát dřív nebo později
+      // stáhne a odkaz zmizí i z karty — jednou už se to tady stalo.
       if (foundPhotoUrl) {
-        setPhotoUrl(foundPhotoUrl);
-        setPhotoUrls((prev) => (prev.includes(foundPhotoUrl) ? prev : [foundPhotoUrl, ...prev]));
+        const remote = foundPhotoUrl;
+        setPhotoUrl(remote);
+        setPhotoUrls((prev) => (prev.includes(remote) ? prev : [remote, ...prev]));
+
+        void mirrorRemotePhoto(remote)
+          .then((mine) => {
+            setPhotoUrl((cur) => (cur === remote ? mine : cur));
+            setPhotoUrls((prev) => prev.map((u) => (u === remote ? mine : u)));
+          })
+          .catch((e) => {
+            // Nezdar nesmí shodit import — fotka zůstane odkazem na portál.
+            console.warn('Fotku se nepodařilo zkopírovat do úložiště:', e.message);
+          });
       }
 
       const geminiRes = await fetch(geminiUrl, {
