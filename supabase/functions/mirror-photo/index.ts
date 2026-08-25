@@ -65,8 +65,10 @@ Deno.serve(async (req) => {
     if (u.protocol !== 'https:') { problems.push('jen https'); continue; }
     if (!hostAllowed(u.hostname)) { problems.push(`doména ${u.hostname} není povolená`); continue; }
 
-    // Portály odmítají požadavky bez hlavičky prohlížeče.
-    const res = await fetch(u.toString(), {
+    // Portály odmítají požadavky bez hlavičky prohlížeče. Stahuje se původní
+    // řetězec — u.toString() by zakódoval `|` v parametru fl a Seznam by
+    // takovou adresu odmítl.
+    const res = await fetch(candidate, {
       headers: {
         'User-Agent':
           'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124 Safari/537.36',

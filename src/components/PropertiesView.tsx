@@ -6,6 +6,7 @@ import { OptionSelect } from '@/components/ui/option-select';
 import { ChipPicker } from '@/components/ui/chip-picker';
 import { PhotoGallery } from '@/components/PhotoGallery';
 import { uploadPropertyDocument, deleteStoredFile, mirrorRemotePhoto } from '@/lib/storage';
+import { extractListingPhotos } from '@/lib/listingPhotos';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -1015,6 +1016,42 @@ export const PropertiesView: React.FC<PropertiesViewProps> = ({
     }
   };
 
+  /**
+   * Přenese fotky z inzerátu k nám. Po třech naráz — portál ani úložiště
+   * nemá smysl zahltit a při dvaceti fotkách je to pořád rychlé.
+   * Fotka, kterou se stáhnout nepodaří, zůstane odkazem na portál.
+   */
+  const mirrorListingPhotos = async (remotes: string[]) => {
+    const toastId = toast.loading(`Přenáším fotky z inzerátu (0/${remotes.length})…`);
+    let done = 0;
+    let failed = 0;
+
+    for (let i = 0; i < remotes.length; i += 3) {
+      await Promise.all(
+        remotes.slice(i, i + 3).map(async (remote) => {
+          try {
+            const mine = await mirrorRemotePhoto(remote);
+            setPhotoUrl((cur) => (cur === remote ? mine : cur));
+            setPhotoUrls((prev) => prev.map((u) => (u === remote ? mine : u)));
+          } catch (e: any) {
+            failed++;
+            console.warn(`Fotka ${remote} zůstala na portálu:`, e.message);
+          } finally {
+            done++;
+            toast.loading(`Přenáším fotky z inzerátu (${done}/${remotes.length})…`, { id: toastId });
+          }
+        })
+      );
+    }
+
+    toast.dismiss(toastId);
+    if (failed === 0) {
+      toast.success(`Fotky uloženy: ${remotes.length}.`);
+    } else {
+      toast.warning(`Uloženo ${remotes.length - failed} z ${remotes.length} fotek, zbytek zůstal odkazem na portál.`);
+    }
+  };
+
   const handleRemoveDocument = async (index: number) => {
     if (!selectedProperty) return;
     try {
@@ -1360,48 +1397,10 @@ export const PropertiesView: React.FC<PropertiesViewProps> = ({
       const parser = new DOMParser();
       const doc = parser.parseFromString(html, 'text/html');
 
-      // Extract the listing photo. og:image is what every portal sets for sharing and is
-      // always a real listing photo — the <img> scan is only a fallback, because portals
-      // lazy-load gallery images and their src often points at a placeholder.
-      const absolutizeUrl = (raw: string): string => {
-        if (!raw) return '';
-        if (raw.startsWith('//')) return 'https:' + raw;
-        if (raw.startsWith('/')) {
-          try {
-            return new URL(normalizedUrl).origin + raw;
-          } catch {
-            return '';
-          }
-        }
-        return raw;
-      };
-
-      let foundPhotoUrl = absolutizeUrl(
-        doc.querySelector('meta[property="og:image"]')?.getAttribute('content') ||
-        doc.querySelector('meta[name="twitter:image"]')?.getAttribute('content') ||
-        ''
-      );
-
-      if (!foundPhotoUrl) {
-        const imgElements = Array.from(doc.querySelectorAll('img'));
-        for (const img of imgElements) {
-          // Lazy-loaded galleries keep the real photo in data-src / data-original.
-          const src =
-            img.getAttribute('src') ||
-            img.getAttribute('data-src') ||
-            img.getAttribute('data-original') ||
-            '';
-          // Skip tiny icons, tracking pixels, or base64
-          if (!src || src.startsWith('data:') || /icon|logo|pixel|spinner|placeholder|\.svg(\?|$)/i.test(src)) {
-            continue;
-          }
-          const absolute = absolutizeUrl(src);
-          if (absolute.startsWith('http')) {
-            foundPhotoUrl = absolute;
-            break;
-          }
-        }
-      }
+      // Z inzerátu bereme celou galerii, ne jen sdílecí og:image — makléř
+      // čeká, že se přenesou všechny fotky, které u inzerátu vidí.
+      const listingPhotos = extractListingPhotos(html, normalizedUrl);
+      const foundPhotoUrl = listingPhotos[0] || '';
 
       doc.querySelectorAll('script, style, header, footer, nav, noscript, iframe, svg').forEach((el) => el.remove());
       const text = doc.body.innerText || doc.body.textContent || '';
@@ -1483,23 +1482,13 @@ export const PropertiesView: React.FC<PropertiesViewProps> = ({
         }
       };
 
-      // Fotku z inzerátu si okamžitě ukážeme z původní adresy, ať makléř nečeká,
-      // a na pozadí ji zkopírujeme k nám. Portál totiž inzerát dřív nebo později
-      // stáhne a odkaz zmizí i z karty — jednou už se to tady stalo.
-      if (foundPhotoUrl) {
-        const remote = foundPhotoUrl;
-        setPhotoUrl(remote);
-        setPhotoUrls((prev) => (prev.includes(remote) ? prev : [remote, ...prev]));
-
-        void mirrorRemotePhoto(remote)
-          .then((mine) => {
-            setPhotoUrl((cur) => (cur === remote ? mine : cur));
-            setPhotoUrls((prev) => prev.map((u) => (u === remote ? mine : u)));
-          })
-          .catch((e) => {
-            // Nezdar nesmí shodit import — fotka zůstane odkazem na portál.
-            console.warn('Fotku se nepodařilo zkopírovat do úložiště:', e.message);
-          });
+      // Fotky ukážeme hned z adres portálu, ať makléř nečeká, a na pozadí je
+      // přeneseme k nám. Portál inzerát dřív nebo později stáhne a odkaz zmizí
+      // i z karty — jednou už se to tady stalo.
+      if (listingPhotos.length > 0) {
+        setPhotoUrl(listingPhotos[0]);
+        setPhotoUrls((prev) => [...listingPhotos, ...prev.filter((u) => !listingPhotos.includes(u))]);
+        void mirrorListingPhotos(listingPhotos);
       }
 
       const geminiRes = await fetch(geminiUrl, {

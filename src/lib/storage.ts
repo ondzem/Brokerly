@@ -138,11 +138,10 @@ export function photoSizeCandidates(url: string): string[] {
   try {
     const u = new URL(url);
 
-    // Sreality: velikost řídí parametr fl=res,šířka,výška
-    if (u.hostname.endsWith('sdn.cz')) {
-      const big = new URL(u.toString());
-      big.searchParams.set('fl', 'res,1600,1600,3');
-      out.push(big.toString());
+    // Sreality: CDN Seznamu pouští jen tenhle jeden tvar transformace —
+    // ověřeno, jakákoli jiná velikost vrací 400 a holá adresa 401.
+    if (u.hostname.endsWith('sdn.cz') && !u.search.includes('fl=')) {
+      out.push(url.split('?')[0] + '?fl=res,1200,1200,1|shr,,20|jpg,80');
     }
 
     // RE/MAX: _th350 je náhled, plná fotka bývá bez přípony velikosti
