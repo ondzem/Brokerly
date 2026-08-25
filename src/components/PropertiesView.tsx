@@ -1,9 +1,10 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Property, Contact, Deal, Activity } from '@/types';
+import { Property, Contact, Deal, Activity, PropertyDocument } from '@/types';
 import { createProperty, updateProperty, createContact, deleteProperty, createDeal, updateDeal } from '@/lib/db';
 import { cn } from '@/lib/utils';
 import { OptionSelect } from '@/components/ui/option-select';
 import { ChipPicker } from '@/components/ui/chip-picker';
+import { uploadPropertyDocument } from '@/lib/storage';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -255,6 +256,9 @@ export const PropertiesView: React.FC<PropertiesViewProps> = ({
   const [createdSummary, setCreatedSummary] = useState<Property | null>(null);
   const [showMoreParams, setShowMoreParams] = useState(false);
   const [photoUrls, setPhotoUrls] = useState<string[]>([]);
+  const [editNote, setEditNote] = useState('');
+  const [uploadingDoc, setUploadingDoc] = useState(false);
+  const docInputRef = useRef<HTMLInputElement>(null);
   const [photoPending, setPhotoPending] = useState(false);   // načtená fotka bez potvrzeného ořezu
   const [photoWarning, setPhotoWarning] = useState(false);   // upozornění „přijdete o ni"
   const [photoDraft, setPhotoDraft] = useState('');
@@ -401,6 +405,7 @@ export const PropertiesView: React.FC<PropertiesViewProps> = ({
       setEditOfferStatus(selectedProperty.offer_status);
       setEditPrice(selectedProperty.price.toString());
       setEditFacts(selectedProperty.facts_for_answers || '');
+      setEditNote(selectedProperty.note || '');
       setEditHandover(selectedProperty.handover_term || '');
       setEditListingId(selectedProperty.listing_id || '');
 
@@ -846,12 +851,23 @@ export const PropertiesView: React.FC<PropertiesViewProps> = ({
         toast.error('Cena musí být platné číslo.');
         return;
       }
+      // Změna ceny se zapíše do historie — dřív se v kartě zobrazovala
+      // dvě natvrdo napsaná čísla, která k nemovitosti nepatřila.
+      const nextHistory =
+        parsedPrice !== selectedProperty.price
+          ? [
+              ...(selectedProperty.price_history ?? []),
+              { from: selectedProperty.price, to: parsedPrice, changed_at: new Date().toISOString() },
+            ]
+          : undefined;
+
       const updated = await updateProperty(selectedProperty.id, {
         owner_id: editOwnerId,
         transaction: editTransaction,
         offer_status: editOfferStatus,
         price: parsedPrice,
         address: editAddress,
+        ...(nextHistory ? { price_history: nextHistory } : {}),
       });
       setSelectedProperty(updated);
       setIsEditingGeneral(false);
@@ -937,11 +953,60 @@ export const PropertiesView: React.FC<PropertiesViewProps> = ({
   };
 
   // Tab 2: Informace - Save long text / note
+  const documents = selectedProperty?.documents ?? [];
+  const priceHistory = selectedProperty?.price_history ?? [];
+
+  const formatDocMeta = (doc: PropertyDocument) => {
+    const kb = doc.size / 1024;
+    const size = kb >= 1024 ? `${(kb / 1024).toFixed(1)} MB` : `${Math.max(1, Math.round(kb))} kB`;
+    const date = new Date(doc.uploaded_at).toLocaleDateString('cs-CZ', { day: 'numeric', month: 'numeric' });
+    return `${size} · ${date}`;
+  };
+
+  /** Dokumenty se jen přidávají — nikdy nepřepíšou to, co už je nahrané. */
+  const handleUploadDocuments = async (files: FileList | null) => {
+    if (!selectedProperty || !files || files.length === 0) return;
+    setUploadingDoc(true);
+    try {
+      const uploaded: PropertyDocument[] = [];
+      for (const file of Array.from(files)) {
+        const url = await uploadPropertyDocument(file);
+        uploaded.push({ name: file.name, url, size: file.size, uploaded_at: new Date().toISOString() });
+      }
+      const updated = await updateProperty(selectedProperty.id, {
+        documents: [...documents, ...uploaded],
+      });
+      setSelectedProperty(updated);
+      onRefresh();
+      toast.success(uploaded.length === 1 ? 'Dokument byl nahrán.' : `Nahráno souborů: ${uploaded.length}.`);
+    } catch (e: any) {
+      toast.error(e.message || 'Dokument se nepodařilo nahrát.');
+    } finally {
+      setUploadingDoc(false);
+    }
+  };
+
+  const handleRemoveDocument = async (index: number) => {
+    if (!selectedProperty) return;
+    try {
+      const updated = await updateProperty(selectedProperty.id, {
+        documents: documents.filter((_, i) => i !== index),
+      });
+      setSelectedProperty(updated);
+      onRefresh();
+      toast.success('Dokument byl odebrán.');
+    } catch (e: any) {
+      toast.error(e.message || 'Dokument se nepodařilo odebrat.');
+    }
+  };
+
+  // Poznámka má vlastní sloupec, ne facts_for_answers: fakta jdou do odpovědí
+  // zájemcům, poznámka je interní a nikam se neposílá.
   const handleSaveNote = async () => {
     if (!selectedProperty) return;
     try {
       const updated = await updateProperty(selectedProperty.id, {
-        facts_for_answers: editFacts || null,
+        note: editNote || null,
       });
       setSelectedProperty(updated);
       setIsEditingNote(false);
@@ -1794,23 +1859,9 @@ export const PropertiesView: React.FC<PropertiesViewProps> = ({
       {/* Potvrzení resetu a použití — filtry platí až odsud */}
       <div className="flex items-center justify-between gap-3 pt-1 flex-wrap">
         {confirmReset ? (
-          <div className="flex items-center gap-2 flex-wrap">
-            <span className="text-[12.5px]" style={{ color: colors.textSecondary }}>
-              Zrušit všechny filtry?
-            </span>
-            <button
-              onClick={resetFilters}
-              className="text-[12px] font-semibold px-2.5 py-1 rounded-[8px] border border-rose-300 text-rose-600 hover:bg-rose-50 dark:border-rose-500/40 dark:text-rose-400 dark:hover:bg-rose-950/40 cursor-pointer"
-            >
-              Ano, zrušit
-            </button>
-            <button
-              onClick={() => setConfirmReset(false)}
-              className="text-[12px] font-medium px-2.5 py-1 rounded-[8px] text-stone-500 hover:text-stone-800 dark:text-stone-400 dark:hover:text-stone-200 cursor-pointer"
-            >
-              Zpět
-            </button>
-          </div>
+          <span className="text-[12.5px]" style={{ color: colors.textSecondary }}>
+            Zrušit všechny filtry?
+          </span>
         ) : (
           <button
             onClick={() => setConfirmReset(true)}
@@ -1821,13 +1872,24 @@ export const PropertiesView: React.FC<PropertiesViewProps> = ({
           </button>
         )}
 
-        <button
-          onClick={applyFilters}
-          className="font-semibold text-[13px] px-4 h-9 rounded-[10px] cursor-pointer transition-all duration-150 shadow-xs hover:opacity-90"
-          style={{ backgroundColor: colors.accent, color: '#00221F' }}
-        >
-          {draftDiffers ? 'Použít filtry' : 'Hotovo'}
-        </button>
+        {/* Jedno hlavní tlačítko, které mění roli — potvrzení nepřidává další. */}
+        <div className="flex items-center gap-2">
+          {confirmReset && (
+            <button
+              onClick={() => setConfirmReset(false)}
+              className="text-[12.5px] font-medium px-3 h-9 rounded-[10px] text-stone-500 hover:text-stone-800 dark:text-stone-400 dark:hover:text-stone-200 cursor-pointer"
+            >
+              Zpět
+            </button>
+          )}
+          <button
+            onClick={confirmReset ? resetFilters : applyFilters}
+            className="font-semibold text-[13px] px-4 h-9 rounded-[10px] cursor-pointer transition-all duration-150 shadow-xs hover:opacity-90"
+            style={{ backgroundColor: colors.accent, color: '#00221F' }}
+          >
+            {confirmReset ? 'Ano, zrušit' : draftDiffers ? 'Použít filtry' : 'Hotovo'}
+          </button>
+        </div>
       </div>
     </div>
   );
@@ -3791,7 +3853,7 @@ export const PropertiesView: React.FC<PropertiesViewProps> = ({
                           Poznámka
                         </span>
                         {!isEditingNote ? (
-                          editFacts && (
+                          editNote && (
                             <button 
                               onClick={() => setIsEditingNote(true)} 
                               className="text-xs font-semibold text-[#0E8A5F] hover:underline cursor-pointer"
@@ -3804,7 +3866,7 @@ export const PropertiesView: React.FC<PropertiesViewProps> = ({
                             <button 
                               onClick={() => {
                                 setIsEditingNote(false);
-                                setEditFacts(selectedProperty.facts_for_answers || '');
+                                setEditNote(selectedProperty.note || '');
                               }} 
                               className="text-xs font-medium text-stone-500 hover:text-stone-700 border border-stone-200 rounded-md px-2.5 py-1 cursor-pointer"
                             >
@@ -3821,14 +3883,14 @@ export const PropertiesView: React.FC<PropertiesViewProps> = ({
                       </div>
 
                       {!isEditingNote ? (
-                        !editFacts ? (
+                        !editNote ? (
                           <div className="border border-dashed border-stone-250 dark:border-stone-800 rounded-xl p-5 flex justify-between items-center bg-white dark:bg-stone-950">
                             <div className="text-left">
                               <div className="text-[14.5px] font-semibold text-stone-900 dark:text-stone-100">
                                 Přidejte poznámku
                               </div>
                               <div className="text-xs text-stone-400 dark:text-stone-500 mt-1">
-                                Popis nemovitosti pro vás i pro inzerát.
+                                Jen pro vás — zájemcům se neposílá.
                               </div>
                             </div>
                             <button 
@@ -3840,48 +3902,46 @@ export const PropertiesView: React.FC<PropertiesViewProps> = ({
                           </div>
                         ) : (
                           <div className="text-[13.5px] font-normal leading-relaxed text-stone-700 dark:text-stone-300 whitespace-pre-wrap">
-                            {editFacts}
+                            {editNote}
                           </div>
                         )
                       ) : (
                         <Textarea 
-                          value={editFacts} 
-                          onChange={(e) => setEditFacts(e.target.value)} 
-                          placeholder="Zadejte poznámku nebo fakta o nemovitosti..."
+                          value={editNote} 
+                          onChange={(e) => setEditNote(e.target.value)} 
+                          placeholder="Na co si u téhle nemovitosti dát pozor…"
                           rows={4}
                           className="text-xs font-medium"
                         />
                       )}
                     </div>
 
-                    {/* Section 4: Dokumenty a historie */}
+                    {/* Section 4: Dokumenty a historie ceny */}
                     <div className="bg-white dark:bg-stone-950 rounded-xl border border-stone-200/60 dark:border-stone-800 p-5">
                       <div className="flex justify-between items-baseline mb-4">
                         <span className="text-[14.5px] font-semibold text-stone-900 dark:text-stone-100">
-                          Dokumenty a historie
+                          Dokumenty
                         </span>
-                        <button 
-                          onClick={async () => {
-                            try {
-                              const updated = await updateProperty(selectedProperty.id, {
-                                attachments: ['LV.pdf', 'PENB.pdf']
-                              });
-                              setSelectedProperty(updated);
-                              onRefresh();
-                              toast.success('Simulované dokumenty LV.pdf a PENB.pdf byly nahrány.');
-                            } catch(e: any) {
-                              toast.error(e.message);
-                            }
-                          }}
-                          className="text-xs font-bold text-[#0E8A5F] hover:underline cursor-pointer"
+                        <button
+                          onClick={() => docInputRef.current?.click()}
+                          disabled={uploadingDoc}
+                          className="text-xs font-semibold text-[#0E8A5F] hover:underline cursor-pointer disabled:opacity-50"
                         >
-                          + Nahrát
+                          {uploadingDoc ? 'Nahrávám…' : '+ Nahrát'}
                         </button>
+                        <input
+                          ref={docInputRef}
+                          type="file"
+                          multiple
+                          accept=".pdf,.doc,.docx,image/*"
+                          className="hidden"
+                          onChange={(e) => { void handleUploadDocuments(e.target.files); e.target.value = ''; }}
+                        />
                       </div>
 
                       <div className="space-y-4">
-                        {!selectedProperty.attachments || selectedProperty.attachments.length === 0 ? (
-                          <div className="border border-dashed border-stone-250 dark:border-stone-800 rounded-xl p-5 flex justify-between items-center bg-white dark:bg-stone-950">
+                        {documents.length === 0 ? (
+                          <div className="border border-dashed border-stone-250 dark:border-stone-800 rounded-xl p-5 flex justify-between items-center gap-3 bg-white dark:bg-stone-950">
                             <div className="text-left">
                               <div className="text-[14.5px] font-semibold text-stone-900 dark:text-stone-100">
                                 Nahrajte dokumenty
@@ -3890,52 +3950,36 @@ export const PropertiesView: React.FC<PropertiesViewProps> = ({
                                 LV a PENB budou potřeba k rezervační smlouvě.
                               </div>
                             </div>
-                            <button 
-                              onClick={async () => {
-                                try {
-                                  const updated = await updateProperty(selectedProperty.id, {
-                                    attachments: ['LV.pdf', 'PENB.pdf']
-                                  });
-                                  setSelectedProperty(updated);
-                                  onRefresh();
-                                  toast.success('Simulované dokumenty LV.pdf a PENB.pdf byly nahrány.');
-                                } catch(e: any) {
-                                  toast.error(e.message);
-                                }
-                              }}
-                              className="text-xs font-bold text-[#0E8A5F] hover:underline cursor-pointer flex-none"
+                            <button
+                              onClick={() => docInputRef.current?.click()}
+                              disabled={uploadingDoc}
+                              className="text-xs font-bold text-[#0E8A5F] hover:underline cursor-pointer flex-none disabled:opacity-50"
                             >
-                              + Nahrát
+                              {uploadingDoc ? 'Nahrávám…' : '+ Nahrát'}
                             </button>
                           </div>
                         ) : (
                           <div className="divide-y divide-stone-100 dark:divide-stone-850">
-                            {selectedProperty.attachments.map((file, idx) => (
-                              <div key={idx} className="flex justify-between items-center py-2.5 text-xs min-w-0 gap-3">
-                                <div className="flex items-center gap-2 text-left min-w-0">
+                            {documents.map((doc, idx) => (
+                              <div key={doc.url} className="flex justify-between items-center py-2.5 text-xs min-w-0 gap-3">
+                                <a
+                                  href={doc.url}
+                                  target="_blank"
+                                  rel="noreferrer"
+                                  className="flex items-center gap-2 text-left min-w-0 hover:underline"
+                                >
                                   <FileText className="w-3.5 h-3.5 text-stone-400 flex-none" />
                                   <span className="text-sm font-semibold text-stone-800 dark:text-stone-200 truncate">
-                                    {file}
+                                    {doc.name}
                                   </span>
                                   <span className="text-[11px] text-stone-400 dark:text-stone-500 flex-none">
-                                    nahráno 20. 5.
+                                    {formatDocMeta(doc)}
                                   </span>
-                                </div>
-                                <button 
-                                  onClick={async () => {
-                                    try {
-                                      const remaining = selectedProperty.attachments?.filter((_, i) => i !== idx) || [];
-                                      const updated = await updateProperty(selectedProperty.id, {
-                                        attachments: remaining.length > 0 ? remaining : null
-                                      });
-                                      setSelectedProperty(updated);
-                                      onRefresh();
-                                      toast.success('Soubor byl odebrán.');
-                                    } catch(e: any) {
-                                      toast.error(e.message);
-                                    }
-                                  }}
+                                </a>
+                                <button
+                                  onClick={() => void handleRemoveDocument(idx)}
                                   className="text-stone-400 hover:text-red-500 cursor-pointer flex-none"
+                                  aria-label={`Odebrat ${doc.name}`}
                                 >
                                   <Trash2 className="w-3.5 h-3.5" />
                                 </button>
@@ -3944,16 +3988,26 @@ export const PropertiesView: React.FC<PropertiesViewProps> = ({
                           </div>
                         )}
 
-                        <div className="space-y-1 pt-1.5 text-xs text-[#0E8A5F] dark:text-green-400 font-semibold text-left">
-                          <div className="flex items-center gap-1 text-[13.5px]">
-                            <span>+</span>
-                            <span>Historie ceny: {selectedProperty.price === 5200000 ? "5 900 000 → 5 200 000" : "18 900 000 → 18 330 000"} Kč</span>
+                        {priceHistory.length > 0 && (
+                          <div className="pt-3 border-t border-stone-100 dark:border-stone-850 space-y-1.5">
+                            <div className="text-[11px] uppercase tracking-wider font-semibold text-stone-400">
+                              Historie ceny
+                            </div>
+                            {priceHistory.slice().reverse().map((change, i) => (
+                              <div key={`${change.changed_at}-${i}`} className="flex items-center gap-2 text-[12.5px]">
+                                <span className={cn('font-semibold', change.to < change.from ? 'text-[#0E8A5F]' : 'text-amber-600')}>
+                                  {change.to < change.from ? '↓' : '↑'}
+                                </span>
+                                <span className="text-stone-700 dark:text-stone-300">
+                                  {change.from.toLocaleString('cs-CZ')} → {change.to.toLocaleString('cs-CZ')} Kč
+                                </span>
+                                <span className="text-[11px] text-stone-400">
+                                  {new Date(change.changed_at).toLocaleDateString('cs-CZ', { day: 'numeric', month: 'numeric', year: 'numeric' })}
+                                </span>
+                              </div>
+                            ))}
                           </div>
-                          <div className="flex items-center gap-1 text-[11px] ml-3 font-medium">
-                            <span>↓</span>
-                            <span>12. 6.</span>
-                          </div>
-                        </div>
+                        )}
                       </div>
                     </div>
                   </div>

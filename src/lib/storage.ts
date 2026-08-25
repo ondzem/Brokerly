@@ -69,3 +69,37 @@ export function cropToBlob(
     );
   });
 }
+
+export const PROPERTY_DOCUMENT_BUCKET = 'property-documents';
+export const MAX_DOCUMENT_BYTES = 20 * 1024 * 1024;
+
+/**
+ * Nahraje dokument (LV, PENB, smlouva) a vrátí veřejnou URL.
+ * Původní název souboru se do klíče nepromítá — může kolidovat i obsahovat
+ * znaky, které Storage neunese; drží se zvlášť v poli `documents`.
+ */
+export async function uploadPropertyDocument(file: File): Promise<string> {
+  if (file.size > MAX_DOCUMENT_BYTES) {
+    throw new Error(`Soubor je větší než 20 MB (${Math.round(file.size / 1048576)} MB).`);
+  }
+
+  const ext = file.name.includes('.') ? file.name.split('.').pop() : 'bin';
+  const key = `${Date.now()}-${Math.random().toString(36).slice(2, 8)}.${ext}`;
+
+  const { error } = await supabase.storage
+    .from(PROPERTY_DOCUMENT_BUCKET)
+    .upload(key, file, { contentType: file.type || 'application/octet-stream' });
+
+  if (error) {
+    const message = error.message || '';
+    if (/bucket.*not.*found/i.test(message)) {
+      throw new Error(
+        'Úložiště dokumentů zatím není v Supabase založené. Spusťte migraci ' +
+        'supabase/migrations/20260825100000_property_note_documents_history.sql.'
+      );
+    }
+    throw new Error(`Nahrání dokumentu selhalo: ${message}`);
+  }
+
+  return supabase.storage.from(PROPERTY_DOCUMENT_BUCKET).getPublicUrl(key).data.publicUrl;
+}
