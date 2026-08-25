@@ -35,7 +35,7 @@ export const PhotoGallery: React.FC<PhotoGalleryProps> = ({
   const [pendingCrop, setPendingCrop] = useState(false);
   const [addedCount, setAddedCount] = useState(0);
   const dragFrom = useRef<number | null>(null);
-  const [dragOver, setDragOver] = useState<number | null>(null);
+  const [dropAt, setDropAt] = useState<number | null>(null);
 
   // Galerie drží režim aplikace — ve světlém by černé plátno bilo do očí.
   const light = theme === 'light';
@@ -100,12 +100,16 @@ export const PhotoGallery: React.FC<PhotoGalleryProps> = ({
 
   // Do <body>, ne dovnitř dialogu: jeho překryv má vlastní vrstvu a galerii
   // by překryl, takže by fotky vycházely zašedlé.
-  /** Pořadí v poli je pořadí zobrazení; první fotka je zároveň hlavní. */
-  const movePhoto = (from: number, to: number) => {
-    if (from === to) return;
+  /**
+   * Pořadí v poli je pořadí zobrazení; první fotka je zároveň hlavní.
+   * `insertAt` je pozice mezery (0…N). Po vyjmutí fotky se indexy nad ní
+   * posunou o jedna, proto se cíl přepočítává.
+   */
+  const movePhotoTo = (from: number, insertAt: number) => {
+    if (insertAt === from || insertAt === from + 1) return;
     const next = [...photos];
     const [picked] = next.splice(from, 1);
-    next.splice(to, 0, picked);
+    next.splice(insertAt > from ? insertAt - 1 : insertAt, 0, picked);
     void onChange(next);
   };
 
@@ -158,7 +162,7 @@ export const PhotoGallery: React.FC<PhotoGalleryProps> = ({
       {/* Přidávání — ořez řeší PhotoUploader, formát tak zůstává jednotný */}
       {adding ? (
         <div className="flex-1 min-h-0 overflow-y-auto px-5 sm:px-8 pb-10">
-          <div className="max-w-2xl mx-auto py-2 sm:py-6">
+          <div className="max-w-2xl py-2 sm:py-6 text-left">
             <div className={cn('text-[19px] font-semibold mb-1', c.title)}>Přidat fotky</div>
             <div className={cn('text-[13px] mb-5', c.sub)}>
               Každou fotku ořízněte na stejný formát 3:2 — v galerii i na kartě pak
@@ -261,50 +265,81 @@ export const PhotoGallery: React.FC<PhotoGalleryProps> = ({
             <>
             {photos.length > 1 && (
               <div className={cn('text-[12px] mb-3', c.sub)}>
-                Přetažením změníte pořadí · první fotka je hlavní
+                Přetažením změníte pořadí — zelená čára ukáže, kam fotka spadne · první je hlavní
               </div>
             )}
-            <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-3 sm:gap-4">
+            <div
+              onDragOver={(e) => e.preventDefault()}
+              onDrop={(e) => {
+                e.preventDefault();
+                if (dragFrom.current !== null && dropAt !== null) movePhotoTo(dragFrom.current, dropAt);
+                dragFrom.current = null;
+                setDropAt(null);
+              }}
+              className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-5"
+            >
               {photos.map((url, i) => (
-                <button
-                  key={url}
-                  onClick={() => setOpenIndex(i)}
-                  draggable
-                  onDragStart={() => { dragFrom.current = i; }}
-                  onDragOver={(e) => { e.preventDefault(); setDragOver(i); }}
-                  onDragLeave={() => setDragOver((d) => (d === i ? null : d))}
-                  onDrop={(e) => {
-                    e.preventDefault();
-                    if (dragFrom.current !== null) movePhoto(dragFrom.current, i);
-                    dragFrom.current = null;
-                    setDragOver(null);
-                  }}
-                  onDragEnd={() => { dragFrom.current = null; setDragOver(null); }}
-                  style={{ animationDelay: `${Math.min(i, 12) * 45}ms` }}
-                  className={cn(
-                    'group relative aspect-[3/2] rounded-xl overflow-hidden cursor-zoom-in transition-all', c.tile,
-                    'animate-in fade-in slide-in-from-bottom-4 fill-mode-backwards duration-300',
-                    dragOver === i && dragFrom.current !== i && 'ring-2 ring-[#00D991] scale-[1.03]',
-                    dragFrom.current === i && 'opacity-40'
-                  )}
-                >
-                  <img
-                    src={url}
-                    alt=""
-                    draggable={false}
-                    className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-[1.04]"
+                <div key={url} className="relative">
+                  {/* Čára v mezeře ukazuje, kam fotka spadne. */}
+                  <span
+                    aria-hidden
+                    className={cn(
+                      'absolute -left-2 sm:-left-2.5 top-0 bottom-0 w-[3px] rounded-full bg-[#00D991] transition-opacity',
+                      dropAt === i ? 'opacity-100' : 'opacity-0'
+                    )}
                   />
-                  {i === 0 && (
-                    <span className="absolute top-2 left-2 bg-[#00D991] text-[#00221F] text-[10.5px] font-bold px-2 py-0.5 rounded-[5px]">
-                      HLAVNÍ
-                    </span>
+                  {i === photos.length - 1 && (
+                    <span
+                      aria-hidden
+                      className={cn(
+                        'absolute -right-2 sm:-right-2.5 top-0 bottom-0 w-[3px] rounded-full bg-[#00D991] transition-opacity',
+                        dropAt === photos.length ? 'opacity-100' : 'opacity-0'
+                      )}
+                    />
                   )}
-                  <span className={cn(
-                    'absolute top-2 right-2 w-6 h-6 rounded-md bg-black/45 text-white items-center justify-center hidden sm:flex opacity-0 group-hover:opacity-100 transition-opacity cursor-grab active:cursor-grabbing'
-                  )}>
-                    <GripVertical className="w-3.5 h-3.5" />
-                  </span>
-                </button>
+
+                  <button
+                    onClick={() => setOpenIndex(i)}
+                    draggable
+                    onDragStart={() => { dragFrom.current = i; }}
+                    onDragOver={(e) => {
+                      e.preventDefault();
+                      const r = e.currentTarget.getBoundingClientRect();
+                      setDropAt(e.clientX < r.left + r.width / 2 ? i : i + 1);
+                    }}
+                    onDrop={(e) => {
+                      e.preventDefault();
+                      if (dragFrom.current !== null && dropAt !== null) movePhotoTo(dragFrom.current, dropAt);
+                      dragFrom.current = null;
+                      setDropAt(null);
+                    }}
+                    onDragEnd={() => { dragFrom.current = null; setDropAt(null); }}
+                    style={{ animationDelay: `${Math.min(i, 12) * 45}ms` }}
+                    className={cn(
+                      'group relative w-full aspect-[3/2] rounded-xl overflow-hidden cursor-zoom-in transition-all', c.tile,
+                      'animate-in fade-in slide-in-from-bottom-4 fill-mode-backwards duration-300',
+                      dragFrom.current === i && 'opacity-35 scale-95'
+                    )}
+                  >
+                    <img
+                      src={url}
+                      alt=""
+                      draggable={false}
+                      className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-[1.04]"
+                    />
+                    {i === 0 && (
+                      <span className="absolute top-2 left-2 bg-[#00D991] text-[#00221F] text-[10.5px] font-bold px-2 py-0.5 rounded-[5px]">
+                        HLAVNÍ
+                      </span>
+                    )}
+                    <span className="absolute top-2 right-2 w-6 h-6 rounded-md bg-black/45 text-white items-center justify-center hidden sm:flex opacity-0 group-hover:opacity-100 transition-opacity cursor-grab active:cursor-grabbing">
+                      <GripVertical className="w-3.5 h-3.5" />
+                    </span>
+                    <span className="absolute bottom-2 left-2 text-[11px] font-semibold text-white bg-black/45 px-1.5 rounded">
+                      {i + 1}
+                    </span>
+                  </button>
+                </div>
               ))}
             </div>
             </>
