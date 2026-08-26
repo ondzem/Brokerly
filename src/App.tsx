@@ -7,7 +7,7 @@ import { PropertiesView } from '@/components/PropertiesView';
 import { RemindersView } from '@/components/RemindersView';
 import { SettingsView } from '@/components/SettingsView';
 import { DashboardView } from '@/components/DashboardView';
-import { Briefcase, Users, Home, Clock, Settings as SettingsIcon, Key, LayoutGrid, Sun, Moon, Menu, X } from 'lucide-react';
+import { Briefcase, Users, Home, Clock, Settings as SettingsIcon, Key, LayoutGrid, Menu, X } from 'lucide-react';
 import { toast } from 'sonner';
 import { Toaster } from '@/components/ui/sonner';
 
@@ -23,25 +23,16 @@ export default function App() {
     return 'dashboard';
   });
 
-  const [theme, setTheme] = useState<'light' | 'dark'>(() => {
-    if (typeof window !== 'undefined') {
-      const saved = localStorage.getItem('brokerly_theme');
-      return (saved as 'light' | 'dark') || 'dark';
-    }
-    return 'dark';
-  });
+  // Tmavý režim je zatím vypnutý — aplikace jede ve světlém, dokud ho
+  // nedoladíme. Kód s ním dál počítá, jen se nedá zapnout.
+  const theme: 'light' | 'dark' = 'light';
 
   useEffect(() => {
     if (typeof window !== 'undefined') {
       localStorage.setItem('brokerly_theme', theme);
-      const root = window.document.documentElement;
-      if (theme === 'dark') {
-        root.classList.add('dark');
-      } else {
-        root.classList.remove('dark');
-      }
+      window.document.documentElement.classList.remove('dark');
     }
-  }, [theme]);
+  }, []);
   
   // Data States
   const [settings, setSettings] = useState<Settings | null>(null);
@@ -404,23 +395,6 @@ export default function App() {
               </button>
             </nav>
 
-            <div className="flex flex-col gap-3 pt-6 border-t border-white/10 w-full items-center">
-              {/* Theme Toggle */}
-              <button
-                onClick={() => setTheme(prev => prev === 'light' ? 'dark' : 'light')}
-                className="flex items-center justify-center gap-3 py-3.5 px-4 rounded-xl text-[18px] font-medium text-white/80 hover:text-white hover:bg-white/5 transition-all cursor-pointer bg-transparent border-none w-full text-center"
-              >
-                {theme === 'light' ? (
-                  <Moon className="h-5 w-5 stroke-[1.5]" />
-                ) : (
-                  <Sun className="h-5 w-5 stroke-[1.5]" />
-                )}
-                <span>{theme === 'light' ? 'Tmavý režim' : 'Světlý režim'}</span>
-                <span className="text-xs text-white/40 uppercase tracking-wider ml-1">
-                  ({theme === 'light' ? 'vypnuto' : 'zapnuto'})
-                </span>
-              </button>
-            </div>
           </div>
         </div>
       )}
@@ -531,18 +505,6 @@ export default function App() {
 
         {/* Bottom Action */}
         <div className="w-full px-2 flex flex-col gap-2">
-          <button
-            onClick={() => setTheme(prev => prev === 'light' ? 'dark' : 'light')}
-            title={theme === 'light' ? 'Přepnout na tmavý režim' : 'Přepnout na světlý režim'}
-            className="flex items-center justify-center p-3 rounded-md w-full text-white/60 hover:text-white transition-all cursor-pointer"
-          >
-            {theme === 'light' ? (
-              <Moon className="h-5 w-5 stroke-[1.5]" />
-            ) : (
-              <Sun className="h-5 w-5 stroke-[1.5]" />
-            )}
-          </button>
-          
           <button
             onClick={() => setActiveTab('settings')}
             title="Nastavení"
