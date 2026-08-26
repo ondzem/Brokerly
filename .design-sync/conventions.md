@@ -23,7 +23,7 @@ rather than fixed palette values. **Always reach for the token utility, never a
 raw Tailwind colour** — `bg-card` is right, `bg-white` and `bg-slate-50` are
 wrong, and they break dark mode.
 
-| Surfaces | `bg-background` (the warm near-white canvas) · `bg-card` · `bg-popover` · `bg-muted` · `bg-secondary` |
+| Surfaces | see **Layering** below — `bg-panel` / `bg-chrome` / `bg-surface` / `bg-inset` |
 | Text | `text-foreground` · `text-card-foreground` · `text-muted-foreground` (secondary) · `text-primary` (accent) · `text-destructive` |
 | Accent | `bg-primary` + `text-primary-foreground` — the green. One primary action per screen. |
 | Lines | `border-border` · `border-input` (form controls) · `ring-foreground/10` (the card hairline) |
@@ -31,7 +31,30 @@ wrong, and they break dark mode.
 | Radius | `rounded-lg` on controls, `rounded-xl` on cards, `rounded-full` on chips |
 | Type | `font-sans` = Inter (default) · `font-heading` / `font-display` = Hanken Grotesk · `font-mono` = Geist Mono |
 
-Two rules that carry the whole character and are easy to get backwards:
+### Layering — the most important rule here
+
+Nothing in this system separates by shadow, and hairlines alone are not enough:
+a white card on a white page reads as one flat sheet. Content is separated by
+**shade**, on a four-step scale. Pick the step by how far a thing sits from the
+reader, and the theme resolves it:
+
+| Class | Role | Light | Dark |
+|---|---|---|---|
+| `bg-panel` | recessed — the ground content sits ON (page body, dialog body) | `#F2F1EC` | stone-900 |
+| `bg-chrome` | the sticky frame — headers, tab bars, footers | white | stone-900 |
+| `bg-surface` | the content itself — cards, panels, raised controls | white | stone-950 |
+| `bg-inset` | a block nested *inside* a card — empty states, sub-panels | `#F8F7F3` | stone-900 |
+
+Light and dark move in opposite directions (light raises by getting lighter,
+dark by getting darker) — that is why you use the names, never the raw values.
+Pair them with `border-hairline`.
+
+**A screen must never be one flat tone.** The reliable shape is
+`bg-panel` body → `bg-surface` cards → `bg-inset` for anything nested inside a
+card. Steps are deliberately small: the point is that the eye groups things, not
+that it notices the colour.
+
+Two more rules that carry the character and are easy to get backwards:
 
 1. **Big things are light, small things are bold.** Page headings and large
    numbers are `font-light` (300) with `tracking-tight`; small labels are

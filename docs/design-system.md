@@ -78,6 +78,32 @@ na obrazovce dvě zelené věci, jedna z nich je navíc.
 
 ---
 
+## 2b. Vrstvení — čím se věci oddělují
+
+Nejdůležitější pravidlo a to, které se nejsnáz poruší. Systém neodděluje obsah
+stínem a **samotné vlasové linky nestačí**: bílá karta na bílé stránce splyne
+v jednu plochu. Odděluje se **odstínem**, na čtyřstupňové škále:
+
+| Token | Role | Světlý | Tmavý |
+|---|---|---|---|
+| `--panel` | podklad, na kterém obsah leží (plátno stránky, tělo dialogu) | `#F2F1EC` | `oklch(21.6% .006 56.043)` |
+| `--chrome` | pevný rám — hlavičky, lišty se záložkami, patičky | `#FFFFFF` | totéž co panel |
+| `--surface` | samotný obsah — karty, panely, vyvýšené ovládací prvky | `#FFFFFF` | `oklch(14.7% .004 49.25)` |
+| `--inset` | blok **uvnitř** karty — prázdné stavy, vnořené sekce | `#F8F7F3` | totéž co panel |
+
+Světlý a tmavý režim se pohybují **opačnými směry**: ve světlém se vyvýšený
+prvek zesvětluje, v tmavém ztmavuje. Proto se pracuje s názvy rolí, nikdy
+s konkrétními hodnotami.
+
+Spolehlivý tvar obrazovky: `panel` (tělo) → `surface` (karty) → `inset` (co je
+uvnitř karty). Rozdíly jsou schválně malé — jde o to, aby oko věci seskupilo,
+ne aby si všimlo barvy. **Obrazovka nikdy nesmí být jeden plochý odstín.**
+
+V Tailwindu jsou dostupné jako `bg-panel`, `bg-chrome`, `bg-surface`,
+`bg-inset` a `border-hairline`.
+
+---
+
 ## 3. Typografie
 
 | | Font | Kde |
