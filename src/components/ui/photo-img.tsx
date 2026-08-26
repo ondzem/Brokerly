@@ -18,12 +18,22 @@ interface PhotoImgProps extends Omit<React.ImgHTMLAttributes<HTMLImageElement>, 
  */
 export const PhotoImg: React.FC<PhotoImgProps> = ({ src, thumb = false, priority = false, ...rest }) => {
   const [fallback, setFallback] = useState(false);
+  const [broken, setBroken] = useState(false);
   const useThumb = thumb && !fallback;
+
+  // Fotka z cizího serveru může kdykoli zmizet. Pak se nesmí ukázat popisek
+  // obrázku — přetekl by z dlaždice ven. Necháme prosvítat podklad.
+  if (broken) return null;
 
   return (
     <img
       src={useThumb ? thumbUrlFor(src) : src}
-      onError={() => { if (useThumb) setFallback(true); }}
+      onError={() => {
+        // U cizí fotky je náhled tatáž adresa — přepnutí na plnou verzi by
+        // nic nenačetlo znovu a druhá chyba by nepřišla.
+        if (useThumb && thumbUrlFor(src) !== src) setFallback(true);
+        else setBroken(true);
+      }}
       loading={priority ? 'eager' : 'lazy'}
       decoding="async"
       fetchPriority={priority ? 'high' : 'auto'}
