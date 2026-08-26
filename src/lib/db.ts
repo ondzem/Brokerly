@@ -84,21 +84,18 @@ export async function createContact(contact: Omit<Contact, 'id' | 'created_at'>)
   // Deduplicate before create:
   const duplicate = await checkContactDuplicate(contact.phone, contact.email);
   if (duplicate) {
-    // If contact exists, update roles by adding any new ones, status, temperature, note
+    // Existing card wins: merge is strictly additive. Roles are unioned and
+    // empty contact fields get filled in — but status, temperature and the
+    // agent's note are NEVER overwritten by an incoming duplicate.
     const mergedRoles = Array.from(new Set([...duplicate.roles, ...contact.roles]));
     const updatedFields: Partial<Contact> = {
       roles: mergedRoles,
     };
-    
-    // Override status/temperature if provided and not empty
-    if (contact.status) updatedFields.status = contact.status;
-    if (contact.temperature) updatedFields.temperature = contact.temperature;
-    if (contact.note) {
-      updatedFields.note = duplicate.note 
-        ? `${duplicate.note}\n[Aktualizace role]: ${contact.note}` 
-        : contact.note;
-    }
-    
+
+    if (!duplicate.phone && contact.phone) updatedFields.phone = contact.phone;
+    if (!duplicate.email && contact.email) updatedFields.email = contact.email;
+    if (!duplicate.note && contact.note) updatedFields.note = contact.note;
+
     const { data, error } = await supabase
       .from('contacts')
       .update(updatedFields)

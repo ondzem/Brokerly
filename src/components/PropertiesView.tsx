@@ -211,7 +211,7 @@ export const PropertiesView: React.FC<PropertiesViewProps> = ({
   const [isConfirmDeleteOpen, setIsConfirmDeleteOpen] = useState(false);
   const [transactionFilter, setTransactionFilter] = useState<'vše' | 'prodej' | 'pronájem'>('vše');
   const [kindFilter, setKindFilter] = useState<'vše' | 'byt' | 'dům' | 'pozemek' | 'komerční' | 'garáž/ostatní'>('vše');
-  const [statusFilter, setStatusFilter] = useState<'vše' | 'akvizice' | 'v nabídce' | 'rezervováno' | 'uzavřeno'>('vše');
+  const [statusFilter, setStatusFilter] = useState<'vše' | 'akvizice' | 'prodá později' | 'příprava' | 'v nabídce' | 'rezervováno' | 'uzavřeno' | 'staženo'>('vše');
   const [isMobileFiltersExpanded, setIsMobileFiltersExpanded] = useState(false);
   const [isDesktopFiltersOpen, setIsDesktopFiltersOpen] = useState(false);
 
@@ -526,10 +526,13 @@ export const PropertiesView: React.FC<PropertiesViewProps> = ({
     // Search query filter
     if (searchQuery) {
       const q = searchQuery.toLowerCase();
+      const ownerName = contacts.find((c) => c.id === p.owner_id)?.full_name || '';
       const matchSearch =
         p.address.toLowerCase().includes(q) ||
         p.kind.toLowerCase().includes(q) ||
-        p.transaction.toLowerCase().includes(q);
+        p.transaction.toLowerCase().includes(q) ||
+        (p.listing_id || '').toLowerCase().includes(q) ||
+        ownerName.toLowerCase().includes(q);
       if (!matchSearch) return false;
     }
 
@@ -1849,9 +1852,12 @@ export const PropertiesView: React.FC<PropertiesViewProps> = ({
   ] as const;
   const statusChips = [
     { id: 'akvizice', label: 'Akvizice' },
+    { id: 'prodá později', label: 'Prodá později' },
+    { id: 'příprava', label: 'Příprava' },
     { id: 'v nabídce', label: 'V nabídce' },
     { id: 'rezervováno', label: 'Rezervováno' },
     { id: 'uzavřeno', label: 'Prodáno' },
+    { id: 'staženo', label: 'Staženo' },
   ] as const;
 
   const renderFilterSections = () => (
@@ -2199,7 +2205,7 @@ export const PropertiesView: React.FC<PropertiesViewProps> = ({
         /* CARDS GRID VIEW - aspect-ratio: 16/10, 4 columns (3C Design) */
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-[14px]">
           {filteredProperties.map((prop) => {
-            const matchingBuyersCount = getMatchingBuyersForProperty(prop).length;
+            const matchingBuyersCount = deals.filter((dl) => dl.property_id === prop.id).length;
             const { title: displayTitle, city: cityPart, details: detailsStr, price: priceStr, statusBg, statusText, statusLabel, hasPhoto } = propertyListInfo(prop);
 
             return (
@@ -2292,7 +2298,7 @@ export const PropertiesView: React.FC<PropertiesViewProps> = ({
         /* ROW LIST VIEW — one responsive row per property, photo first */
         <div className="flex flex-col gap-2.5">
           {filteredProperties.map((prop) => {
-            const matchingBuyersCount = getMatchingBuyersForProperty(prop).length;
+            const matchingBuyersCount = deals.filter((dl) => dl.property_id === prop.id).length;
             const d = propertyListInfo(prop);
 
             return (
@@ -2457,6 +2463,11 @@ export const PropertiesView: React.FC<PropertiesViewProps> = ({
         const expenseList = (selectedProperty.costs as { name: string; value: number }[]) || [];
         const totalExpenses = expenseList.reduce((sum, item) => sum + (item.value || 0), 0);
         const netCommission = commValNum - totalExpenses;
+        const hasCommission = Boolean(selectedProperty.commission_pct || selectedProperty.commission_val);
+        // Čistá provize: zeleně jen v plusu; červeně v mínusu nebo bez nastavené provize
+        const netTone = hasCommission && netCommission > 0
+          ? 'bg-[#EDF7F1] dark:bg-[#00D991]/8 text-[#0B5C3D] dark:text-green-300'
+          : 'bg-rose-50 dark:bg-rose-950/20 text-rose-700 dark:text-rose-400';
 
         const getStageStep = (stage: string) => {
           switch (stage) {
@@ -2933,7 +2944,7 @@ export const PropertiesView: React.FC<PropertiesViewProps> = ({
                               );
                             })}
                             <div className="text-xs text-stone-400 dark:text-stone-500 pt-3 text-left">
-                              {propertyDeals.length > 2 ? `+ ${propertyDeals.length - 2} další · ` : ''}2 doporučení z databáze
+                              {propertyDeals.length > 2 ? `+ ${propertyDeals.length - 2} další · ` : ''}{recommendations.length} doporučení z databáze
                             </div>
                           </div>
                         )}
@@ -2956,17 +2967,23 @@ export const PropertiesView: React.FC<PropertiesViewProps> = ({
                           <div className="flex justify-between items-center text-sm">
                             <span className="text-stone-500 dark:text-stone-400 flex items-center gap-1.5">
                               Provize {selectedProperty.commission_pct ? `(${selectedProperty.commission_pct} %)` : ''}
-                              <span className={`text-[10px] font-medium px-1.5 py-0.5 rounded-[4px] uppercase tracking-wider ${
-                                commissionStatus === 'potvrzená' 
-                                  ? 'bg-[#DCF5E7] text-[#0B5C3D]' 
-                                  : 'bg-amber-50 text-amber-700 border border-amber-100'
-                              }`}>
-                                {commissionStatus}
+                              {hasCommission && (
+                                <span className={`text-[10px] font-medium px-1.5 py-0.5 rounded-[4px] uppercase tracking-wider ${
+                                  commissionStatus === 'potvrzená' 
+                                    ? 'bg-[#DCF5E7] text-[#0B5C3D]' 
+                                    : 'bg-amber-50 text-amber-700 border border-amber-100'
+                                }`}>
+                                  {commissionStatus}
+                                </span>
+                              )}
+                            </span>
+                            {hasCommission ? (
+                              <span className="font-medium text-stone-900 dark:text-stone-100 tabular-nums">
+                                {commValNum.toLocaleString('cs-CZ')} Kč
                               </span>
-                            </span>
-                            <span className="font-medium text-stone-900 dark:text-stone-100 tabular-nums">
-                              {commValNum.toLocaleString('cs-CZ')} Kč
-                            </span>
+                            ) : (
+                              <span className="font-medium text-rose-700 dark:text-rose-400">Nenastaveno</span>
+                            )}
                           </div>
                           <div className="flex justify-between items-center text-sm pt-2 border-t border-stone-100 dark:border-stone-900">
                             <span className="text-stone-500 dark:text-stone-400">Náklady celkem</span>
@@ -2974,10 +2991,10 @@ export const PropertiesView: React.FC<PropertiesViewProps> = ({
                               {totalExpenses > 0 ? `–${totalExpenses.toLocaleString('cs-CZ')}` : '0'} Kč
                             </span>
                           </div>
-                          <div className="flex justify-between items-center bg-[#EDF7F1] dark:bg-[#00D991]/8 rounded-lg p-3 mt-2">
-                            <span className="text-xs font-semibold text-[#0B5C3D] dark:text-green-400">Čistá provize</span>
-                            <span className="text-lg font-bold text-[#0B5C3D] dark:text-green-300 tabular-nums">
-                              {netCommission.toLocaleString('cs-CZ')} Kč
+                          <div className={`flex justify-between items-center rounded-lg p-3 mt-2 ${netTone}`}>
+                            <span className="text-xs font-semibold">Čistá provize</span>
+                            <span className="text-lg font-bold tabular-nums">
+                              {hasCommission ? `${netCommission.toLocaleString('cs-CZ')} Kč` : '—'}
                             </span>
                           </div>
                         </div>
@@ -4593,23 +4610,15 @@ export const PropertiesView: React.FC<PropertiesViewProps> = ({
                     </div>
 
                     {/* Net commission block */}
-                    <div className={`flex justify-between items-center rounded-xl p-4 md:p-5 ${
-                      selectedProperty.commission_pct || selectedProperty.commission_val
-                        ? 'bg-[#EDF7F1] dark:bg-[#00D991]/8 text-[#0B5C3D] dark:text-green-300'
-                        : 'bg-stone-100 dark:bg-stone-900 text-stone-500 dark:text-stone-500'
-                    }`}>
+                    <div className={`flex justify-between items-center rounded-xl p-4 md:p-5 ${netTone}`}>
                       <div>
                         <span className="text-sm font-bold block">Čistá provize</span>
                         <span className="text-xs opacity-75 mt-0.5 leading-normal block">
-                          {(selectedProperty.commission_pct || selectedProperty.commission_val) 
-                            ? 'provize − náklady · jen ke čtení' 
-                            : 'doplní se po nastavení provize'}
+                          {hasCommission ? 'provize − náklady · jen ke čtení' : 'doplní se po nastavení provize'}
                         </span>
                       </div>
                       <span className="text-2xl font-bold tabular-nums">
-                        {(selectedProperty.commission_pct || selectedProperty.commission_val) 
-                          ? `${netCommission.toLocaleString('cs-CZ')} Kč` 
-                          : '—'}
+                        {hasCommission ? `${netCommission.toLocaleString('cs-CZ')} Kč` : '—'}
                       </span>
                     </div>
 
