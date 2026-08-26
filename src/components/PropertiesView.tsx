@@ -2901,7 +2901,7 @@ export const PropertiesView: React.FC<PropertiesViewProps> = ({
                       {/* Subcard 1: Základní parametry */}
                       <div className="bg-surface rounded-xl border border-hairline p-5">
                         <div className="flex justify-between items-baseline mb-4">
-                          <span className="text-xs font-semibold text-stone-400 dark:text-stone-500 uppercase tracking-wider">
+                          <span className="text-[15px] font-semibold text-stone-900 dark:text-stone-100">
                             Základní parametry
                           </span>
                           <button 
@@ -2940,7 +2940,7 @@ export const PropertiesView: React.FC<PropertiesViewProps> = ({
                       {/* Subcard 2: Zájemci summary */}
                       <div className="bg-surface rounded-xl border border-hairline p-5">
                         <div className="flex justify-between items-baseline mb-4">
-                          <span className="text-xs font-semibold text-stone-400 dark:text-stone-500 uppercase tracking-wider">
+                          <span className="text-[15px] font-semibold text-stone-900 dark:text-stone-100">
                             Zájemci
                           </span>
                           <button 
@@ -3005,7 +3005,7 @@ export const PropertiesView: React.FC<PropertiesViewProps> = ({
                       {/* Subcard 3: Finance summary */}
                       <div className="bg-surface rounded-xl border border-hairline p-5">
                         <div className="flex justify-between items-baseline mb-4">
-                          <span className="text-xs font-semibold text-stone-400 dark:text-stone-500 uppercase tracking-wider">
+                          <span className="text-[15px] font-semibold text-stone-900 dark:text-stone-100">
                             Finance
                           </span>
                           <button 
@@ -3050,7 +3050,7 @@ export const PropertiesView: React.FC<PropertiesViewProps> = ({
 
                     {/* Right side: Co dál a timeline */}
                     <div className="bg-surface rounded-xl border border-hairline p-5 self-stretch">
-                      <span className="text-xs font-semibold text-stone-400 dark:text-stone-500 uppercase tracking-wider block mb-4">
+                      <span className="text-[15px] font-semibold text-stone-900 dark:text-stone-100 block mb-4">
                         Co dál a aktivita
                       </span>
 
@@ -3147,7 +3147,7 @@ export const PropertiesView: React.FC<PropertiesViewProps> = ({
                         isEditingGeneral ? "border-[#00D991] shadow-sm" : "border-hairline"
                       )}>
                         <div className="flex justify-between items-baseline mb-4">
-                          <span className="text-[14.5px] font-semibold text-stone-900 dark:text-stone-100">
+                          <span className="text-[15px] font-semibold text-stone-900 dark:text-stone-100">
                             Obecné parametry
                           </span>
                           {!isEditingGeneral ? (
@@ -3300,7 +3300,7 @@ export const PropertiesView: React.FC<PropertiesViewProps> = ({
                       isEditingSpecifics ? "border-[#00D991] shadow-sm" : "border-hairline"
                     )}>
                       <div className="flex justify-between items-baseline mb-4">
-                        <span className="text-[14.5px] font-semibold text-stone-900 dark:text-stone-100">
+                        <span className="text-[15px] font-semibold text-stone-900 dark:text-stone-100">
                           {isEditingSpecifics
                             ? `Parametry ${specificsLabel} — úprava`
                             : `Parametry ${specificsLabel}`}
@@ -3906,7 +3906,7 @@ export const PropertiesView: React.FC<PropertiesViewProps> = ({
                       isEditingNote ? "border-[#00D991] shadow-sm" : "border-hairline"
                     )}>
                       <div className="flex justify-between items-baseline mb-4">
-                        <span className="text-[14.5px] font-semibold text-stone-900 dark:text-stone-100">
+                        <span className="text-[15px] font-semibold text-stone-900 dark:text-stone-100">
                           Poznámka
                         </span>
                         {!isEditingNote ? (
@@ -3976,7 +3976,7 @@ export const PropertiesView: React.FC<PropertiesViewProps> = ({
                     {/* Section 4: Dokumenty a historie ceny */}
                     <div className="bg-surface rounded-xl border border-hairline p-5">
                       <div className="flex justify-between items-baseline mb-4">
-                        <span className="text-[14.5px] font-semibold text-stone-900 dark:text-stone-100">
+                        <span className="text-[15px] font-semibold text-stone-900 dark:text-stone-100">
                           Dokumenty
                         </span>
                         <button
@@ -4344,7 +4344,7 @@ export const PropertiesView: React.FC<PropertiesViewProps> = ({
                     {/* Recommendations from CRM Database */}
                     <div className="border border-hairline rounded-xl bg-surface p-5">
                       <div className="flex justify-between items-baseline mb-3">
-                        <span className="text-xs font-semibold text-stone-400 dark:text-stone-500 uppercase tracking-wider">
+                        <span className="text-[15px] font-semibold text-stone-900 dark:text-stone-100">
                           Doporučení z databáze · {recommendations.length}
                         </span>
                         <span className="text-[11px] text-stone-400 dark:text-stone-500">
@@ -4396,7 +4396,7 @@ export const PropertiesView: React.FC<PropertiesViewProps> = ({
                     {/* Commission block */}
                     <div className="bg-surface border border-hairline rounded-xl p-5">
                       <div className="flex justify-between items-center mb-4">
-                        <span className="text-sm font-semibold text-stone-800 dark:text-stone-200">
+                        <span className="text-[15px] font-semibold text-stone-900 dark:text-stone-100">
                           Provize
                         </span>
                         {!isEditingCommission ? (
@@ -4539,7 +4539,7 @@ export const PropertiesView: React.FC<PropertiesViewProps> = ({
                     {/* Expenses list block */}
                     <div className="bg-surface border border-hairline rounded-xl p-5">
                       <div className="flex justify-between items-center mb-3">
-                        <span className="text-sm font-semibold text-stone-800 dark:text-stone-200">
+                        <span className="text-[15px] font-semibold text-stone-900 dark:text-stone-100">
                           Náklady nemovitosti
                         </span>
                         {!isAddingExpense && (
