@@ -63,6 +63,25 @@ All six components use `cfg.overrides.<Name>.cardMode = "column"`. Their stories
 are wide rows (a variant sweep, a label+field stack); in the default grid the
 right-hand exports were clipped. Column gives each export the full card width.
 
+## Surface scale
+
+`src/index.css` defines `--panel` / `--surface` / `--inset` / `--hairline`,
+exposed to Tailwind as `bg-panel`, `bg-surface`, `bg-inset`, `border-hairline`.
+Two facts that are easy to undo by accident:
+
+- **The light step is ~3 L\* and is deliberately that small.** A first pass used
+  the page canvas `#F2F1EC` for `--panel`; it read as a hard band and was
+  rejected. `#F6F5F1` is the tuned value.
+- **There is no separate token for sticky bands.** An earlier `--chrome` token
+  made headers and footers white over a grey body, which striped the dialog.
+  Bands take `bg-panel` like the body they belong to; a hairline divides them.
+  Do not reintroduce a third tone.
+
+The properties **list page** deliberately does NOT use this scale — it keeps its
+own `colors` object (canvas `#F2F1EC`, white cards) because its dark values
+(`#00221F`, `#072C27`) differ from the stone-based ones the dialogs use. Same
+for `DashboardView`. Converting them needs its own pass, not a find-and-replace.
+
 ## Re-sync risks
 
 - **`cssEntry` is a build artefact.** If someone runs the converter without

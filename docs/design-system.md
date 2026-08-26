@@ -82,25 +82,32 @@ na obrazovce dvě zelené věci, jedna z nich je navíc.
 
 Nejdůležitější pravidlo a to, které se nejsnáz poruší. Systém neodděluje obsah
 stínem a **samotné vlasové linky nestačí**: bílá karta na bílé stránce splyne
-v jednu plochu. Odděluje se **odstínem**, na čtyřstupňové škále:
+v jednu plochu. Odděluje se **odstínem** — ale jenom nepatrně. Jsou dvě úrovně
+a díra:
 
 | Token | Role | Světlý | Tmavý |
 |---|---|---|---|
-| `--panel` | podklad, na kterém obsah leží (plátno stránky, tělo dialogu) | `#F2F1EC` | `oklch(21.6% .006 56.043)` |
-| `--chrome` | pevný rám — hlavičky, lišty se záložkami, patičky | `#FFFFFF` | totéž co panel |
-| `--surface` | samotný obsah — karty, panely, vyvýšené ovládací prvky | `#FFFFFF` | `oklch(14.7% .004 49.25)` |
-| `--inset` | blok **uvnitř** karty — prázdné stavy, vnořené sekce | `#F8F7F3` | totéž co panel |
+| `--panel` | podklad — tělo stránky/dialogu **včetně jeho hlavičky, lišty se záložkami a patičky** | `#F6F5F1` | `oklch(21.6% .006 56.043)` |
+| `--surface` | cokoli vyvýšeného — karty, menu, plovoucí ovládací prvky, vstupy | `#FFFFFF` | `oklch(14.7% .004 49.25)` |
+| `--inset` | blok vyříznutý do karty, kterým prosvítá podklad | `#F6F5F1` | totéž co panel |
+| `--hairline` | jediná barva linky v systému | `rgba(11,31,26,0.08)` | `rgba(255,255,255,0.08)` |
 
-Světlý a tmavý režim se pohybují **opačnými směry**: ve světlém se vyvýšený
-prvek zesvětluje, v tmavém ztmavuje. Proto se pracuje s názvy rolí, nikdy
-s konkrétními hodnotami.
+Plátno samotné stránky (`#F2F1EC`) je ještě o stupeň níž — dialog nad ní tedy
+plave.
 
-Spolehlivý tvar obrazovky: `panel` (tělo) → `surface` (karty) → `inset` (co je
-uvnitř karty). Rozdíly jsou schválně malé — jde o to, aby oko věci seskupilo,
-ne aby si všimlo barvy. **Obrazovka nikdy nesmí být jeden plochý odstín.**
+**Rozdíl je asi 3 jednotky L\* a je to schválně.** Stačí to, aby oko věci
+seskupilo, nestačí to na to, aby si všimlo barvy. Když hranice nečte, řešením
+je odstup nebo linka — nikdy větší kontrast.
 
-V Tailwindu jsou dostupné jako `bg-panel`, `bg-chrome`, `bg-surface`,
-`bg-inset` a `border-hairline`.
+**Pruh není třetí odstín.** Přišpendlená hlavička nebo patička bere `panel`
+stejně jako tělo, ke kterému patří; dělí je jenom linka. Bílá–šedá–bílá je
+přesně ta chyba, kvůli které škála existuje. Obrazovka má číst jako jeden klidný
+podklad, na kterém plave obsah.
+
+Světlý a tmavý režim vyvyšují **opačnými směry** (světlý zesvětluje, tmavý
+ztmavuje). Proto se pracuje s názvy rolí, nikdy s konkrétními hodnotami.
+
+V Tailwindu: `bg-panel`, `bg-surface`, `bg-inset`, `border-hairline`.
 
 ---
 

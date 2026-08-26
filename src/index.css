@@ -11,13 +11,13 @@
   --font-mono: 'Geist Mono', monospace;
   --font-heading: 'Hanken Grotesk', sans-serif;
   --font-display: 'Hanken Grotesk', sans-serif;
-  /* Surface scale — how far a thing sits from the background.
-     panel = recessed (behind content) · chrome = sticky frame ·
-     surface = the content itself · inset = a block nested inside surface.
-     Light mode separates them by shade; dark mode already separated them,
-     so its values are exactly what the screens used before. */
+  /* Surface scale — two levels and a hole.
+     panel   = the ground: page/dialog body AND its sticky bands.
+     surface = anything raised off it: cards, menus, floating controls.
+     inset   = a block cut into a card, showing the ground through it.
+     The step is deliberately ~3 L* — enough for the eye to group, not
+     enough to notice as colour. A hairline finishes the separation. */
   --color-panel: var(--panel);
-  --color-chrome: var(--chrome);
   --color-surface: var(--surface);
   --color-inset: var(--inset);
   --color-hairline: var(--hairline);
@@ -88,11 +88,10 @@
   --sidebar-accent-foreground: #000000;
   --sidebar-border: #E8E8E8;
   --sidebar-ring: #00D991;
-  --panel: #F2F1EC;
-  --chrome: #FFFFFF;
+  --panel: #F6F5F1;
   --surface: #FFFFFF;
-  --inset: #F8F7F3;
-  --hairline: rgba(11, 31, 26, 0.1);
+  --inset: #F6F5F1;
+  --hairline: rgba(11, 31, 26, 0.08);
 }
 
 .dark {
@@ -124,10 +123,9 @@
   --sidebar-border: #2C2C2A;
   --sidebar-ring: #FAFAF8;
   --panel: oklch(21.6% 0.006 56.043);
-  --chrome: oklch(21.6% 0.006 56.043);
   --surface: oklch(14.7% 0.004 49.25);
   --inset: oklch(21.6% 0.006 56.043);
-  --hairline: rgba(255, 255, 255, 0.1);
+  --hairline: rgba(255, 255, 255, 0.08);
 }
 
 @layer base {

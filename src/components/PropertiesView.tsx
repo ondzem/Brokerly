@@ -1847,7 +1847,7 @@ export const PropertiesView: React.FC<PropertiesViewProps> = ({
                 className={`flex flex-col items-center justify-center gap-1.5 py-3 rounded-[10px] border transition-all duration-150 cursor-pointer ${
                   active
                     ? 'border-transparent shadow-xs'
-                    : 'bg-white border-stone-250/70 hover:border-stone-300 dark:bg-stone-900 dark:border-white/10'
+                    : 'bg-surface border-hairline hover:border-stone-300'
                 }`}
                 style={{
                   backgroundColor: active ? colors.accent : undefined,
@@ -1877,7 +1877,7 @@ export const PropertiesView: React.FC<PropertiesViewProps> = ({
                 className={`text-[12.5px] font-medium px-3.5 py-1.5 rounded-[10px] transition-all duration-150 border cursor-pointer ${
                   active
                     ? 'border-transparent shadow-xs'
-                    : 'bg-white border-stone-250/70 hover:border-stone-300 dark:bg-stone-900 dark:border-white/10 dark:text-white'
+                    : 'bg-surface border-hairline hover:border-stone-300 dark:text-white'
                 }`}
                 style={{
                   backgroundColor: active ? colors.accent : undefined,
@@ -1901,7 +1901,7 @@ export const PropertiesView: React.FC<PropertiesViewProps> = ({
           <button
             onClick={() => setConfirmReset(true)}
             disabled={draftFilterCount === 0}
-            className="text-[12px] font-medium px-2.5 py-1 rounded-[8px] border border-stone-250/70 dark:border-white/10 text-stone-500 hover:text-stone-800 dark:text-stone-400 dark:hover:text-stone-200 cursor-pointer transition-all duration-150 disabled:opacity-40 disabled:cursor-default"
+            className="text-[12px] font-medium px-2.5 py-1 rounded-[8px] border border-hairline text-stone-500 hover:text-stone-800 dark:text-stone-400 dark:hover:text-stone-200 cursor-pointer transition-all duration-150 disabled:opacity-40 disabled:cursor-default"
           >
             Resetovat filtry
           </button>
@@ -1954,7 +1954,7 @@ export const PropertiesView: React.FC<PropertiesViewProps> = ({
       <div className="hidden md:flex items-center gap-2 py-1">
         {/* Search */}
         <div 
-          className="flex items-center gap-2 bg-white border border-stone-250/70 rounded-[10px] px-3.5 h-9 w-[340px] flex-none shadow-sm dark:bg-stone-900 dark:border-white/10"
+          className="flex items-center gap-2 bg-surface border border-hairline rounded-[10px] px-3.5 h-9 w-[340px] flex-none shadow-sm"
         >
           <Search className="h-3.5 w-3.5" style={{ color: colors.textMuted }} />
           <input
@@ -1971,7 +1971,7 @@ export const PropertiesView: React.FC<PropertiesViewProps> = ({
         <div className="relative flex-none">
           <button
             onClick={() => setIsDesktopFiltersOpen(openFilters(!isDesktopFiltersOpen))}
-            className="flex items-center gap-1.5 px-3.5 h-9 rounded-[10px] border border-stone-250/70 bg-chrome dark:border-white/10 font-medium text-[12.5px] shadow-sm cursor-pointer transition-all duration-150"
+            className="flex items-center gap-1.5 px-3.5 h-9 rounded-[10px] border border-hairline bg-surface font-medium text-[12.5px] shadow-sm cursor-pointer transition-all duration-150"
             style={{ color: colors.textPrimary }}
           >
             <SlidersHorizontal
@@ -2049,7 +2049,7 @@ export const PropertiesView: React.FC<PropertiesViewProps> = ({
           {/* Toggle Filter Button */}
           <button
             onClick={() => setIsMobileFiltersExpanded(openFilters(!isMobileFiltersExpanded))}
-            className="flex items-center justify-center gap-1.5 px-4 h-9 rounded-[10px] border border-stone-250/70 bg-chrome dark:border-white/10 font-medium text-[12.5px] shadow-sm cursor-pointer select-none"
+            className="flex items-center justify-center gap-1.5 px-4 h-9 rounded-[10px] border border-hairline bg-surface font-medium text-[12.5px] shadow-sm cursor-pointer select-none"
             style={{ color: colors.textPrimary }}
           >
             <SlidersHorizontal className="h-3.5 w-3.5" style={{ color: isMobileFiltersExpanded ? colors.accent : colors.textMuted }} />
@@ -2086,7 +2086,7 @@ export const PropertiesView: React.FC<PropertiesViewProps> = ({
 
         {/* Row 2: Full-width Search Input */}
         <div 
-          className="flex items-center gap-2 bg-white border border-stone-250/70 rounded-[10px] px-3.5 h-9 w-full shadow-sm dark:bg-stone-900 dark:border-white/10"
+          className="flex items-center gap-2 bg-surface border border-hairline rounded-[10px] px-3.5 h-9 w-full shadow-sm"
         >
           <Search className="h-3.5 w-3.5" style={{ color: colors.textMuted }} />
           <input
@@ -2656,14 +2656,14 @@ export const PropertiesView: React.FC<PropertiesViewProps> = ({
             <DialogContent showCloseButton={false} className="max-w-6xl lg:max-w-7xl w-[92vw] lg:w-full p-0 overflow-y-auto overflow-x-hidden border border-stone-200 dark:border-stone-850 bg-panel rounded-[14px] max-h-[92vh] !flex !flex-col gap-0 text-left font-sans shadow-2xl mobile-scrollbar-none">
               
               {/* TOP HEADER BAR */}
-              <div className="relative flex flex-col sm:flex-row gap-4 sm:gap-[18px] p-4 sm:p-6 pb-4.5 border-b border-stone-200/60 dark:border-stone-800 bg-chrome items-start sm:items-stretch flex-none">
+              <div className="relative flex flex-col sm:flex-row gap-4 sm:gap-[18px] p-4 sm:p-6 pb-4.5 border-b border-hairline bg-panel items-start sm:items-stretch flex-none">
                 
                 {/* Mobile Actions Row: Renders at the very top on mobile, before the photo to prevent overlap */}
                 <div className="flex sm:hidden justify-end gap-2 w-full mb-2 flex-none">
                   <div className="relative">
                     <button 
                       onClick={() => setIsHeaderMenuOpen(!isHeaderMenuOpen)}
-                      className="w-8 h-8 rounded-lg border border-stone-200 dark:border-stone-800 bg-chrome flex items-center justify-center hover:bg-stone-50 dark:hover:bg-stone-850 transition text-[16px] text-[#0B1F1A] dark:text-stone-100 cursor-pointer shadow-sm"
+                      className="w-8 h-8 rounded-lg border border-hairline bg-surface flex items-center justify-center hover:bg-stone-50 dark:hover:bg-stone-850 transition text-[16px] text-[#0B1F1A] dark:text-stone-100 cursor-pointer shadow-sm"
                     >
                       <MoreHorizontal className="w-4 h-4" />
                     </button>
@@ -2674,7 +2674,7 @@ export const PropertiesView: React.FC<PropertiesViewProps> = ({
                           className="fixed inset-0 z-40" 
                           onClick={() => setIsHeaderMenuOpen(false)}
                         />
-                        <div className="absolute right-0 mt-1.5 w-60 bg-chrome border border-stone-200 dark:border-stone-800 shadow-lg rounded-xl z-50 py-1.5 text-left text-sm font-normal">
+                        <div className="absolute right-0 mt-1.5 w-60 bg-surface border border-hairline shadow-lg rounded-xl z-50 py-1.5 text-left text-sm font-normal">
                           <button
                             onClick={() => {
                               handleDuplicateProperty();
@@ -2704,7 +2704,7 @@ export const PropertiesView: React.FC<PropertiesViewProps> = ({
 
                   <button 
                     onClick={() => setIsDetailOpen(false)}
-                    className="w-8 h-8 rounded-lg border border-stone-200 dark:border-stone-800 bg-chrome flex items-center justify-center hover:bg-stone-50 dark:hover:bg-stone-850 transition cursor-pointer text-[#0B1F1A] dark:text-stone-100 shadow-sm"
+                    className="w-8 h-8 rounded-lg border border-hairline bg-surface flex items-center justify-center hover:bg-stone-50 dark:hover:bg-stone-850 transition cursor-pointer text-[#0B1F1A] dark:text-stone-100 shadow-sm"
                   >
                     <X className="w-3.5 h-3.5" />
                   </button>
@@ -2814,7 +2814,7 @@ export const PropertiesView: React.FC<PropertiesViewProps> = ({
                   <div className="relative">
                     <button 
                       onClick={() => setIsHeaderMenuOpen(!isHeaderMenuOpen)}
-                      className="w-8 h-8 rounded-lg border border-stone-200 dark:border-stone-800 bg-chrome flex items-center justify-center hover:bg-stone-50 dark:hover:bg-stone-850 transition text-[16px] text-[#0B1F1A] dark:text-stone-100 cursor-pointer shadow-sm sm:shadow-none"
+                      className="w-8 h-8 rounded-lg border border-hairline bg-surface flex items-center justify-center hover:bg-stone-50 dark:hover:bg-stone-850 transition text-[16px] text-[#0B1F1A] dark:text-stone-100 cursor-pointer shadow-sm sm:shadow-none"
                     >
                       <MoreHorizontal className="w-4 h-4" />
                     </button>
@@ -2825,7 +2825,7 @@ export const PropertiesView: React.FC<PropertiesViewProps> = ({
                           className="fixed inset-0 z-40" 
                           onClick={() => setIsHeaderMenuOpen(false)}
                         />
-                        <div className="absolute right-0 mt-1.5 w-60 bg-chrome border border-stone-200 dark:border-stone-800 shadow-lg rounded-xl z-50 py-1.5 text-left text-sm font-normal">
+                        <div className="absolute right-0 mt-1.5 w-60 bg-surface border border-hairline shadow-lg rounded-xl z-50 py-1.5 text-left text-sm font-normal">
                           <button
                             onClick={() => {
                               handleDuplicateProperty();
@@ -2855,7 +2855,7 @@ export const PropertiesView: React.FC<PropertiesViewProps> = ({
 
                   <button 
                     onClick={() => setIsDetailOpen(false)}
-                    className="w-8 h-8 rounded-lg border border-stone-200 dark:border-stone-800 bg-chrome flex items-center justify-center hover:bg-stone-50 dark:hover:bg-stone-850 transition cursor-pointer text-[#0B1F1A] dark:text-stone-100 shadow-sm sm:shadow-none"
+                    className="w-8 h-8 rounded-lg border border-hairline bg-surface flex items-center justify-center hover:bg-stone-50 dark:hover:bg-stone-850 transition cursor-pointer text-[#0B1F1A] dark:text-stone-100 shadow-sm sm:shadow-none"
                   >
                     <X className="w-3.5 h-3.5" />
                   </button>
@@ -2863,7 +2863,7 @@ export const PropertiesView: React.FC<PropertiesViewProps> = ({
               </div>
 
               {/* TABS SELECTOR */}
-              <div className="flex gap-4 sm:gap-[26px] px-4 sm:px-6 border-b border-stone-200/60 dark:border-stone-800 bg-chrome overflow-x-auto scrollbar-none flex-none">
+              <div className="flex gap-4 sm:gap-[26px] px-4 sm:px-6 border-b border-hairline bg-panel overflow-x-auto scrollbar-none flex-none">
                 {(['prehled', 'informace', 'zajemci', 'ekonomika'] as const).map((tab) => {
                   const label = 
                     tab === 'prehled' ? 'Přehled' :
@@ -2899,7 +2899,7 @@ export const PropertiesView: React.FC<PropertiesViewProps> = ({
                     <div className="space-y-4">
                       
                       {/* Subcard 1: Základní parametry */}
-                      <div className="bg-surface rounded-xl border border-stone-200/60 dark:border-stone-800 p-5">
+                      <div className="bg-surface rounded-xl border border-hairline p-5">
                         <div className="flex justify-between items-baseline mb-4">
                           <span className="text-xs font-semibold text-stone-400 dark:text-stone-500 uppercase tracking-wider">
                             Základní parametry
@@ -2938,7 +2938,7 @@ export const PropertiesView: React.FC<PropertiesViewProps> = ({
                       </div>
 
                       {/* Subcard 2: Zájemci summary */}
-                      <div className="bg-surface rounded-xl border border-stone-200/60 dark:border-stone-800 p-5">
+                      <div className="bg-surface rounded-xl border border-hairline p-5">
                         <div className="flex justify-between items-baseline mb-4">
                           <span className="text-xs font-semibold text-stone-400 dark:text-stone-500 uppercase tracking-wider">
                             Zájemci
@@ -3003,7 +3003,7 @@ export const PropertiesView: React.FC<PropertiesViewProps> = ({
                       </div>
 
                       {/* Subcard 3: Finance summary */}
-                      <div className="bg-surface rounded-xl border border-stone-200/60 dark:border-stone-800 p-5">
+                      <div className="bg-surface rounded-xl border border-hairline p-5">
                         <div className="flex justify-between items-baseline mb-4">
                           <span className="text-xs font-semibold text-stone-400 dark:text-stone-500 uppercase tracking-wider">
                             Finance
@@ -3021,7 +3021,7 @@ export const PropertiesView: React.FC<PropertiesViewProps> = ({
                               Provize {selectedProperty.commission_pct ? `(${selectedProperty.commission_pct} %)` : ''}
                               <span className={`text-[10px] font-medium px-1.5 py-0.5 rounded-[4px] uppercase tracking-wider ${
                                 commissionStatus === 'potvrzená' 
-                                  ? 'bg-[#DCF5E7] text-[#0B5C3D] border border-green-200' 
+                                  ? 'bg-[#DCF5E7] text-[#0B5C3D]' 
                                   : 'bg-amber-50 text-amber-700 border border-amber-100'
                               }`}>
                                 {commissionStatus}
@@ -3037,7 +3037,7 @@ export const PropertiesView: React.FC<PropertiesViewProps> = ({
                               {totalExpenses > 0 ? `–${totalExpenses.toLocaleString('cs-CZ')}` : '0'} Kč
                             </span>
                           </div>
-                          <div className="flex justify-between items-center bg-[#DCF5E7] dark:bg-green-950/20 rounded-lg p-3 mt-2">
+                          <div className="flex justify-between items-center bg-[#EDF7F1] dark:bg-[#00D991]/8 rounded-lg p-3 mt-2">
                             <span className="text-xs font-semibold text-[#0B5C3D] dark:text-green-400">Čistá provize</span>
                             <span className="text-lg font-bold text-[#0B5C3D] dark:text-green-300 tabular-nums">
                               {netCommission.toLocaleString('cs-CZ')} Kč
@@ -3049,7 +3049,7 @@ export const PropertiesView: React.FC<PropertiesViewProps> = ({
                     </div>
 
                     {/* Right side: Co dál a timeline */}
-                    <div className="bg-surface rounded-xl border border-stone-200/60 dark:border-stone-800 p-5 self-stretch">
+                    <div className="bg-surface rounded-xl border border-hairline p-5 self-stretch">
                       <span className="text-xs font-semibold text-stone-400 dark:text-stone-500 uppercase tracking-wider block mb-4">
                         Co dál a aktivita
                       </span>
@@ -3144,7 +3144,7 @@ export const PropertiesView: React.FC<PropertiesViewProps> = ({
                       {/* Section 1: Obecné parametry */}
                       <div className={cn(
                         "bg-surface rounded-xl transition-all p-5 border",
-                        isEditingGeneral ? "border-[#00D991] shadow-sm" : "border-stone-200/60 dark:border-stone-800"
+                        isEditingGeneral ? "border-[#00D991] shadow-sm" : "border-hairline"
                       )}>
                         <div className="flex justify-between items-baseline mb-4">
                           <span className="text-[14.5px] font-semibold text-stone-900 dark:text-stone-100">
@@ -3297,7 +3297,7 @@ export const PropertiesView: React.FC<PropertiesViewProps> = ({
                     {/* Section 2: Specifické parametry Byt / Dům */}
                     <div className={cn(
                       "bg-surface rounded-xl transition-all p-5 border",
-                      isEditingSpecifics ? "border-[#00D991] shadow-sm" : "border-stone-200/60 dark:border-stone-800"
+                      isEditingSpecifics ? "border-[#00D991] shadow-sm" : "border-hairline"
                     )}>
                       <div className="flex justify-between items-baseline mb-4">
                         <span className="text-[14.5px] font-semibold text-stone-900 dark:text-stone-100">
@@ -3370,7 +3370,7 @@ export const PropertiesView: React.FC<PropertiesViewProps> = ({
                       {/* Condition 0: Kind without its own parameter block — say so instead of
                           showing the dům form and silently discarding what the user types. */}
                       {!hasSpecificsForm ? (
-                        <div className="border border-dashed border-stone-250 dark:border-stone-800 rounded-xl p-5 bg-inset text-left">
+                        <div className="border border-dashed border-hairline rounded-xl p-5 bg-inset text-left">
                           <div className="text-[14.5px] font-semibold text-stone-900 dark:text-stone-100">
                             Pro druh „{editKind}" zatím nejsou samostatné parametry
                           </div>
@@ -3381,7 +3381,7 @@ export const PropertiesView: React.FC<PropertiesViewProps> = ({
                         </div>
                       ) : /* Condition 1: Empty state / Unset values */
                       !isEditingSpecifics && specificsEmpty ? (
-                        <div className="border border-dashed border-stone-250 dark:border-stone-800 rounded-xl p-5 flex justify-between items-center bg-inset">
+                        <div className="border border-dashed border-hairline rounded-xl p-5 flex justify-between items-center bg-inset">
                           <div className="text-left">
                             <div className="text-[14.5px] font-semibold text-stone-900 dark:text-stone-100">
                               Doplňte parametry {specificsLabel}
@@ -3548,7 +3548,7 @@ export const PropertiesView: React.FC<PropertiesViewProps> = ({
 
                           {/* Pronájem — read-only */}
                           {editTransaction === 'pronájem' && (
-                            <div className="border-t border-dashed border-stone-200 dark:border-stone-800 pt-4">
+                            <div className="border-t border-dashed border-hairline pt-4">
                               <span className="text-xs font-semibold text-stone-400 dark:text-stone-500 uppercase tracking-wider">Pronájem</span>
                               <div className="grid grid-cols-2 gap-y-4 gap-x-6 mt-3">
                                 <div className="min-w-0">
@@ -3845,7 +3845,7 @@ export const PropertiesView: React.FC<PropertiesViewProps> = ({
 
                           {/* Pronájem — edit */}
                           {editTransaction === 'pronájem' && (
-                            <div className="border-t border-dashed border-stone-200 dark:border-stone-800 pt-4 space-y-4">
+                            <div className="border-t border-dashed border-hairline pt-4 space-y-4">
                               <span className="text-xs font-semibold text-stone-400 dark:text-stone-500 uppercase tracking-wider">Pronájem</span>
                               <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                                 <div className="space-y-1.5">
@@ -3903,7 +3903,7 @@ export const PropertiesView: React.FC<PropertiesViewProps> = ({
                     {/* Section 3: Poznámka */}
                     <div className={cn(
                       "bg-surface rounded-xl transition-all p-5 border",
-                      isEditingNote ? "border-[#00D991] shadow-sm" : "border-stone-200/60 dark:border-stone-800"
+                      isEditingNote ? "border-[#00D991] shadow-sm" : "border-hairline"
                     )}>
                       <div className="flex justify-between items-baseline mb-4">
                         <span className="text-[14.5px] font-semibold text-stone-900 dark:text-stone-100">
@@ -3941,7 +3941,7 @@ export const PropertiesView: React.FC<PropertiesViewProps> = ({
 
                       {!isEditingNote ? (
                         !editNote ? (
-                          <div className="border border-dashed border-stone-250 dark:border-stone-800 rounded-xl p-5 flex justify-between items-center bg-inset">
+                          <div className="border border-dashed border-hairline rounded-xl p-5 flex justify-between items-center bg-inset">
                             <div className="text-left">
                               <div className="text-[14.5px] font-semibold text-stone-900 dark:text-stone-100">
                                 Přidejte poznámku
@@ -3974,7 +3974,7 @@ export const PropertiesView: React.FC<PropertiesViewProps> = ({
                     </div>
 
                     {/* Section 4: Dokumenty a historie ceny */}
-                    <div className="bg-surface rounded-xl border border-stone-200/60 dark:border-stone-800 p-5">
+                    <div className="bg-surface rounded-xl border border-hairline p-5">
                       <div className="flex justify-between items-baseline mb-4">
                         <span className="text-[14.5px] font-semibold text-stone-900 dark:text-stone-100">
                           Dokumenty
@@ -3998,7 +3998,7 @@ export const PropertiesView: React.FC<PropertiesViewProps> = ({
 
                       <div className="space-y-4">
                         {documents.length === 0 ? (
-                          <div className="border border-dashed border-stone-250 dark:border-stone-800 rounded-xl p-5 flex justify-between items-center gap-3 bg-inset">
+                          <div className="border border-dashed border-hairline rounded-xl p-5 flex justify-between items-center gap-3 bg-inset">
                             <div className="text-left">
                               <div className="text-[14.5px] font-semibold text-stone-900 dark:text-stone-100">
                                 Nahrajte dokumenty
@@ -4088,7 +4088,7 @@ export const PropertiesView: React.FC<PropertiesViewProps> = ({
                   <div className="space-y-6">
                     
                     {/* Stepper progress and pills */}
-                    <div className="flex items-center gap-2 flex-wrap bg-surface border border-stone-200/60 dark:border-stone-800 p-3 rounded-xl">
+                    <div className="flex items-center gap-2 flex-wrap bg-surface border border-hairline p-3 rounded-xl">
                       {(['všichni', 'horký', 'vlažný', 'studený'] as const).map((pill) => {
                         const count = 
                           pill === 'všichni' ? propertyDeals.length :
@@ -4104,7 +4104,7 @@ export const PropertiesView: React.FC<PropertiesViewProps> = ({
                             className={`px-3 py-1.5 rounded-full text-xs font-semibold border transition ${
                               active
                                 ? 'bg-[#00D991] text-[#00221F] border-[#00D991]'
-                                : 'bg-chrome text-stone-800 dark:text-stone-200 border-stone-200 dark:border-stone-800 hover:bg-stone-50'
+                                : 'bg-surface text-stone-800 dark:text-stone-200 border-hairline hover:bg-stone-50'
                             }`}
                           >
                             <span className="capitalize">{pill}</span> · {count}
@@ -4125,7 +4125,7 @@ export const PropertiesView: React.FC<PropertiesViewProps> = ({
                             <Plus className="w-3.5 h-3.5" /> Přidat zájemce
                           </button>
                         ) : (
-                          <div className="flex items-center gap-2 bg-chrome border border-[#00D991] rounded-lg p-1">
+                          <div className="flex items-center gap-2 bg-surface border border-[#00D991] rounded-lg p-1">
                             <input
                               type="text"
                               value={searchBuyerQuery}
@@ -4145,7 +4145,7 @@ export const PropertiesView: React.FC<PropertiesViewProps> = ({
 
                         {/* Dropdown for Autocomplete selection */}
                         {isAddingBuyer && (
-                          <div className="absolute right-0 top-11 bg-surface border border-stone-200 dark:border-stone-800 shadow-xl rounded-lg w-64 z-55 max-h-48 overflow-y-auto p-1.5">
+                          <div className="absolute right-0 top-11 bg-surface border border-hairline shadow-xl rounded-lg w-64 z-55 max-h-48 overflow-y-auto p-1.5">
                             {availableContactsToConnect
                               .filter(c => c.full_name.toLowerCase().includes(searchBuyerQuery.toLowerCase()))
                               .map((c) => (
@@ -4173,7 +4173,7 @@ export const PropertiesView: React.FC<PropertiesViewProps> = ({
 
                     {/* Active buyers table/list block */}
                     {filteredDeals.length === 0 ? (
-                      <div className="border border-dashed border-stone-200 dark:border-stone-800 rounded-xl p-10 text-center flex flex-col items-center gap-2">
+                      <div className="border border-dashed border-hairline rounded-xl p-10 text-center flex flex-col items-center gap-2">
                         <span className="text-xs font-semibold text-stone-900 dark:text-stone-100">
                           Zatím žádní zájemci.
                         </span>
@@ -4188,7 +4188,7 @@ export const PropertiesView: React.FC<PropertiesViewProps> = ({
                         </button>
                       </div>
                     ) : (
-                      <div className="border border-stone-200/60 dark:border-stone-800 rounded-xl bg-surface p-1 md:p-3 space-y-2.5">
+                      <div className="border border-hairline rounded-xl bg-surface p-1 md:p-3 space-y-2.5">
                         {filteredDeals.map((deal) => {
                           const buyerContact = contacts.find((c) => c.id === deal.buyer_id);
                           const isEditingThisDeal = editingDealId === deal.id;
@@ -4342,7 +4342,7 @@ export const PropertiesView: React.FC<PropertiesViewProps> = ({
                     )}
 
                     {/* Recommendations from CRM Database */}
-                    <div className="border border-stone-200/60 dark:border-stone-800 rounded-xl bg-surface p-5">
+                    <div className="border border-hairline rounded-xl bg-surface p-5">
                       <div className="flex justify-between items-baseline mb-3">
                         <span className="text-xs font-semibold text-stone-400 dark:text-stone-500 uppercase tracking-wider">
                           Doporučení z databáze · {recommendations.length}
@@ -4394,7 +4394,7 @@ export const PropertiesView: React.FC<PropertiesViewProps> = ({
                   <div className="space-y-6">
                     
                     {/* Commission block */}
-                    <div className="bg-surface border border-stone-200/60 dark:border-stone-800 rounded-xl p-5">
+                    <div className="bg-surface border border-hairline rounded-xl p-5">
                       <div className="flex justify-between items-center mb-4">
                         <span className="text-sm font-semibold text-stone-800 dark:text-stone-200">
                           Provize
@@ -4433,7 +4433,7 @@ export const PropertiesView: React.FC<PropertiesViewProps> = ({
 
                       {!isEditingCommission ? (
                         !(selectedProperty.commission_pct || selectedProperty.commission_val) ? (
-                          <div className="border border-dashed border-stone-200 dark:border-stone-800 rounded-xl p-7 flex justify-between items-center text-xs">
+                          <div className="border border-dashed border-hairline rounded-xl p-7 flex justify-between items-center text-xs">
                             <div>
                               <div className="font-semibold text-stone-900 dark:text-stone-100">Nastav provizi</div>
                               <div className="text-stone-400 mt-1">Zadejte % nebo Kč — druhé dopočítám z ceny {propertyPrice.toLocaleString('cs-CZ')} Kč.</div>
@@ -4458,7 +4458,7 @@ export const PropertiesView: React.FC<PropertiesViewProps> = ({
                             </span>
                             <span className={`text-[10px] font-semibold px-2 py-0.5 rounded-[4px] uppercase tracking-wider ${
                               commissionStatus === 'potvrzená' 
-                                ? 'bg-[#DCF5E7] text-[#0B5C3D] border border-green-200' 
+                                ? 'bg-[#DCF5E7] text-[#0B5C3D]' 
                                 : 'bg-amber-50 text-amber-700 border border-amber-100'
                             }`}>
                               {commissionStatus}
@@ -4509,7 +4509,7 @@ export const PropertiesView: React.FC<PropertiesViewProps> = ({
                                   onClick={() => setEditCommissionStatus('očekávaná')}
                                   className={`px-3 py-1 rounded-[6px] text-xs font-medium transition ${
                                     editCommissionStatus === 'očekávaná' 
-                                      ? 'bg-chrome text-stone-900 dark:text-white shadow-sm' 
+                                      ? 'bg-surface text-stone-900 dark:text-white shadow-sm' 
                                       : 'text-stone-400 hover:text-stone-600'
                                   }`}
                                 >
@@ -4520,7 +4520,7 @@ export const PropertiesView: React.FC<PropertiesViewProps> = ({
                                   onClick={() => setEditCommissionStatus('potvrzená')}
                                   className={`px-3 py-1 rounded-[6px] text-xs font-medium transition ${
                                     editCommissionStatus === 'potvrzená' 
-                                      ? 'bg-chrome text-[#0B5C3D] dark:text-green-400 shadow-sm' 
+                                      ? 'bg-surface text-[#0B5C3D] dark:text-green-400 shadow-sm' 
                                       : 'text-stone-400 hover:text-stone-600'
                                   }`}
                                 >
@@ -4537,7 +4537,7 @@ export const PropertiesView: React.FC<PropertiesViewProps> = ({
                     </div>
 
                     {/* Expenses list block */}
-                    <div className="bg-surface border border-stone-200/60 dark:border-stone-800 rounded-xl p-5">
+                    <div className="bg-surface border border-hairline rounded-xl p-5">
                       <div className="flex justify-between items-center mb-3">
                         <span className="text-sm font-semibold text-stone-800 dark:text-stone-200">
                           Náklady nemovitosti
@@ -4615,7 +4615,7 @@ export const PropertiesView: React.FC<PropertiesViewProps> = ({
 
                       {/* Expenses List */}
                       {expenseList.length === 0 ? (
-                        <div className="border border-dashed border-stone-200 dark:border-stone-800 rounded-xl p-8 text-center flex flex-col items-center gap-3">
+                        <div className="border border-dashed border-hairline rounded-xl p-8 text-center flex flex-col items-center gap-3">
                           <span className="text-xs text-stone-500 dark:text-stone-400 max-w-sm">
                             Zatím žádné náklady. Přidej inzerci, fotografa nebo home staging, ať víš, co ti zakázka reálně vynese.
                           </span>
@@ -4647,7 +4647,7 @@ export const PropertiesView: React.FC<PropertiesViewProps> = ({
                               </div>
                             </div>
                           ))}
-                          <div className="flex justify-between items-center pt-3 border-t border-stone-200 dark:border-stone-800 font-bold text-stone-900 dark:text-stone-100 mt-2 text-sm">
+                          <div className="flex justify-between items-center pt-3 border-t border-hairline font-bold text-stone-900 dark:text-stone-100 mt-2 text-sm">
                             <span>Celkem náklady</span>
                             <span className="tabular-nums">{totalExpenses.toLocaleString('cs-CZ')} Kč</span>
                           </div>
@@ -4658,7 +4658,7 @@ export const PropertiesView: React.FC<PropertiesViewProps> = ({
                     {/* Net commission block */}
                     <div className={`flex justify-between items-center rounded-xl p-4 md:p-5 ${
                       selectedProperty.commission_pct || selectedProperty.commission_val
-                        ? 'bg-[#DCF5E7] dark:bg-green-950/20 text-[#0B5C3D] dark:text-green-300'
+                        ? 'bg-[#EDF7F1] dark:bg-[#00D991]/8 text-[#0B5C3D] dark:text-green-300'
                         : 'bg-stone-100 dark:bg-stone-900 text-stone-500 dark:text-stone-500'
                     }`}>
                       <div>
@@ -4682,7 +4682,7 @@ export const PropertiesView: React.FC<PropertiesViewProps> = ({
               </div>
 
               {/* FOOTER ACTION BAR */}
-              <div className="px-6 py-4 border-t border-stone-200/60 dark:border-stone-800 bg-surface flex justify-end">
+              <div className="px-6 py-4 border-t border-hairline bg-panel flex justify-end">
                 <Button 
                   onClick={() => setIsDetailOpen(false)}
                   className="bg-stone-900 hover:bg-stone-800 dark:bg-stone-100 dark:hover:bg-stone-200 text-white dark:text-stone-900 font-medium"
@@ -4753,7 +4753,7 @@ export const PropertiesView: React.FC<PropertiesViewProps> = ({
       {/* CREATE DIALOG */}
       <Dialog open={isCreateOpen} onOpenChange={setIsCreateOpen}>
         <DialogContent className="max-w-2xl w-[94vw] sm:w-[90vw] max-h-[100dvh] sm:max-h-[92dvh] h-[100dvh] sm:h-auto overflow-hidden border-stone-200 bg-panel p-0 flex flex-col">
-          <DialogHeader className="shrink-0 px-5 sm:px-7 pt-5 sm:pt-6 pb-4 border-b border-stone-200/80 bg-chrome">
+          <DialogHeader className="shrink-0 px-5 sm:px-7 pt-5 sm:pt-6 pb-4 border-b border-stone-200/80 bg-panel">
             <DialogTitle className="font-display text-xl sm:text-2xl font-normal text-left text-[#141414] dark:text-stone-100">Přidat nemovitost</DialogTitle>
             <DialogDescription className="text-xs text-left text-muted-foreground mt-0.5">
               Vložte odkaz na inzerát, nebo vyplňte údaje ručně.
@@ -4776,7 +4776,7 @@ export const PropertiesView: React.FC<PropertiesViewProps> = ({
                   <button
                     type="button"
                     onClick={() => setCreateMode('import')}
-                    className="w-full text-left rounded-xl bg-surface border border-stone-200 dark:border-stone-800 p-5 hover:border-[#0E8A5F] hover:bg-[#0E8A5F]/[0.04] transition-colors cursor-pointer group"
+                    className="w-full text-left rounded-xl bg-surface border border-hairline p-5 hover:border-[#0E8A5F] hover:bg-[#0E8A5F]/[0.04] transition-colors cursor-pointer group"
                   >
                     <div className="flex items-start gap-4">
                       <div className="w-10 h-10 rounded-lg bg-[#00D991] flex items-center justify-center flex-none">
@@ -4799,7 +4799,7 @@ export const PropertiesView: React.FC<PropertiesViewProps> = ({
                   <button
                     type="button"
                     onClick={() => { setCreateMode('kroky'); setWizardStep(0); }}
-                    className="w-full text-left rounded-xl bg-surface border border-stone-200 dark:border-stone-800 p-5 hover:border-[#0E8A5F] hover:bg-[#0E8A5F]/[0.04] transition-colors cursor-pointer group"
+                    className="w-full text-left rounded-xl bg-surface border border-hairline p-5 hover:border-[#0E8A5F] hover:bg-[#0E8A5F]/[0.04] transition-colors cursor-pointer group"
                   >
                     <div className="flex items-start gap-4">
                       <div className="w-10 h-10 rounded-lg border border-stone-200 dark:border-stone-700 flex items-center justify-center flex-none">
@@ -4863,7 +4863,7 @@ export const PropertiesView: React.FC<PropertiesViewProps> = ({
                   )}
 
                   {importLines.length > 0 && (
-                    <div className="rounded-xl border border-stone-200 dark:border-stone-800 p-4">
+                    <div className="rounded-xl border border-hairline p-4">
                       <div className="text-[11px] font-semibold uppercase tracking-wider text-stone-400 mb-3">
                         Načteno {importLines.length} údajů
                       </div>
@@ -4928,7 +4928,7 @@ export const PropertiesView: React.FC<PropertiesViewProps> = ({
                         key={a.label}
                         type="button"
                         onClick={() => { setIsCreateOpen(false); setSelectedProperty(createdSummary); setIsDetailOpen(true); }}
-                        className="w-full flex items-center justify-between gap-3 rounded-lg border border-stone-200 dark:border-stone-800 px-4 py-3 text-left hover:border-[#0E8A5F] hover:bg-[#0E8A5F]/[0.04] transition-colors cursor-pointer"
+                        className="w-full flex items-center justify-between gap-3 rounded-lg border border-hairline px-4 py-3 text-left hover:border-[#0E8A5F] hover:bg-[#0E8A5F]/[0.04] transition-colors cursor-pointer"
                       >
                         <span className="min-w-0">
                           <span className="block text-[14px] font-medium text-stone-900 dark:text-stone-100">{a.label}</span>
@@ -4996,7 +4996,7 @@ export const PropertiesView: React.FC<PropertiesViewProps> = ({
                                 'flex flex-col gap-2 rounded-lg border p-3.5 text-left transition-colors cursor-pointer',
                                 active
                                   ? 'border-[#0E8A5F] bg-[#0E8A5F]/[0.06]'
-                                  : 'border-stone-200 dark:border-stone-800 hover:border-[#0E8A5F]/60'
+                                  : 'border-hairline hover:border-[#0E8A5F]/60'
                               )}
                             >
                               <Icon className={cn('w-5 h-5', active ? 'text-[#0E8A5F]' : 'text-stone-400')} />
@@ -5015,7 +5015,7 @@ export const PropertiesView: React.FC<PropertiesViewProps> = ({
                               'px-4 h-9 rounded-full border text-[13px] font-medium transition-colors cursor-pointer capitalize',
                               newTransaction === t
                                 ? 'border-[#0E8A5F] bg-[#0E8A5F] text-white'
-                                : 'border-stone-200 dark:border-stone-800 text-stone-500 hover:border-[#0E8A5F]/60'
+                                : 'border-hairline text-stone-500 hover:border-[#0E8A5F]/60'
                             )}
                           >
                             {t}
@@ -5048,8 +5048,8 @@ export const PropertiesView: React.FC<PropertiesViewProps> = ({
                       )}
 
                       {addrOpen && addrSuggestions.length > 0 && (
-                        <div ref={addrListRef} className="rounded-lg border border-stone-200 dark:border-stone-800 overflow-hidden mt-2">
-                          <div className="px-3.5 py-2 bg-stone-50 dark:bg-stone-900 border-b border-stone-200 dark:border-stone-800 text-[11px] font-semibold uppercase tracking-wider text-stone-400">
+                        <div ref={addrListRef} className="rounded-lg border border-hairline overflow-hidden mt-2">
+                          <div className="px-3.5 py-2 bg-stone-50 dark:bg-stone-900 border-b border-hairline text-[11px] font-semibold uppercase tracking-wider text-stone-400">
                             Nalezené adresy — vyberte
                           </div>
                           {addrSuggestions.map((sug) => (
@@ -5097,7 +5097,7 @@ export const PropertiesView: React.FC<PropertiesViewProps> = ({
                                     'px-3.5 h-9 rounded-full border text-[13px] font-medium transition-colors cursor-pointer',
                                     flatLayout === l
                                       ? 'border-[#0E8A5F] bg-[#0E8A5F] text-white'
-                                      : 'border-stone-200 dark:border-stone-800 text-stone-500 hover:border-[#0E8A5F]/60'
+                                      : 'border-hairline text-stone-500 hover:border-[#0E8A5F]/60'
                                   )}
                                 >
                                   {l}
@@ -5459,7 +5459,7 @@ export const PropertiesView: React.FC<PropertiesViewProps> = ({
                   {/* 5. Vlastník */}
                   {WIZARD_STEPS[wizardStep].key === 'vlastnik' && (
                     <div className="bg-surface rounded-xl border border-hairline p-4 sm:p-5 space-y-4">
-                      <div className="flex bg-stone-100 dark:bg-stone-850 p-0.5 rounded-md border border-stone-200 dark:border-stone-800">
+                      <div className="flex bg-stone-100 dark:bg-stone-850 p-0.5 rounded-md border border-hairline">
                         {(['select', 'new'] as const).map((m) => (
                           <button
                             key={m}
@@ -5467,7 +5467,7 @@ export const PropertiesView: React.FC<PropertiesViewProps> = ({
                             onClick={() => setOwnerMode(m)}
                             className={cn(
                               'flex-1 py-1.5 rounded-sm text-xs font-semibold transition-all cursor-pointer',
-                              ownerMode === m ? 'bg-chrome text-stone-900 dark:text-stone-100 shadow-xs' : 'text-stone-500'
+                              ownerMode === m ? 'bg-surface text-stone-900 dark:text-stone-100 shadow-xs' : 'text-stone-500'
                             )}
                           >
                             {m === 'select' ? 'Vybrat z kontaktů' : 'Nový vlastník'}
@@ -5526,7 +5526,7 @@ export const PropertiesView: React.FC<PropertiesViewProps> = ({
               {/* AI Import — the fast path, first thing on screen */}
               <div className="bg-surface border border-hairline p-3.5 rounded-xl space-y-2 text-left">
                 <Label htmlFor="import_url" className="text-xs font-semibold text-stone-700 dark:text-stone-300 flex items-center gap-1.5">
-                  <span className="h-1.5 w-1.5 rounded-full bg-[#16a34a] animate-pulse" />
+                  <span className="h-1.5 w-1.5 rounded-full bg-[#0E8A5F] animate-pulse" />
                   Bleskový import inzerátu pomocí AI
                 </Label>
                 <div className="flex flex-col sm:flex-row gap-2">
@@ -5556,7 +5556,7 @@ export const PropertiesView: React.FC<PropertiesViewProps> = ({
 
               {/* Section 1: Vlastník */}
               <section className="bg-surface rounded-xl border border-hairline p-4 sm:p-5 space-y-4">
-                <h3 className="font-display text-sm font-semibold text-stone-700 dark:text-stone-300 uppercase tracking-wider border-b border-stone-200 dark:border-stone-800 pb-2 flex items-center gap-2">
+                <h3 className="font-display text-sm font-semibold text-stone-700 dark:text-stone-300 uppercase tracking-wider border-b border-hairline pb-2 flex items-center gap-2">
                   <span className="flex h-5 w-5 items-center justify-center rounded-full bg-stone-100 dark:bg-stone-800 text-[10px] font-bold text-stone-600 dark:text-stone-300">1</span>
                   Vlastník
                 </h3>
@@ -5700,7 +5700,7 @@ export const PropertiesView: React.FC<PropertiesViewProps> = ({
 
               {/* Section 2: Nemovitost */}
               <section className="bg-surface rounded-xl border border-hairline p-4 sm:p-5 space-y-4">
-                <h3 className="font-display text-sm font-semibold text-stone-700 dark:text-stone-300 uppercase tracking-wider border-b border-stone-200 dark:border-stone-800 pb-2 flex items-center gap-2">
+                <h3 className="font-display text-sm font-semibold text-stone-700 dark:text-stone-300 uppercase tracking-wider border-b border-hairline pb-2 flex items-center gap-2">
                   <span className="flex h-5 w-5 items-center justify-center rounded-full bg-stone-100 dark:bg-stone-800 text-[10px] font-bold text-stone-600 dark:text-stone-300">2</span>
                   Nemovitost
                 </h3>
@@ -5837,7 +5837,7 @@ export const PropertiesView: React.FC<PropertiesViewProps> = ({
 
               {/* Section 3: Parametry podle druhu */}
               <section className="bg-surface rounded-xl border border-hairline p-4 sm:p-5 space-y-4">
-                <h3 className="font-display text-sm font-semibold text-stone-700 dark:text-stone-300 uppercase tracking-wider border-b border-stone-200 dark:border-stone-800 pb-2 flex items-center gap-2">
+                <h3 className="font-display text-sm font-semibold text-stone-700 dark:text-stone-300 uppercase tracking-wider border-b border-hairline pb-2 flex items-center gap-2">
                   <span className="flex h-5 w-5 items-center justify-center rounded-full bg-stone-100 dark:bg-stone-800 text-[10px] font-bold text-stone-600 dark:text-stone-300">3</span>
                   Parametry — {newKind}
                 </h3>
@@ -6147,7 +6147,7 @@ export const PropertiesView: React.FC<PropertiesViewProps> = ({
                   aria-expanded={showOptional}
                   className={cn(
                     'w-full flex items-center justify-between gap-3 rounded-lg border px-4 py-3 text-left transition-colors cursor-pointer',
-                    'bg-surface border-stone-200 dark:border-stone-800',
+                    'bg-surface border-hairline',
                     'hover:border-[#0E8A5F]/50 hover:bg-stone-100/70 dark:hover:bg-stone-850'
                   )}
                 >
@@ -6227,7 +6227,7 @@ export const PropertiesView: React.FC<PropertiesViewProps> = ({
               )}
             </div>
 
-            <DialogFooter className="mx-0 mb-0 shrink-0 rounded-b-none sm:rounded-b-xl bg-chrome border-t border-stone-200 dark:border-stone-800 px-5 sm:px-7 py-3.5 pb-[max(0.875rem,env(safe-area-inset-bottom))] flex flex-row items-center justify-between gap-3">
+            <DialogFooter className="mx-0 mb-0 shrink-0 rounded-b-none sm:rounded-b-xl bg-panel border-t border-hairline px-5 sm:px-7 py-3.5 pb-[max(0.875rem,env(safe-area-inset-bottom))] flex flex-row items-center justify-between gap-3">
               {createMode === 'kroky' ? (
                 <>
                   <button
