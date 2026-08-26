@@ -1,0 +1,43 @@
+{
+  "projectId": "b144fc07-3563-4575-b373-64df74255128",
+  "shape": "package",
+  "pkg": "brokerly",
+  "globalName": "Brokerly",
+  "buildCmd": "npx vite build && mkdir -p .design-sync/.cache && { cat .design-sync/fonts.css; cat dist/assets/index-*.css; } > .design-sync/.cache/tailwind.css",
+  "srcDir": "src",
+  "tsconfig": "tsconfig.json",
+  "cssEntry": ".design-sync/.cache/tailwind.css",
+  "componentSrcMap": {
+    "Button": "src/components/ui/button.tsx",
+    "Card": "src/components/ui/card.tsx",
+    "Input": "src/components/ui/input.tsx",
+    "Textarea": "src/components/ui/textarea.tsx",
+    "Label": "src/components/ui/label.tsx",
+    "Select": "src/components/ui/select.tsx"
+  },
+  "docsDir": ".design-sync/docs",
+  "guidelinesGlob": [
+    "docs/design-system.md"
+  ],
+  "overrides": {
+    "Button": {
+      "cardMode": "column"
+    },
+    "Card": {
+      "cardMode": "column"
+    },
+    "Input": {
+      "cardMode": "column"
+    },
+    "Label": {
+      "cardMode": "column"
+    },
+    "Select": {
+      "cardMode": "column"
+    },
+    "Textarea": {
+      "cardMode": "column"
+    }
+  },
+  "readmeHeader": ".design-sync/conventions.md"
+}
