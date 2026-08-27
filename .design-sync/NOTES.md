@@ -65,33 +65,45 @@ right-hand exports were clipped. Column gives each export the full card width.
 
 ## Surface scale
 
-`src/index.css` defines `--panel` / `--surface` / `--inset` / `--hairline` /
-`--hairline-soft`, exposed to Tailwind as `bg-panel`, `bg-surface`, `bg-inset`,
-`border-hairline`, `border-hairline-soft`.
+`src/index.css` defines `--panel` / `--surface` / `--inset` / `--hairline`,
+exposed as `bg-panel`, `bg-surface`, `bg-inset`, `border-hairline`.
 
-It was tuned in three passes, and the history matters because each pass fixed a
-real complaint:
+Four passes of tuning, all driven by the same complaint getting narrower:
 
-1. `--panel` started at the page canvas `#F2F1EC`. Too strong — a ~5 L\* step
-   read as a slab, and white sticky bands over it striped the dialog.
-2. Then `#F6F5F1` with the bands folded into the panel. Better, still a visible
-   step.
-3. Now `#FCFCF9` (from a palette study done in Claude Design). The fill is
-   almost white and no longer separates anything — **the line does**, which is
-   why `--hairline` went up to `.14`.
+1. `--panel` = the page canvas `#F2F1EC`. A ~5 L\* step read as a slab, and
+   white sticky bands over it striped the dialog into three tones.
+2. `#F6F5F1`, bands folded into the panel. Better, still a visible step.
+3. `#FCFCF9` with `--hairline` raised to `.14` so the line took over the
+   dividing. Removing the card outline entirely was tried here and reverted in
+   the same pass — on a near-white ground a borderless white card is invisible.
+4. `#FDFDFB` with ONE line weight at `.06`. The fill now separates nothing; the
+   hairline and the gap do all of it.
 
-Removing the card outline entirely was tried at the user's request and reverted
-within the same pass: on a `#FCFCF9` ground a borderless white card is invisible.
-`--hairline-soft` (`.06`) is the answer — an outline that closes the shape
-without drawing itself.
+Do not reintroduce a second line weight or widen the fill step — both were tried
+and rejected. `--hairline-soft` existed briefly in pass 3 and is gone.
 
 The properties **list page** deliberately does NOT use this scale — it keeps its
 own `colors` object (canvas `#F2F1EC`, white cards). Same for `DashboardView`.
 Converting them needs its own pass, not a find-and-replace.
 
 **The app is light-only** since `f0340b3` retired the toggle. The `.dark` block
-and ~338 `dark:` classes are still in the source, dormant. The dark values in the
-scale are kept in step so re-enabling stays cheap, but they are not exercised.
+and ~338 `dark:` classes are still in the source, dormant.
+
+## Two bugs found while checking this, worth remembering
+
+**The accent focus ring read as a green frame.** `@layer base { * { …
+outline-ring/50 } }` paints focus in `--ring` (`#00D991`). Base UI's dialog
+autofocused the first control inside — the property photo — so opening a card
+drew a bright green outline around the photo. Fixed in
+`src/components/ui/dialog.tsx`: the popup takes `tabIndex={-1}` and
+`initialFocus={popupRef}`, so focus parks on the dialog itself. The focus trap
+still works and keyboard users still get rings on real controls.
+
+**The app shell overflowed horizontally at md.** `App.tsx`'s content column is a
+flex item with `md:pl-24`; without `min-w-0` its `min-width: auto` floor kept it
+at content width, so the page scrolled sideways by exactly the padding (863 on a
+768 viewport). Fixed with `min-w-0`. Note the sidebar is `w-16` (64px) while the
+padding is `pl-24` (96px) — the 32px gap is left as-is, it looks deliberate.
 
 ## Re-sync risks
 

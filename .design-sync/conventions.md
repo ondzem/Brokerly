@@ -27,42 +27,37 @@ wrong, and they break dark mode.
 | Surfaces | see **Layering** below — `bg-panel` / `bg-surface` / `bg-inset` |
 | Text | `text-foreground` · `text-card-foreground` · `text-muted-foreground` (secondary) · `text-primary` (accent) · `text-destructive` |
 | Accent | `bg-primary` + `text-primary-foreground` — the green. One primary action per screen. |
-| Lines | `border-hairline` / `border-hairline-soft` (see **Layering**) · `border-input` on form controls |
+| Lines | `border-hairline` — the one weight (see **Layering**) · `border-input` on form controls |
 | Focus | handled inside every control (a 3px `--ring` halo) — don't write focus classes |
 | Radius | `rounded-lg` on controls, `rounded-xl` on cards, `rounded-full` on chips |
 | Type | `font-sans` = Inter (default) · `font-heading` / `font-display` = Hanken Grotesk · `font-mono` = Geist Mono |
 
 ### Layering — the most important rule here
 
-Nothing here separates by shadow. Content separates by a **line and a gap**, on
-a ground that is barely tinted at all. There are two levels and a hole:
+Nothing here separates by shadow, and barely by fill. Content separates by a
+**hairline and a gap**. There are two levels and a hole:
 
 | Class | Role | Light |
 |---|---|---|
-| `bg-panel` | the ground — page/dialog body **and its sticky header, tab bar and footer** | `#FCFCF9` |
+| `bg-panel` | the ground — page/dialog body **and its sticky header, tab bar and footer** | `#FDFDFB` |
 | `bg-surface` | anything raised off it — cards, menus, floating controls, inputs | `#FFFFFF` |
 | `bg-inset` | a block cut into a card — empty states, upload prompts | `#EFF6F1` |
 
-Two line weights, because they do different jobs:
+**One line weight for everything**: `border-hairline`
+(`rgba(11,31,26,.06)`). The outline that closes a card and the divider under a
+tab bar are the same stroke. Do not introduce a heavier one.
 
-| Class | Use |
-|---|---|
-| `border-hairline` (`.14`) | dividers that must read — under a header or tab bar, between table rows |
-| `border-hairline-soft` (`.06`) | the outline that closes a content card — barely there on purpose |
+Three rules:
 
-Three rules about using them:
-
-1. **The fill difference is ~1 L\* and is not the separator.** Panel and surface
-   are almost the same white. What divides a card from the page is its soft
-   outline and the space around it. Do not widen the fill gap to "make it
-   clearer" — that reads as banding and was tried and rejected.
+1. **The fill difference is under 1 L\* and separates nothing on its own.**
+   Panel and surface are all but the same white; the hairline and the space
+   around a block do the work. Widening the fill gap reads as banding — it was
+   tried twice and rejected both times.
 2. **A band is not a third tone.** A sticky header or footer takes `bg-panel`
-   like the body it belongs to, divided by `border-hairline` only.
-   White-on-grey-on-white stripes are the failure mode this scale prevents.
-3. **A card outline stays soft; an interactive block keeps a real border.**
-   Route tiles, selectable rows and anything whose border changes on hover or
-   selection use the full-weight line — there the border carries state, not just
-   containment.
+   like the body it belongs to, divided by a hairline only.
+3. **A border may go heavier only when it carries state.** Route tiles,
+   selectable rows and hover/selection affordances use the accent; plain
+   containment never does.
 
 Two more rules that carry the character and are easy to get backwards:
 

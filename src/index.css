@@ -15,13 +15,12 @@
      panel   = the ground: page/dialog body AND its sticky bands.
      surface = anything raised off it: cards, menus, floating controls.
      inset   = a block cut into a card, showing the ground through it.
-     The step is deliberately ~3 L* — enough for the eye to group, not
-     enough to notice as colour. A hairline finishes the separation. */
+     The fill step is under 1 L* and separates nothing on its own — one
+     hairline weight, used for both card outlines and dividers, does. */
   --color-panel: var(--panel);
   --color-surface: var(--surface);
   --color-inset: var(--inset);
   --color-hairline: var(--hairline);
-  --color-hairline-soft: var(--hairline-soft);
   --color-sidebar-ring: var(--sidebar-ring);
   --color-sidebar-border: var(--sidebar-border);
   --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
@@ -89,11 +88,10 @@
   --sidebar-accent-foreground: #000000;
   --sidebar-border: #E8E8E8;
   --sidebar-ring: #00D991;
-  --panel: #FCFCF9;
+  --panel: #FDFDFB;
   --surface: #FFFFFF;
   --inset: #EFF6F1;
-  --hairline: rgba(11, 31, 26, 0.14);
-  --hairline-soft: rgba(11, 31, 26, 0.06);
+  --hairline: rgba(11, 31, 26, 0.06);
 }
 
 .dark {
@@ -127,8 +125,7 @@
   --panel: oklch(21.6% 0.006 56.043);
   --surface: oklch(14.7% 0.004 49.25);
   --inset: oklch(21.6% 0.006 56.043);
-  --hairline: rgba(255, 255, 255, 0.08);
-  --hairline-soft: rgba(255, 255, 255, 0.05);
+  --hairline: rgba(255, 255, 255, 0.06);
 }
 
 @layer base {

@@ -80,37 +80,29 @@ na obrazovce dvě zelené věci, jedna z nich je navíc.
 
 ## 2b. Vrstvení — čím se věci oddělují
 
-Systém neodděluje obsah stínem ani kontrastem ploch. Odděluje ho **linka
-a mezera** na podkladu, který je od bílé odchýlený jenom nepatrně. Jsou dvě
-úrovně a díra:
+Systém neodděluje obsah stínem a skoro ani plochou. Odděluje ho **vlasová linka
+a mezera**. Jsou dvě úrovně a díra:
 
 | Token | Role | Světlý |
 |---|---|---|
-| `--panel` | podklad — tělo stránky/dialogu **včetně hlavičky, lišty se záložkami a patičky** | `#FCFCF9` |
+| `--panel` | podklad — tělo stránky/dialogu **včetně hlavičky, lišty se záložkami a patičky** | `#FDFDFB` |
 | `--surface` | cokoli vyvýšeného — karty, menu, plovoucí prvky, vstupy | `#FFFFFF` |
 | `--inset` | blok vyříznutý do karty — prázdné stavy, výzvy k nahrání | `#EFF6F1` |
 
-Dvě váhy linky, protože dělají jinou práci:
+**Jediná váha linky:** `--hairline` = `rgba(11,31,26,.06)`. Obrys, který uzavírá
+kartu, a dělítko pod záložkami jsou tentýž tah. Silnější se nezavádí.
 
-| Token | Použití |
-|---|---|
-| `--hairline` `rgba(11,31,26,.14)` | dělítka, která musí číst — pod hlavičkou, pod záložkami, mezi řádky tabulky |
-| `--hairline-soft` `rgba(11,31,26,.06)` | obrys, který uzavírá kartu — schválně sotva viditelný |
-
-**Rozdíl ploch je asi 1 jednotka L\* a není to dělítko.** Panel a surface jsou
-skoro stejná bílá. Kartu od stránky dělí její jemný obrys a prostor kolem ní.
-Nezvětšovat rozdíl ploch ve snaze „to zvýraznit" — čte to pak jako pruhy a bylo
-to vyzkoušené a zamítnuté.
+**Rozdíl ploch je pod 1 jednotku L\* a sám o sobě nic nedělí.** Panel a surface
+jsou skoro stejná bílá; práci odvede linka a prostor kolem bloku. Zvětšení
+rozdílu ploch čte jako pruhy — bylo to zkoušeno dvakrát a dvakrát zamítnuto.
 
 **Pruh není třetí odstín.** Přišpendlená hlavička nebo patička bere `panel`
-stejně jako tělo, ke kterému patří; dělí je jenom `--hairline`.
+stejně jako tělo, ke kterému patří.
 
-**Obrys karty zůstává jemný, interaktivní blok si nechává plnou linku.**
-Rozcestníkové dlaždice a vybíratelné řádky používají plnou váhu — jejich
-ohraničení nese stav, ne jenom ohraničení.
+**Silnější ohraničení jen tam, kde nese stav.** Rozcestníkové dlaždice,
+vybíratelné řádky a hover používají akcent; prosté ohraničení nikdy.
 
-V Tailwindu: `bg-panel`, `bg-surface`, `bg-inset`, `border-hairline`,
-`border-hairline-soft`.
+V Tailwindu: `bg-panel`, `bg-surface`, `bg-inset`, `border-hairline`.
 
 ---
 

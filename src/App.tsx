@@ -521,7 +521,7 @@ export default function App() {
 
       {/* Main Layout Area */}
       <div 
-        className="flex-grow flex flex-col min-h-screen pl-0 md:pl-24 pt-16 md:pt-0"
+        className="flex-grow min-w-0 flex flex-col min-h-screen pl-0 md:pl-24 pt-16 md:pt-0"
         style={{ backgroundColor: theme === 'light' ? '#F2F1EC' : '#00221F' }}
       >
         {/* Main Container */}
