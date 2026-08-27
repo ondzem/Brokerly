@@ -4719,6 +4719,7 @@ export const PropertiesView: React.FC<PropertiesViewProps> = ({
                     </p>
                   </div>
 
+                  <div className="space-y-2">
                   <button
                     type="button"
                     onClick={() => setCreateMode('import')}
@@ -4760,6 +4761,7 @@ export const PropertiesView: React.FC<PropertiesViewProps> = ({
                       <ChevronRight className="w-4 h-4 text-stone-300 group-hover:text-[#0E8A5F] transition-colors mt-1 ml-auto flex-none" />
                     </div>
                   </button>
+                  </div>
 
                   <button
                     type="button"
@@ -5851,6 +5853,16 @@ export const PropertiesView: React.FC<PropertiesViewProps> = ({
                           </SelectContent>
                         </Select>
                       </div>
+                      <div className="space-y-1.5">
+                        <Label htmlFor="flat_parking">Parkování</Label>
+                        <Input
+                          id="flat_parking"
+                          value={flatParking}
+                          onChange={(e) => setFlatParking(e.target.value)}
+                          placeholder="např. garážové stání"
+                          className="border-stone-200 h-10 text-xs"
+                        />
+                      </div>
                     </div>
 
                     <div className="space-y-1.5">
@@ -6113,21 +6125,34 @@ export const PropertiesView: React.FC<PropertiesViewProps> = ({
 
                 {showOptional && (
                   <div className="space-y-4 pt-5">
-                    <div className="space-y-1.5">
-                      <Label htmlFor="new_photo">Hlavní fotografie (URL)</Label>
-                      <div className="flex gap-2 items-center">
-                        <Input
-                          id="new_photo"
-                          type="text"
-                          value={photoUrl}
-                          onChange={(e) => setPhotoUrl(e.target.value)}
-                          placeholder="https://…"
-                          className="border-stone-200 h-10 text-xs flex-1"
-                        />
-                        {photoUrl && /^https?:\/\//i.test(photoUrl) && (
-                          <img src={photoUrl} alt="Náhled" className="h-10 w-10 rounded object-cover border border-stone-200 shrink-0" />
-                        )}
-                      </div>
+                    <div className="space-y-2">
+                      <Label>Fotky</Label>
+                      <p className="text-[12px] text-stone-500 dark:text-stone-400 leading-relaxed">
+                        Každou fotku ořízněte na stejný formát 3:2 — v galerii i na kartě pak
+                        všechny drží jednu velikost. První je hlavní, pořadí změníte později
+                        přetažením v galerii.
+                      </p>
+                      <PhotoUploader
+                        photos={photoUrls}
+                        onChange={setPhotoUrls}
+                        onPendingChange={setPhotoPending}
+                      />
+                      {photoPending && (
+                        <div className="rounded-lg border border-amber-300 bg-amber-50 dark:border-amber-800/60 dark:bg-amber-950/30 px-3.5 py-3 flex gap-2.5">
+                          <AlertTriangle className="w-4 h-4 text-amber-600 shrink-0 mt-px" />
+                          <div className="text-[12.5px] leading-relaxed text-amber-900 dark:text-amber-200">
+                            <span className="font-semibold">Fotka zatím není přidaná.</span>{' '}
+                            Potvrďte ořez tlačítkem <span className="font-semibold">Použít výřez</span>,
+                            jinak se s nemovitostí neuloží.
+                          </div>
+                        </div>
+                      )}
+                      {photoUrl && /^https?:\/\//i.test(photoUrl) && (
+                        <div className="flex items-center gap-2 text-[11.5px] text-stone-400">
+                          <img src={photoUrl} alt="Hlavní fotka z inzerátu" className="h-8 w-8 rounded object-cover border border-hairline shrink-0" />
+                          Hlavní fotka z importovaného inzerátu — uloží se spolu s nahranými.
+                        </div>
+                      )}
                     </div>
 
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -6153,6 +6178,17 @@ export const PropertiesView: React.FC<PropertiesViewProps> = ({
                           className="border-stone-200 h-10 text-xs"
                         />
                       </div>
+                    </div>
+
+                    <div className="space-y-1.5">
+                      <Label htmlFor="new_handover">Možný termín předání</Label>
+                      <Input
+                        id="new_handover"
+                        value={newHandover}
+                        onChange={(e) => setNewHandover(e.target.value)}
+                        placeholder="např. ihned, po dohodě, 3/2026"
+                        className="border-stone-200 h-10 text-xs"
+                      />
                     </div>
 
                     <div className="space-y-1.5">
