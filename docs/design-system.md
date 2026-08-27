@@ -80,34 +80,37 @@ na obrazovce dvě zelené věci, jedna z nich je navíc.
 
 ## 2b. Vrstvení — čím se věci oddělují
 
-Nejdůležitější pravidlo a to, které se nejsnáz poruší. Systém neodděluje obsah
-stínem a **samotné vlasové linky nestačí**: bílá karta na bílé stránce splyne
-v jednu plochu. Odděluje se **odstínem** — ale jenom nepatrně. Jsou dvě úrovně
-a díra:
+Systém neodděluje obsah stínem ani kontrastem ploch. Odděluje ho **linka
+a mezera** na podkladu, který je od bílé odchýlený jenom nepatrně. Jsou dvě
+úrovně a díra:
 
-| Token | Role | Světlý | Tmavý |
-|---|---|---|---|
-| `--panel` | podklad — tělo stránky/dialogu **včetně jeho hlavičky, lišty se záložkami a patičky** | `#F6F5F1` | `oklch(21.6% .006 56.043)` |
-| `--surface` | cokoli vyvýšeného — karty, menu, plovoucí ovládací prvky, vstupy | `#FFFFFF` | `oklch(14.7% .004 49.25)` |
-| `--inset` | blok vyříznutý do karty, kterým prosvítá podklad | `#F6F5F1` | totéž co panel |
-| `--hairline` | jediná barva linky v systému | `rgba(11,31,26,0.08)` | `rgba(255,255,255,0.08)` |
+| Token | Role | Světlý |
+|---|---|---|
+| `--panel` | podklad — tělo stránky/dialogu **včetně hlavičky, lišty se záložkami a patičky** | `#FCFCF9` |
+| `--surface` | cokoli vyvýšeného — karty, menu, plovoucí prvky, vstupy | `#FFFFFF` |
+| `--inset` | blok vyříznutý do karty — prázdné stavy, výzvy k nahrání | `#EFF6F1` |
 
-Plátno samotné stránky (`#F2F1EC`) je ještě o stupeň níž — dialog nad ní tedy
-plave.
+Dvě váhy linky, protože dělají jinou práci:
 
-**Rozdíl je asi 3 jednotky L\* a je to schválně.** Stačí to, aby oko věci
-seskupilo, nestačí to na to, aby si všimlo barvy. Když hranice nečte, řešením
-je odstup nebo linka — nikdy větší kontrast.
+| Token | Použití |
+|---|---|
+| `--hairline` `rgba(11,31,26,.14)` | dělítka, která musí číst — pod hlavičkou, pod záložkami, mezi řádky tabulky |
+| `--hairline-soft` `rgba(11,31,26,.06)` | obrys, který uzavírá kartu — schválně sotva viditelný |
+
+**Rozdíl ploch je asi 1 jednotka L\* a není to dělítko.** Panel a surface jsou
+skoro stejná bílá. Kartu od stránky dělí její jemný obrys a prostor kolem ní.
+Nezvětšovat rozdíl ploch ve snaze „to zvýraznit" — čte to pak jako pruhy a bylo
+to vyzkoušené a zamítnuté.
 
 **Pruh není třetí odstín.** Přišpendlená hlavička nebo patička bere `panel`
-stejně jako tělo, ke kterému patří; dělí je jenom linka. Bílá–šedá–bílá je
-přesně ta chyba, kvůli které škála existuje. Obrazovka má číst jako jeden klidný
-podklad, na kterém plave obsah.
+stejně jako tělo, ke kterému patří; dělí je jenom `--hairline`.
 
-Světlý a tmavý režim vyvyšují **opačnými směry** (světlý zesvětluje, tmavý
-ztmavuje). Proto se pracuje s názvy rolí, nikdy s konkrétními hodnotami.
+**Obrys karty zůstává jemný, interaktivní blok si nechává plnou linku.**
+Rozcestníkové dlaždice a vybíratelné řádky používají plnou váhu — jejich
+ohraničení nese stav, ne jenom ohraničení.
 
-V Tailwindu: `bg-panel`, `bg-surface`, `bg-inset`, `border-hairline`.
+V Tailwindu: `bg-panel`, `bg-surface`, `bg-inset`, `border-hairline`,
+`border-hairline-soft`.
 
 ---
 

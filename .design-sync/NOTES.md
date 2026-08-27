@@ -65,22 +65,33 @@ right-hand exports were clipped. Column gives each export the full card width.
 
 ## Surface scale
 
-`src/index.css` defines `--panel` / `--surface` / `--inset` / `--hairline`,
-exposed to Tailwind as `bg-panel`, `bg-surface`, `bg-inset`, `border-hairline`.
-Two facts that are easy to undo by accident:
+`src/index.css` defines `--panel` / `--surface` / `--inset` / `--hairline` /
+`--hairline-soft`, exposed to Tailwind as `bg-panel`, `bg-surface`, `bg-inset`,
+`border-hairline`, `border-hairline-soft`.
 
-- **The light step is ~3 L\* and is deliberately that small.** A first pass used
-  the page canvas `#F2F1EC` for `--panel`; it read as a hard band and was
-  rejected. `#F6F5F1` is the tuned value.
-- **There is no separate token for sticky bands.** An earlier `--chrome` token
-  made headers and footers white over a grey body, which striped the dialog.
-  Bands take `bg-panel` like the body they belong to; a hairline divides them.
-  Do not reintroduce a third tone.
+It was tuned in three passes, and the history matters because each pass fixed a
+real complaint:
+
+1. `--panel` started at the page canvas `#F2F1EC`. Too strong — a ~5 L\* step
+   read as a slab, and white sticky bands over it striped the dialog.
+2. Then `#F6F5F1` with the bands folded into the panel. Better, still a visible
+   step.
+3. Now `#FCFCF9` (from a palette study done in Claude Design). The fill is
+   almost white and no longer separates anything — **the line does**, which is
+   why `--hairline` went up to `.14`.
+
+Removing the card outline entirely was tried at the user's request and reverted
+within the same pass: on a `#FCFCF9` ground a borderless white card is invisible.
+`--hairline-soft` (`.06`) is the answer — an outline that closes the shape
+without drawing itself.
 
 The properties **list page** deliberately does NOT use this scale — it keeps its
-own `colors` object (canvas `#F2F1EC`, white cards) because its dark values
-(`#00221F`, `#072C27`) differ from the stone-based ones the dialogs use. Same
-for `DashboardView`. Converting them needs its own pass, not a find-and-replace.
+own `colors` object (canvas `#F2F1EC`, white cards). Same for `DashboardView`.
+Converting them needs its own pass, not a find-and-replace.
+
+**The app is light-only** since `f0340b3` retired the toggle. The `.dark` block
+and ~338 `dark:` classes are still in the source, dormant. The dark values in the
+scale are kept in step so re-enabling stays cheap, but they are not exercised.
 
 ## Re-sync risks
 

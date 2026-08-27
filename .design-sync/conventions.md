@@ -12,9 +12,10 @@ No provider, no theme object, no wrapper. Import a component and render it.
 Everything is driven by CSS custom properties defined on `:root` in the
 stylesheet, so the only requirement is that `styles.css` is loaded.
 
-**Dark mode** is a `.dark` class on an ancestor (usually `<html>`), which swaps
-the same custom properties. It is not a prop and not a context. To design a dark
-screen, put the whole thing inside `<div className="dark bg-background">`.
+**Design for light.** The product runs light-only — the dark-mode toggle was
+retired. A `.dark` class still swaps the same custom properties if it is put on
+an ancestor, but nothing in the app sets it, so treat dark as dormant rather
+than as a mode to design for.
 
 ### The styling idiom
 
@@ -23,41 +24,45 @@ rather than fixed palette values. **Always reach for the token utility, never a
 raw Tailwind colour** — `bg-card` is right, `bg-white` and `bg-slate-50` are
 wrong, and they break dark mode.
 
-| Surfaces | see **Layering** below — `bg-panel` / `bg-chrome` / `bg-surface` / `bg-inset` |
+| Surfaces | see **Layering** below — `bg-panel` / `bg-surface` / `bg-inset` |
 | Text | `text-foreground` · `text-card-foreground` · `text-muted-foreground` (secondary) · `text-primary` (accent) · `text-destructive` |
 | Accent | `bg-primary` + `text-primary-foreground` — the green. One primary action per screen. |
-| Lines | `border-border` · `border-input` (form controls) · `ring-foreground/10` (the card hairline) |
+| Lines | `border-hairline` / `border-hairline-soft` (see **Layering**) · `border-input` on form controls |
 | Focus | handled inside every control (a 3px `--ring` halo) — don't write focus classes |
 | Radius | `rounded-lg` on controls, `rounded-xl` on cards, `rounded-full` on chips |
 | Type | `font-sans` = Inter (default) · `font-heading` / `font-display` = Hanken Grotesk · `font-mono` = Geist Mono |
 
 ### Layering — the most important rule here
 
-Nothing here separates by shadow, and hairlines alone are not enough: a white
-card on a white page reads as one flat sheet. Content separates by **shade** —
-but only just. There are two levels and a hole:
+Nothing here separates by shadow. Content separates by a **line and a gap**, on
+a ground that is barely tinted at all. There are two levels and a hole:
 
-| Class | Role | Light | Dark |
-|---|---|---|---|
-| `bg-panel` | the ground — page/dialog body **and its sticky header, tab bar and footer** | `#F6F5F1` | stone-900 |
-| `bg-surface` | anything raised off it — cards, menus, floating controls, inputs | white | stone-950 |
-| `bg-inset` | a block cut into a card, showing the ground through it | `#F6F5F1` | stone-900 |
+| Class | Role | Light |
+|---|---|---|
+| `bg-panel` | the ground — page/dialog body **and its sticky header, tab bar and footer** | `#FCFCF9` |
+| `bg-surface` | anything raised off it — cards, menus, floating controls, inputs | `#FFFFFF` |
+| `bg-inset` | a block cut into a card — empty states, upload prompts | `#EFF6F1` |
 
-Pair them with `border-hairline` — the single border colour in this system.
+Two line weights, because they do different jobs:
 
-Two rules about how to use them:
+| Class | Use |
+|---|---|
+| `border-hairline` (`.14`) | dividers that must read — under a header or tab bar, between table rows |
+| `border-hairline-soft` (`.06`) | the outline that closes a content card — barely there on purpose |
 
-1. **The step is ~3 L*, and that is on purpose.** Enough for the eye to group
-   things, not enough to notice as colour. Never widen it to "make it clearer";
-   if a boundary is not reading, the fix is spacing or a hairline, not more
-   contrast.
+Three rules about using them:
+
+1. **The fill difference is ~1 L\* and is not the separator.** Panel and surface
+   are almost the same white. What divides a card from the page is its soft
+   outline and the space around it. Do not widen the fill gap to "make it
+   clearer" — that reads as banding and was tried and rejected.
 2. **A band is not a third tone.** A sticky header or footer takes `bg-panel`
-   like the body it belongs to, divided by a hairline only. White-on-grey-on-white
-   stripes are the failure mode this scale exists to prevent — a screen should
-   read as one calm ground with content floating on it.
-
-Light and dark raise a surface in opposite directions (light gets lighter, dark
-gets darker), so always name the role and let the theme resolve it.
+   like the body it belongs to, divided by `border-hairline` only.
+   White-on-grey-on-white stripes are the failure mode this scale prevents.
+3. **A card outline stays soft; an interactive block keeps a real border.**
+   Route tiles, selectable rows and anything whose border changes on hover or
+   selection use the full-weight line — there the border carries state, not just
+   containment.
 
 Two more rules that carry the character and are easy to get backwards:
 

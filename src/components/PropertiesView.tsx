@@ -2847,7 +2847,7 @@ export const PropertiesView: React.FC<PropertiesViewProps> = ({
                     <div className="space-y-4">
                       
                       {/* Subcard 1: Základní parametry */}
-                      <div className="bg-surface rounded-xl border border-hairline p-5">
+                      <div className="bg-surface rounded-xl border border-hairline-soft p-5">
                         <div className="flex justify-between items-baseline mb-4">
                           <span className="text-[15px] font-semibold text-stone-900 dark:text-stone-100">
                             Základní parametry
@@ -2886,7 +2886,7 @@ export const PropertiesView: React.FC<PropertiesViewProps> = ({
                       </div>
 
                       {/* Subcard 2: Zájemci summary */}
-                      <div className="bg-surface rounded-xl border border-hairline p-5">
+                      <div className="bg-surface rounded-xl border border-hairline-soft p-5">
                         <div className="flex justify-between items-baseline mb-4">
                           <span className="text-[15px] font-semibold text-stone-900 dark:text-stone-100">
                             Zájemci
@@ -2951,7 +2951,7 @@ export const PropertiesView: React.FC<PropertiesViewProps> = ({
                       </div>
 
                       {/* Subcard 3: Finance summary */}
-                      <div className="bg-surface rounded-xl border border-hairline p-5">
+                      <div className="bg-surface rounded-xl border border-hairline-soft p-5">
                         <div className="flex justify-between items-baseline mb-4">
                           <span className="text-[15px] font-semibold text-stone-900 dark:text-stone-100">
                             Finance
@@ -3003,7 +3003,7 @@ export const PropertiesView: React.FC<PropertiesViewProps> = ({
                     </div>
 
                     {/* Right side: Co dál a timeline */}
-                    <div className="bg-surface rounded-xl border border-hairline p-5 self-stretch">
+                    <div className="bg-surface rounded-xl border border-hairline-soft p-5 self-stretch">
                       <span className="text-[15px] font-semibold text-stone-900 dark:text-stone-100 block mb-4">
                         Co dál a aktivita
                       </span>
@@ -3928,7 +3928,7 @@ export const PropertiesView: React.FC<PropertiesViewProps> = ({
                     </div>
 
                     {/* Section 4: Dokumenty a historie ceny */}
-                    <div className="bg-surface rounded-xl border border-hairline p-5">
+                    <div className="bg-surface rounded-xl border border-hairline-soft p-5">
                       <div className="flex justify-between items-baseline mb-4">
                         <span className="text-[15px] font-semibold text-stone-900 dark:text-stone-100">
                           Dokumenty
@@ -4042,7 +4042,7 @@ export const PropertiesView: React.FC<PropertiesViewProps> = ({
                   <div className="space-y-6">
                     
                     {/* Stepper progress and pills */}
-                    <div className="flex items-center gap-2 flex-wrap bg-surface border border-hairline p-3 rounded-xl">
+                    <div className="flex items-center gap-2 flex-wrap bg-surface border border-hairline-soft p-3 rounded-xl">
                       {(['všichni', 'horký', 'vlažný', 'studený'] as const).map((pill) => {
                         const count = 
                           pill === 'všichni' ? propertyDeals.length :
@@ -4142,7 +4142,7 @@ export const PropertiesView: React.FC<PropertiesViewProps> = ({
                         </button>
                       </div>
                     ) : (
-                      <div className="border border-hairline rounded-xl bg-surface p-1 md:p-3 space-y-2.5">
+                      <div className="rounded-xl border border-hairline-soft bg-surface p-1 md:p-3 space-y-2.5">
                         {filteredDeals.map((deal) => {
                           const buyerContact = contacts.find((c) => c.id === deal.buyer_id);
                           const isEditingThisDeal = editingDealId === deal.id;
@@ -4296,7 +4296,7 @@ export const PropertiesView: React.FC<PropertiesViewProps> = ({
                     )}
 
                     {/* Recommendations from CRM Database */}
-                    <div className="border border-hairline rounded-xl bg-surface p-5">
+                    <div className="rounded-xl border border-hairline-soft bg-surface p-5">
                       <div className="flex justify-between items-baseline mb-3">
                         <span className="text-[15px] font-semibold text-stone-900 dark:text-stone-100">
                           Doporučení z databáze · {recommendations.length}
@@ -4348,7 +4348,7 @@ export const PropertiesView: React.FC<PropertiesViewProps> = ({
                   <div className="space-y-6">
                     
                     {/* Commission block */}
-                    <div className="bg-surface border border-hairline rounded-xl p-5">
+                    <div className="bg-surface rounded-xl border border-hairline-soft p-5">
                       <div className="flex justify-between items-center mb-4">
                         <span className="text-[15px] font-semibold text-stone-900 dark:text-stone-100">
                           Provize
@@ -4491,7 +4491,7 @@ export const PropertiesView: React.FC<PropertiesViewProps> = ({
                     </div>
 
                     {/* Expenses list block */}
-                    <div className="bg-surface border border-hairline rounded-xl p-5">
+                    <div className="bg-surface rounded-xl border border-hairline-soft p-5">
                       <div className="flex justify-between items-center mb-3">
                         <span className="text-[15px] font-semibold text-stone-900 dark:text-stone-100">
                           Náklady nemovitosti
@@ -4773,7 +4773,7 @@ export const PropertiesView: React.FC<PropertiesViewProps> = ({
 
               {/* ───────── IMPORT ───────── */}
               {createMode === 'import' && (
-                <div className="bg-surface rounded-xl border border-hairline p-4 sm:p-5 space-y-5">
+                <div className="bg-surface rounded-xl border border-hairline-soft p-4 sm:p-5 space-y-5">
                   <div>
                     <h3 className="font-display text-[19px] font-semibold text-stone-900 dark:text-stone-100">Vložte odkaz na inzerát</h3>
                     <p className="text-[13px] text-stone-500 dark:text-stone-400 mt-1">
@@ -4851,7 +4851,7 @@ export const PropertiesView: React.FC<PropertiesViewProps> = ({
 
               {/* ───────── HOTOVO ───────── */}
               {createMode === 'hotovo' && createdSummary && (
-                <div className="bg-surface rounded-xl border border-hairline p-4 sm:p-5 space-y-6">
+                <div className="bg-surface rounded-xl border border-hairline-soft p-4 sm:p-5 space-y-6">
                   <div className="w-12 h-12 rounded-full bg-[#00D991] flex items-center justify-center">
                     <CheckCircle2 className="w-6 h-6 text-[#00221F]" strokeWidth={2.5} />
                   </div>
@@ -4928,7 +4928,7 @@ export const PropertiesView: React.FC<PropertiesViewProps> = ({
 
                   {/* 1. Druh + transakce */}
                   {WIZARD_STEPS[wizardStep].key === 'druh' && (
-                    <div className="bg-surface rounded-xl border border-hairline p-4 sm:p-5 space-y-4">
+                    <div className="bg-surface rounded-xl border border-hairline-soft p-4 sm:p-5 space-y-4">
                       <div className="grid grid-cols-2 sm:grid-cols-3 gap-2.5">
                         {KIND_OPTIONS.map((opt) => {
                           const active = newKind === opt.id;
@@ -4973,7 +4973,7 @@ export const PropertiesView: React.FC<PropertiesViewProps> = ({
 
                   {/* 2. Adresa */}
                   {WIZARD_STEPS[wizardStep].key === 'adresa' && (
-                    <div className="bg-surface rounded-xl border border-hairline p-4 sm:p-5 space-y-1.5">
+                    <div className="bg-surface rounded-xl border border-hairline-soft p-4 sm:p-5 space-y-1.5">
                       <Label htmlFor="wizard_address">Adresa *</Label>
                       <Input
                         id="wizard_address"
@@ -5028,7 +5028,7 @@ export const PropertiesView: React.FC<PropertiesViewProps> = ({
 
                   {/* 3. Parametry podle druhu */}
                   {WIZARD_STEPS[wizardStep].key === 'parametry' && (
-                    <div className="bg-surface rounded-xl border border-hairline p-4 sm:p-5 space-y-4">
+                    <div className="bg-surface rounded-xl border border-hairline-soft p-4 sm:p-5 space-y-4">
                       {newKind === 'byt' && (
                         <>
                           <div className="space-y-1.5">
@@ -5342,7 +5342,7 @@ export const PropertiesView: React.FC<PropertiesViewProps> = ({
 
                   {/* 4. Fotky — nepovinný krok */}
                   {WIZARD_STEPS[wizardStep].key === 'fotky' && (
-                    <div className="bg-surface rounded-xl border border-hairline p-4 sm:p-5 space-y-3">
+                    <div className="bg-surface rounded-xl border border-hairline-soft p-4 sm:p-5 space-y-3">
                       {photoWarning && photoPending && (
                         <div className="rounded-lg border border-amber-300 bg-amber-50 dark:border-amber-800/60 dark:bg-amber-950/30 px-3.5 py-3 flex gap-2.5">
                           <AlertTriangle className="w-4 h-4 text-amber-600 shrink-0 mt-px" />
@@ -5374,7 +5374,7 @@ export const PropertiesView: React.FC<PropertiesViewProps> = ({
                   )}
 
                   {WIZARD_STEPS[wizardStep].key === 'cena' && (
-                    <div className="bg-surface rounded-xl border border-hairline p-4 sm:p-5 space-y-3">
+                    <div className="bg-surface rounded-xl border border-hairline-soft p-4 sm:p-5 space-y-3">
                       <div className="space-y-1.5">
                         <Label htmlFor="wizard_price">{newTransaction === 'pronájem' ? 'Nájem (Kč / měsíc) *' : 'Cena (Kč) *'}</Label>
                         <Input id="wizard_price" type="number" value={newPrice}
@@ -5404,7 +5404,7 @@ export const PropertiesView: React.FC<PropertiesViewProps> = ({
 
                   {/* 5. Vlastník */}
                   {WIZARD_STEPS[wizardStep].key === 'vlastnik' && (
-                    <div className="bg-surface rounded-xl border border-hairline p-4 sm:p-5 space-y-4">
+                    <div className="bg-surface rounded-xl border border-hairline-soft p-4 sm:p-5 space-y-4">
                       <div className="flex bg-stone-100 dark:bg-stone-850 p-0.5 rounded-md border border-hairline">
                         {(['select', 'new'] as const).map((m) => (
                           <button
@@ -5470,7 +5470,7 @@ export const PropertiesView: React.FC<PropertiesViewProps> = ({
               {createMode === 'vse' && (
               <div className="space-y-12 lg:space-y-7">
               {/* AI Import — the fast path, first thing on screen */}
-              <div className="bg-surface border border-hairline p-3.5 rounded-xl space-y-2 text-left">
+              <div className="bg-surface border border-hairline-soft p-3.5 rounded-xl space-y-2 text-left">
                 <Label htmlFor="import_url" className="text-xs font-semibold text-stone-700 dark:text-stone-300 flex items-center gap-1.5">
                   <span className="h-1.5 w-1.5 rounded-full bg-[#0E8A5F] animate-pulse" />
                   Bleskový import inzerátu pomocí AI
@@ -5501,7 +5501,7 @@ export const PropertiesView: React.FC<PropertiesViewProps> = ({
               </div>
 
               {/* Section 1: Vlastník */}
-              <section className="bg-surface rounded-xl border border-hairline p-4 sm:p-5 space-y-4">
+              <section className="bg-surface rounded-xl border border-hairline-soft p-4 sm:p-5 space-y-4">
                 <h3 className="font-display text-sm font-semibold text-stone-700 dark:text-stone-300 uppercase tracking-wider border-b border-hairline pb-2 flex items-center gap-2">
                   <span className="flex h-5 w-5 items-center justify-center rounded-full bg-stone-100 dark:bg-stone-800 text-[10px] font-bold text-stone-600 dark:text-stone-300">1</span>
                   Vlastník
@@ -5645,7 +5645,7 @@ export const PropertiesView: React.FC<PropertiesViewProps> = ({
               </section>
 
               {/* Section 2: Nemovitost */}
-              <section className="bg-surface rounded-xl border border-hairline p-4 sm:p-5 space-y-4">
+              <section className="bg-surface rounded-xl border border-hairline-soft p-4 sm:p-5 space-y-4">
                 <h3 className="font-display text-sm font-semibold text-stone-700 dark:text-stone-300 uppercase tracking-wider border-b border-hairline pb-2 flex items-center gap-2">
                   <span className="flex h-5 w-5 items-center justify-center rounded-full bg-stone-100 dark:bg-stone-800 text-[10px] font-bold text-stone-600 dark:text-stone-300">2</span>
                   Nemovitost
@@ -5782,7 +5782,7 @@ export const PropertiesView: React.FC<PropertiesViewProps> = ({
               </section>
 
               {/* Section 3: Parametry podle druhu */}
-              <section className="bg-surface rounded-xl border border-hairline p-4 sm:p-5 space-y-4">
+              <section className="bg-surface rounded-xl border border-hairline-soft p-4 sm:p-5 space-y-4">
                 <h3 className="font-display text-sm font-semibold text-stone-700 dark:text-stone-300 uppercase tracking-wider border-b border-hairline pb-2 flex items-center gap-2">
                   <span className="flex h-5 w-5 items-center justify-center rounded-full bg-stone-100 dark:bg-stone-800 text-[10px] font-bold text-stone-600 dark:text-stone-300">3</span>
                   Parametry — {newKind}
