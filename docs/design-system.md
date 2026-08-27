@@ -85,7 +85,7 @@ a mezera**. Jsou dvě úrovně a díra:
 
 | Token | Role | Světlý |
 |---|---|---|
-| `--panel` | podklad — tělo stránky/dialogu **včetně hlavičky, lišty se záložkami a patičky** | `#FDFDFB` |
+| `--panel` | podklad — tělo stránky/dialogu **včetně hlavičky, lišty se záložkami a patičky** | `#FCFDFA` |
 | `--surface` | cokoli vyvýšeného — karty, menu, plovoucí prvky, vstupy | `#FFFFFF` |
 | `--inset` | blok vyříznutý do karty — prázdné stavy, výzvy k nahrání | `#EFF6F1` |
 

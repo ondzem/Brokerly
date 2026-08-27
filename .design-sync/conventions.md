@@ -39,7 +39,7 @@ Nothing here separates by shadow, and barely by fill. Content separates by a
 
 | Class | Role | Light |
 |---|---|---|
-| `bg-panel` | the ground — page/dialog body **and its sticky header, tab bar and footer** | `#FDFDFB` |
+| `bg-panel` | the ground — page/dialog body **and its sticky header, tab bar and footer** | `#FCFDFA` |
 | `bg-surface` | anything raised off it — cards, menus, floating controls, inputs | `#FFFFFF` |
 | `bg-inset` | a block cut into a card — empty states, upload prompts | `#EFF6F1` |
 

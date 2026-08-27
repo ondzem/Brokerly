@@ -77,7 +77,13 @@ Four passes of tuning, all driven by the same complaint getting narrower:
    dividing. Removing the card outline entirely was tried here and reverted in
    the same pass — on a near-white ground a borderless white card is invisible.
 4. `#FDFDFB` with ONE line weight at `.06`. The fill now separates nothing; the
-   hairline and the gap do all of it.
+   hairline and the gap do all of it. Then `#FCFDFA` — `#FDFDFB` read as too
+   light, so the value sits at the midpoint of the two rejected ends.
+
+The whole usable range turned out to be about half an L\* unit wide
+(contrast-vs-white 1.028 → 1.018). Anything outside it has been rejected in both
+directions, so the fill is a spent lever: if the separation reads wrong again,
+change the hairline or the spacing, not this.
 
 Do not reintroduce a second line weight or widen the fill step — both were tried
 and rejected. `--hairline-soft` existed briefly in pass 3 and is gone.
