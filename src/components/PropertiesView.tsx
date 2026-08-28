@@ -18,7 +18,7 @@ import { Card, CardContent, CardTitle, CardDescription } from '@/components/ui/c
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { toast } from 'sonner';
 import { PhotoUploader } from '@/components/PhotoUploader';
-import { Search, Plus, Home, User, Briefcase, DollarSign, MapPin, LayoutGrid, List, SlidersHorizontal, FileText, CheckCircle2, Trash2, Edit, X, ChevronRight, Calendar, ArrowRight, Upload, Sparkles, FileUp, MoreHorizontal, Building2, Trees, Store, Warehouse, AlertTriangle, Download, BedDouble, Ruler, Layers, Hammer, Zap, KeyRound, Car, Plug, Map, Route, Scan, Users, Wallet, Phone } from 'lucide-react';
+import { Search, Plus, Home, User, Briefcase, DollarSign, MapPin, LayoutGrid, List, SlidersHorizontal, FileText, CheckCircle2, Trash2, Edit, X, ChevronRight, Calendar, ArrowRight, Upload, Sparkles, FileUp, MoreHorizontal, Building2, Trees, Store, Warehouse, AlertTriangle, Download, BedDouble, Ruler, Layers, Hammer, Zap, KeyRound, Car, Plug, Map, Route, Scan, Users, Wallet, Phone, Eye } from 'lucide-react';
 
 const KIND_OPTIONS = [
   { id: 'byt', label: 'byt' },
@@ -3149,9 +3149,25 @@ export const PropertiesView: React.FC<PropertiesViewProps> = ({
                                     }}
                                     className="break-words whitespace-normal block"
                                   >
-                                    {ownerContact.full_name} · {ownerContact.phone || ownerContact.email}
+                                    {ownerContact.full_name}
                                   </span>
                                 ) : 'Neznámý'}
+                              </div>
+                            </div>
+                            <div className="break-words whitespace-normal min-w-0">
+                              <span className="text-xs text-stone-400 dark:text-stone-500">
+                                {ownerContact?.phone || !ownerContact?.email ? 'Telefon' : 'E-mail'}
+                              </span>
+                              <div className="text-[14.5px] font-semibold text-stone-900 dark:text-stone-100 mt-0.5 tabular-nums">
+                                {ownerContact?.phone ? (
+                                  <a href={`tel:${ownerContact.phone}`} className="text-[#0E8A5F] dark:text-green-400 hover:underline">
+                                    {ownerContact.phone}
+                                  </a>
+                                ) : ownerContact?.email ? (
+                                  <a href={`mailto:${ownerContact.email}`} className="text-[#0E8A5F] dark:text-green-400 hover:underline break-all">
+                                    {ownerContact.email}
+                                  </a>
+                                ) : '—'}
                               </div>
                             </div>
                             <div className="break-words whitespace-normal min-w-0">
@@ -3976,11 +3992,11 @@ export const PropertiesView: React.FC<PropertiesViewProps> = ({
                                   href={doc.url}
                                   target="_blank"
                                   rel="noreferrer"
-                                  title="Otevřít — odtud se dá i vytisknout"
+                                  title="Zobrazit — odtud se dá i vytisknout"
                                   className="flex items-center gap-2 text-left min-w-0 hover:underline"
                                 >
                                   <FileText className="w-3.5 h-3.5 text-stone-400 flex-none" />
-                                  <span className="text-sm font-semibold text-stone-800 dark:text-stone-200 truncate">
+                                  <span className="text-sm font-semibold text-[#0E8A5F] dark:text-green-400 truncate">
                                     {doc.name}
                                   </span>
                                   <span className="text-[11px] text-stone-400 dark:text-stone-500 flex-none">
@@ -3988,6 +4004,16 @@ export const PropertiesView: React.FC<PropertiesViewProps> = ({
                                   </span>
                                 </a>
                                 <div className="flex items-center gap-1 flex-none">
+                                  <a
+                                    href={doc.url}
+                                    target="_blank"
+                                    rel="noreferrer"
+                                    className="w-7 h-7 rounded-md flex items-center justify-center text-stone-400 hover:text-[#0E8A5F] hover:bg-stone-100 dark:hover:bg-stone-800 cursor-pointer"
+                                    aria-label={`Zobrazit ${doc.name}`}
+                                    title="Zobrazit"
+                                  >
+                                    <Eye className="w-3.5 h-3.5" />
+                                  </a>
                                   <button
                                     onClick={() => void handleDownloadDocument(doc)}
                                     className="w-7 h-7 rounded-md flex items-center justify-center text-stone-400 hover:text-[#0E8A5F] hover:bg-stone-100 dark:hover:bg-stone-800 cursor-pointer"
