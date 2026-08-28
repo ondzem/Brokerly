@@ -18,7 +18,7 @@ import { Card, CardContent, CardTitle, CardDescription } from '@/components/ui/c
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { toast } from 'sonner';
 import { PhotoUploader } from '@/components/PhotoUploader';
-import { Search, Plus, Home, User, Briefcase, DollarSign, MapPin, LayoutGrid, List, SlidersHorizontal, FileText, CheckCircle2, Trash2, Edit, X, ChevronRight, Calendar, ArrowRight, Upload, Sparkles, FileUp, MoreHorizontal, Building2, Trees, Store, Warehouse, AlertTriangle, Download, BedDouble, Ruler, Layers, Hammer, Zap, KeyRound, Car, Plug, Map, Route, Scan, Users, Wallet, Phone, Eye } from 'lucide-react';
+import { Search, Plus, Home, User, Briefcase, DollarSign, MapPin, LayoutGrid, List, SlidersHorizontal, FileText, CheckCircle2, Trash2, Edit, X, ChevronRight, Calendar, ArrowRight, Upload, Sparkles, FileUp, MoreHorizontal, Building2, Trees, Store, Warehouse, AlertTriangle, Download, BedDouble, Ruler, Layers, Hammer, Zap, KeyRound, Car, Plug, Map, Route, Scan, Phone, Eye } from 'lucide-react';
 
 const KIND_OPTIONS = [
   { id: 'byt', label: 'byt' },
@@ -2892,18 +2892,12 @@ export const PropertiesView: React.FC<PropertiesViewProps> = ({
                     .map(({ label, value, icon: FactIcon }) => (
                       <div
                         key={label}
-                        className="flex items-center gap-2.5 rounded-[10px] bg-surface border border-hairline pl-2 pr-3.5 py-1.5 flex-none"
+                        title={label}
+                        className="flex items-center gap-2 rounded-[10px] bg-surface border border-hairline px-3 h-9 flex-none text-[#0B1F1A] dark:text-stone-100"
                       >
-                        <span className="w-8 h-8 rounded-lg bg-[#EFF6F1] dark:bg-[#0B3833] flex items-center justify-center flex-none">
-                          <FactIcon className="w-4 h-4 text-[#0E8A5F] dark:text-[#4FE0AC]" strokeWidth={1.8} />
-                        </span>
-                        <span className="min-w-0">
-                          <span className="block text-[9.5px] font-semibold uppercase tracking-wider text-stone-400 dark:text-stone-500 leading-none">
-                            {label}
-                          </span>
-                          <span className="block text-[13px] font-semibold text-[#0B1F1A] dark:text-stone-100 tabular-nums mt-[3px] whitespace-nowrap max-w-[220px] truncate">
-                            {value}
-                          </span>
+                        <FactIcon className="w-4 h-4 flex-none" strokeWidth={1.7} />
+                        <span className="text-[13px] font-medium tabular-nums whitespace-nowrap max-w-[220px] truncate">
+                          {value}
                         </span>
                       </div>
                     ))}
@@ -2926,22 +2920,17 @@ export const PropertiesView: React.FC<PropertiesViewProps> = ({
                     tab === 'zajemci' ? `Zájemci · ${propertyDeals.length}` :
                     'Provize';
 
-                  const TabIcon =
-                    tab === 'prehled' ? LayoutGrid :
-                    tab === 'informace' ? FileText :
-                    tab === 'zajemci' ? Users : Wallet;
                   const active = activeDetailTab === tab;
                   return (
                     <button
                       key={tab}
                       onClick={() => setActiveDetailTab(tab)}
-                      className="py-3 text-[14px] font-medium transition cursor-pointer border-b-2 text-left whitespace-nowrap flex items-center gap-1.5"
+                      className="py-3 text-[14px] font-medium transition cursor-pointer border-b-2 text-left whitespace-nowrap"
                       style={{
                         color: active ? colors.textPrimary : colors.textMuted,
                         borderColor: active ? '#00D991' : 'transparent'
                       }}
                     >
-                      <TabIcon className="w-[15px] h-[15px]" strokeWidth={1.9} />
                       {label}
                     </button>
                   );
