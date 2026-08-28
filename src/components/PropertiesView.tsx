@@ -18,7 +18,7 @@ import { Card, CardContent, CardTitle, CardDescription } from '@/components/ui/c
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { toast } from 'sonner';
 import { PhotoUploader } from '@/components/PhotoUploader';
-import { Search, Plus, Home, User, Briefcase, DollarSign, MapPin, LayoutGrid, List, SlidersHorizontal, FileText, CheckCircle2, Trash2, Edit, X, ChevronRight, Calendar, ArrowRight, Upload, Sparkles, FileUp, MoreHorizontal, Building2, Trees, Store, Warehouse, AlertTriangle, Download } from 'lucide-react';
+import { Search, Plus, Home, User, Briefcase, DollarSign, MapPin, LayoutGrid, List, SlidersHorizontal, FileText, CheckCircle2, Trash2, Edit, X, ChevronRight, Calendar, ArrowRight, Upload, Sparkles, FileUp, MoreHorizontal, Building2, Trees, Store, Warehouse, AlertTriangle, Download, BedDouble, Ruler, Layers, Hammer, Zap, KeyRound, Car, Plug, Map, Route, Scan, Users, Wallet, Phone } from 'lucide-react';
 
 const KIND_OPTIONS = [
   { id: 'byt', label: 'byt' },
@@ -2513,51 +2513,52 @@ export const PropertiesView: React.FC<PropertiesViewProps> = ({
 
         // Key parameters shown on the Přehled tab — driven by druh, so every kind
         // shows the fields it actually stores instead of falling back to dům columns.
-        const keyParams: { label: string; value: string | number | null }[] = (() => {
+        const keyParams: { label: string; value: string | number | null; icon: React.ComponentType<{ className?: string; strokeWidth?: number }> }[] = (() => {
           const p = selectedProperty;
           switch (p.kind) {
             case 'byt':
               return [
-                { label: 'Dispozice', value: p.flat_layout },
-                { label: 'Užitná plocha', value: p.flat_area ? `${p.flat_area} m²` : null },
-                { label: 'Patro', value: p.floor },
-                { label: 'Stav', value: p.flat_condition },
-                { label: 'PENB', value: p.flat_penb },
-                { label: 'Vlastnictví', value: p.ownership },
+                { label: 'Dispozice', value: p.flat_layout, icon: BedDouble },
+                { label: 'Užitná plocha', value: p.flat_area ? `${p.flat_area} m²` : null, icon: Ruler },
+                { label: 'Patro', value: p.floor, icon: Layers },
+                { label: 'Stav', value: p.flat_condition, icon: Hammer },
+                { label: 'PENB', value: p.flat_penb, icon: Zap },
+                { label: 'Vlastnictví', value: p.ownership, icon: KeyRound },
+                { label: 'Parkování', value: p.comm_parking_entrance, icon: Car },
               ];
             case 'dům':
               return [
-                { label: 'Dispozice', value: p.house_layout },
-                { label: 'Užitná plocha', value: p.house_area ? `${p.house_area} m²` : null },
-                { label: 'Pozemek', value: p.land_area ? `${p.land_area} m²` : null },
-                { label: 'Typ domu', value: p.house_type },
-                { label: 'Podlaží', value: p.floors_count },
-                { label: 'Stav', value: p.house_condition },
-                { label: 'PENB', value: p.house_penb },
+                { label: 'Dispozice', value: p.house_layout, icon: BedDouble },
+                { label: 'Užitná plocha', value: p.house_area ? `${p.house_area} m²` : null, icon: Ruler },
+                { label: 'Pozemek', value: p.land_area ? `${p.land_area} m²` : null, icon: Trees },
+                { label: 'Typ domu', value: p.house_type, icon: Home },
+                { label: 'Podlaží', value: p.floors_count, icon: Layers },
+                { label: 'Stav', value: p.house_condition, icon: Hammer },
+                { label: 'PENB', value: p.house_penb, icon: Zap },
               ];
             case 'pozemek':
               return [
-                { label: 'Výměra', value: p.land_size ? `${p.land_size} m²` : null },
-                { label: 'Druh pozemku', value: p.land_type },
-                { label: 'Sítě', value: p.land_utilities?.length ? p.land_utilities.join(', ') : null },
-                { label: 'Územní plán', value: p.zoning_plan },
-                { label: 'Přístup', value: p.land_access },
-                { label: 'Rozměry', value: p.land_dimensions },
+                { label: 'Výměra', value: p.land_size ? `${p.land_size} m²` : null, icon: Ruler },
+                { label: 'Druh pozemku', value: p.land_type, icon: Trees },
+                { label: 'Sítě', value: p.land_utilities?.length ? p.land_utilities.join(', ') : null, icon: Plug },
+                { label: 'Územní plán', value: p.zoning_plan, icon: Map },
+                { label: 'Přístup', value: p.land_access, icon: Route },
+                { label: 'Rozměry', value: p.land_dimensions, icon: Scan },
               ];
             case 'garáž/ostatní':
               return [
-                { label: 'Typ objektu', value: p.comm_subtype },
-                { label: 'Plocha', value: p.comm_floor_area ? `${p.comm_floor_area} m²` : null },
-                { label: 'Stav', value: p.comm_condition_equipment },
-                { label: 'Vjezd / přístup', value: p.comm_parking_entrance },
+                { label: 'Typ objektu', value: p.comm_subtype, icon: Warehouse },
+                { label: 'Plocha', value: p.comm_floor_area ? `${p.comm_floor_area} m²` : null, icon: Ruler },
+                { label: 'Stav', value: p.comm_condition_equipment, icon: Hammer },
+                { label: 'Vjezd / přístup', value: p.comm_parking_entrance, icon: Car },
               ];
             default:
               return [
-                { label: 'Podtyp', value: p.comm_subtype },
-                { label: 'Podlahová plocha', value: p.comm_floor_area ? `${p.comm_floor_area} m²` : null },
-                { label: 'Stav / vybavenost', value: p.comm_condition_equipment },
-                { label: 'Parkování / vjezd', value: p.comm_parking_entrance },
-                { label: 'PENB', value: p.comm_penb },
+                { label: 'Podtyp', value: p.comm_subtype, icon: Store },
+                { label: 'Podlahová plocha', value: p.comm_floor_area ? `${p.comm_floor_area} m²` : null, icon: Ruler },
+                { label: 'Stav / vybavenost', value: p.comm_condition_equipment, icon: Hammer },
+                { label: 'Parkování / vjezd', value: p.comm_parking_entrance, icon: Car },
+                { label: 'PENB', value: p.comm_penb, icon: Zap },
               ];
           }
         })();
@@ -2679,7 +2680,7 @@ export const PropertiesView: React.FC<PropertiesViewProps> = ({
                 {/* Details Panel */}
                 <div className="flex-1 min-w-0 text-left font-sans mt-3.5 sm:mt-0">
                   <div className="flex items-center gap-[10px] flex-wrap">
-                    <span className="text-[22px] font-semibold text-[#0B1F1A] dark:text-stone-100 leading-tight">
+                    <span className="font-display text-[23px] font-semibold tracking-tight text-[#0B1F1A] dark:text-stone-100 leading-tight">
                       {selectedProperty.kind === 'byt' 
                         ? `Byt ${selectedProperty.flat_layout || ''}` 
                         : selectedProperty.kind === 'dům' 
@@ -2699,14 +2700,21 @@ export const PropertiesView: React.FC<PropertiesViewProps> = ({
                   </div>
                   
                   <div className="flex items-baseline gap-[10px] mt-3 sm:mt-2.5 flex-wrap">
-                    <span className="text-[24px] font-semibold text-[#0B1F1A] dark:text-stone-100 tabular-nums">
+                    <span className="font-display text-[30px] font-light tracking-tight text-[#0B1F1A] dark:text-stone-100 tabular-nums leading-none">
                       {selectedProperty.price.toLocaleString('cs-CZ')} Kč
                     </span>
-                    {selectedProperty.kind === 'byt' && selectedProperty.flat_area && (
-                      <span className="text-[13px] text-stone-500 dark:text-stone-400 tabular-nums">
-                        {Math.round(selectedProperty.price / selectedProperty.flat_area).toLocaleString('cs-CZ')} Kč/m²
-                      </span>
-                    )}
+                    {(() => {
+                      const area =
+                        selectedProperty.kind === 'byt' ? selectedProperty.flat_area :
+                        selectedProperty.kind === 'dům' ? selectedProperty.house_area :
+                        selectedProperty.kind === 'pozemek' ? selectedProperty.land_size :
+                        selectedProperty.comm_floor_area;
+                      return area ? (
+                        <span className="text-[13px] text-stone-500 dark:text-stone-400 tabular-nums">
+                          {Math.round(selectedProperty.price / area).toLocaleString('cs-CZ')} Kč/m²
+                        </span>
+                      ) : null;
+                    })()}
                   </div>
 
                   <div className="text-[15px] text-[#0B1F1A] dark:text-stone-200 mt-3 font-semibold">
@@ -2719,9 +2727,7 @@ export const PropertiesView: React.FC<PropertiesViewProps> = ({
 
                   {ownerContact && (
                     <div className="flex items-center gap-[6px] mt-4 flex-wrap">
-                      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#0E8A5F" strokeWidth="1.8">
-                        <path d="M5 4h4l1.5 4L8 10c1 2.5 3.5 5 6 6l2-2.5 4 1.5v4c0 .6-.4 1-1 1C10 20 4 14 4 5c0-.6.4-1 1-1z" />
-                      </svg>
+                      <Phone className="w-3 h-3 text-[#0E8A5F]" strokeWidth={1.8} />
                       <span 
                         onClick={() => {
                           setIsDetailOpen(false);
@@ -2791,6 +2797,39 @@ export const PropertiesView: React.FC<PropertiesViewProps> = ({
                 </div>
               </div>
 
+              {/* FACT STRIP — icon-led key facts, the portal move: always visible, one glance */}
+              {keyParamsFilled && (
+                <div className="flex items-stretch gap-2 px-4 sm:px-6 py-3 border-b border-hairline bg-panel overflow-x-auto scrollbar-none flex-none">
+                  {keyParams
+                    .filter((f) => f.value !== null && f.value !== '')
+                    .map(({ label, value, icon: FactIcon }) => (
+                      <div
+                        key={label}
+                        className="flex items-center gap-2.5 rounded-[10px] bg-surface border border-hairline pl-2 pr-3.5 py-1.5 flex-none"
+                      >
+                        <span className="w-8 h-8 rounded-lg bg-[#EFF6F1] dark:bg-[#0B3833] flex items-center justify-center flex-none">
+                          <FactIcon className="w-4 h-4 text-[#0E8A5F] dark:text-[#4FE0AC]" strokeWidth={1.8} />
+                        </span>
+                        <span className="min-w-0">
+                          <span className="block text-[9.5px] font-semibold uppercase tracking-wider text-stone-400 dark:text-stone-500 leading-none">
+                            {label}
+                          </span>
+                          <span className="block text-[13px] font-semibold text-[#0B1F1A] dark:text-stone-100 tabular-nums mt-[3px] whitespace-nowrap max-w-[220px] truncate">
+                            {value}
+                          </span>
+                        </span>
+                      </div>
+                    ))}
+                  <button
+                    onClick={() => setActiveDetailTab('informace')}
+                    className="flex items-center gap-1 text-[12px] font-medium text-[#0E8A5F] hover:underline px-1.5 flex-none cursor-pointer"
+                  >
+                    Vše
+                    <ArrowRight className="w-3 h-3" />
+                  </button>
+                </div>
+              )}
+
               {/* TABS SELECTOR */}
               <div className="flex gap-4 sm:gap-[26px] px-4 sm:px-6 border-b border-hairline bg-panel overflow-x-auto scrollbar-none flex-none">
                 {(['prehled', 'informace', 'zajemci', 'ekonomika'] as const).map((tab) => {
@@ -2800,17 +2839,22 @@ export const PropertiesView: React.FC<PropertiesViewProps> = ({
                     tab === 'zajemci' ? `Zájemci · ${propertyDeals.length}` :
                     'Provize';
 
+                  const TabIcon =
+                    tab === 'prehled' ? LayoutGrid :
+                    tab === 'informace' ? FileText :
+                    tab === 'zajemci' ? Users : Wallet;
                   const active = activeDetailTab === tab;
                   return (
                     <button
                       key={tab}
                       onClick={() => setActiveDetailTab(tab)}
-                      className="py-3 text-[14px] font-medium transition cursor-pointer border-b-2 text-left whitespace-nowrap"
+                      className="py-3 text-[14px] font-medium transition cursor-pointer border-b-2 text-left whitespace-nowrap flex items-center gap-1.5"
                       style={{
                         color: active ? colors.textPrimary : colors.textMuted,
                         borderColor: active ? '#00D991' : 'transparent'
                       }}
                     >
+                      <TabIcon className="w-[15px] h-[15px]" strokeWidth={1.9} />
                       {label}
                     </button>
                   );
@@ -2827,31 +2871,14 @@ export const PropertiesView: React.FC<PropertiesViewProps> = ({
                     {/* Left side details cards */}
                     <div className="space-y-4">
                       
-                      {/* Subcard 1: Základní parametry */}
-                      <div className="bg-surface rounded-xl border border-hairline p-5">
-                        <div className="flex justify-between items-baseline mb-4">
-                          <span className="text-[15px] font-semibold text-stone-900 dark:text-stone-100">
-                            Základní parametry
-                          </span>
-                          <button 
-                            onClick={() => setActiveDetailTab('informace')} 
-                            className="text-xs font-medium text-[#0E8A5F] hover:underline"
-                          >
-                            Vše →
-                          </button>
-                        </div>
-                        {keyParamsFilled ? (
-                          <div className="grid grid-cols-2 sm:grid-cols-3 gap-y-4 gap-x-6 text-left">
-                            {keyParams.map((param) => (
-                              <div key={param.label}>
-                                <span className="text-xs text-stone-400 dark:text-stone-500">{param.label}</span>
-                                <div className="text-[14.5px] font-semibold text-stone-900 dark:text-stone-100 mt-0.5 tabular-nums">
-                                  {param.value !== null && param.value !== '' ? param.value : '—'}
-                                </div>
-                              </div>
-                            ))}
+                      {/* Subcard 1: Základní parametry — jen výzva; vyplněná fakta nese lišta v hlavičce */}
+                      {!keyParamsFilled && (
+                        <div className="bg-surface rounded-xl border border-hairline p-5">
+                          <div className="flex justify-between items-baseline mb-4">
+                            <span className="text-[15px] font-semibold text-stone-900 dark:text-stone-100">
+                              Základní parametry
+                            </span>
                           </div>
-                        ) : (
                           <button
                             onClick={() => setActiveDetailTab('informace')}
                             className="w-full text-left rounded-lg border border-dashed border-stone-300 dark:border-stone-700 px-4 py-3.5 hover:border-[#0E8A5F] hover:bg-stone-50 dark:hover:bg-stone-900 transition cursor-pointer"
@@ -2863,8 +2890,8 @@ export const PropertiesView: React.FC<PropertiesViewProps> = ({
                               Doplňte je v záložce Informace — AI z nich odpovídá zájemcům.
                             </div>
                           </button>
-                        )}
-                      </div>
+                        </div>
+                      )}
 
                       {/* Subcard 2: Zájemci summary */}
                       <div className="bg-surface rounded-xl border border-hairline p-5">
