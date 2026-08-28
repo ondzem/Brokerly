@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { Property, Contact, Deal, Activity, PropertyDocument } from '@/types';
 import { createProperty, updateProperty, createContact, deleteProperty, createDeal, updateDeal } from '@/lib/db';
 import { cn } from '@/lib/utils';
+import { stageInfo } from '@/lib/stage';
 import { OptionSelect } from '@/components/ui/option-select';
 import { ChipPicker } from '@/components/ui/chip-picker';
 import { PhotoGallery } from '@/components/PhotoGallery';
@@ -384,14 +385,13 @@ export const PropertiesView: React.FC<PropertiesViewProps> = ({
   const [editCommissionStatus, setEditCommissionStatus] = useState<'očekávaná' | 'potvrzená'>('očekávaná');
 
   // Buyers list filters & options
-  const [zajemciFilter, setZajemciFilter] = useState<'všichni' | 'horký' | 'vlažný' | 'studený'>('všichni');
+  const [zajemciFilter, setZajemciFilter] = useState<'všichni' | 'nový' | 'ověřený' | 'po prohlídce' | 'rezervace' | 'kupuje' | 'prohráno'>('všichni');
   const [isAddingBuyer, setIsAddingBuyer] = useState(false);
   const [searchBuyerQuery, setSearchBuyerQuery] = useState('');
 
   // Deal inline edit states
   const [editingDealId, setEditingDealId] = useState<string | null>(null);
   const [editDealStage, setEditDealStage] = useState<string>('');
-  const [editDealTemperature, setEditDealTemperature] = useState<string>('');
   const [editDealNextStep, setEditDealNextStep] = useState<string>('');
 
   // Header options menu state
@@ -1163,7 +1163,6 @@ export const PropertiesView: React.FC<PropertiesViewProps> = ({
     try {
       await updateDeal(dealId, {
         stage: editDealStage as Deal['stage'],
-        temperature: editDealTemperature as Deal['temperature'],
         next_step: editDealNextStep || null,
       });
       setEditingDealId(null);
@@ -2396,13 +2395,10 @@ export const PropertiesView: React.FC<PropertiesViewProps> = ({
         // Gather active deals for this property
         const propertyDeals = deals.filter((d) => d.property_id === selectedProperty.id);
         
-        // Filter active deals list by Czech temperature pill filter
+        // Filter deals by the named process point
         const filteredDeals = propertyDeals.filter((d) => {
           if (zajemciFilter === 'všichni') return true;
-          if (zajemciFilter === 'horký') return d.temperature?.includes('horký');
-          if (zajemciFilter === 'vlažný') return d.temperature?.includes('vlažný');
-          if (zajemciFilter === 'studený') return d.temperature?.includes('studený');
-          return true;
+          return stageInfo(d.stage).key === zajemciFilter;
         });
 
         // Calculate recommendations from contacts
@@ -2469,27 +2465,8 @@ export const PropertiesView: React.FC<PropertiesViewProps> = ({
           ? 'bg-[#EDF7F1] dark:bg-[#00D991]/8 text-[#0B5C3D] dark:text-green-300'
           : 'bg-rose-50 dark:bg-rose-950/20 text-rose-700 dark:text-rose-400';
 
-        const getStageStep = (stage: string) => {
-          switch (stage) {
-            case 'lead':
-            case 'kontaktován':
-            case 'kvalifikován':
-              return 1;
-            case 'prohlídka':
-              return 2;
-            case 'nabídka':
-              return 3;
-            case 'rezervace':
-              return 4;
-            case 'podpis':
-              return 5;
-            default:
-              return 1;
-          }
-        };
-
         const renderProgressBar = (stage: string) => {
-          const step = getStageStep(stage);
+          const { step } = stageInfo(stage);
           return (
             <div className="flex gap-[3px] w-full sm:w-[150px]">
               {[1, 2, 3, 4, 5].map((s) => (
@@ -2906,8 +2883,7 @@ export const PropertiesView: React.FC<PropertiesViewProps> = ({
                           <div className="divide-y divide-stone-100 dark:divide-stone-900">
                             {propertyDeals.slice(0, 2).map((deal) => {
                               const buyerContact = contacts.find((c) => c.id === deal.buyer_id);
-                              const isHorky = deal.temperature?.includes('horký');
-                              const isVlazny = deal.temperature?.includes('vlažný');
+                              const si = stageInfo(deal.stage);
                               return (
                                 <div key={deal.id} className="py-3 first:pt-0 last:pb-0">
                                   <div className="flex justify-between items-center">
@@ -2920,16 +2896,8 @@ export const PropertiesView: React.FC<PropertiesViewProps> = ({
                                     >
                                       {buyerContact?.full_name || 'Neznámý zájemce'}
                                     </button>
-                                    <span 
-                                      className={`text-[10px] font-medium px-2 py-0.5 rounded-[4px] uppercase tracking-wider ${
-                                        isHorky 
-                                          ? 'bg-rose-50 dark:bg-rose-950/30 text-rose-700 dark:text-rose-400 border border-rose-100 dark:border-rose-900' 
-                                          : isVlazny 
-                                          ? 'bg-amber-50 dark:bg-amber-950/30 text-amber-700 dark:text-amber-400 border border-amber-100 dark:border-amber-900' 
-                                          : 'bg-stone-50 dark:bg-stone-800 text-stone-600 dark:text-stone-400'
-                                      }`}
-                                    >
-                                      {isHorky ? 'Horký' : isVlazny ? 'Vlažný' : 'Studený'}
+                                    <span className={`text-[10px] font-medium px-2 py-0.5 rounded-[4px] uppercase tracking-wider ${si.chip}`}>
+                                      {si.label}
                                     </span>
                                   </div>
                                   <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1 sm:gap-4 mt-2.5">
@@ -2937,7 +2905,7 @@ export const PropertiesView: React.FC<PropertiesViewProps> = ({
                                       {renderProgressBar(deal.stage)}
                                     </div>
                                     <span className="text-[11.5px] text-stone-400 dark:text-stone-500 font-medium sm:text-right text-right block uppercase tracking-wider">
-                                      {deal.stage}
+                                      {si.step > 0 ? `${si.step}/5 · ` : ''}{si.label}
                                     </span>
                                   </div>
                                 </div>
@@ -4043,25 +4011,31 @@ export const PropertiesView: React.FC<PropertiesViewProps> = ({
                     
                     {/* Stepper progress and pills */}
                     <div className="flex items-center gap-2 flex-wrap bg-surface border border-hairline p-3 rounded-xl">
-                      {(['všichni', 'horký', 'vlažný', 'studený'] as const).map((pill) => {
-                        const count = 
-                          pill === 'všichni' ? propertyDeals.length :
-                          pill === 'horký' ? propertyDeals.filter(d => d.temperature?.includes('horký')).length :
-                          pill === 'vlažný' ? propertyDeals.filter(d => d.temperature?.includes('vlažný')).length :
-                          propertyDeals.filter(d => d.temperature?.includes('studený')).length;
+                      {([
+                        { id: 'všichni', label: 'Všichni' },
+                        { id: 'nový', label: 'Nový zájemce' },
+                        { id: 'ověřený', label: 'Ověřený' },
+                        { id: 'po prohlídce', label: 'Po prohlídce' },
+                        { id: 'rezervace', label: 'Rezervace' },
+                        { id: 'kupuje', label: 'Kupuje' },
+                        { id: 'prohráno', label: 'Prohráno' },
+                      ] as const).map((pill) => {
+                        const count = pill.id === 'všichni'
+                          ? propertyDeals.length
+                          : propertyDeals.filter((d) => stageInfo(d.stage).key === pill.id).length;
 
-                        const active = zajemciFilter === pill;
+                        const active = zajemciFilter === pill.id;
                         return (
                           <button
-                            key={pill}
-                            onClick={() => setZajemciFilter(pill)}
+                            key={pill.id}
+                            onClick={() => setZajemciFilter(pill.id)}
                             className={`px-3 py-1.5 rounded-full text-xs font-semibold border transition ${
                               active
                                 ? 'bg-[#00D991] text-[#00221F] border-[#00D991]'
                                 : 'bg-surface text-stone-800 dark:text-stone-200 border-hairline hover:bg-stone-50'
                             }`}
                           >
-                            <span className="capitalize">{pill}</span> · {count}
+                            {pill.label} · {count}
                           </button>
                         );
                       })}
@@ -4146,9 +4120,7 @@ export const PropertiesView: React.FC<PropertiesViewProps> = ({
                         {filteredDeals.map((deal) => {
                           const buyerContact = contacts.find((c) => c.id === deal.buyer_id);
                           const isEditingThisDeal = editingDealId === deal.id;
-                          
-                          const isHorky = deal.temperature?.includes('horký');
-                          const isVlazny = deal.temperature?.includes('vlažný');
+                          const si = stageInfo(deal.stage);
 
                           return (
                             <div 
@@ -4180,16 +4152,10 @@ export const PropertiesView: React.FC<PropertiesViewProps> = ({
                                     )}
                                   </div>
 
-                                  {/* Temp Badge */}
+                                  {/* Process point badge */}
                                   <div className="flex-none">
-                                    <span className={`text-[10px] font-semibold px-2 py-0.5 rounded-[4px] uppercase tracking-wider ${
-                                      isHorky 
-                                        ? 'bg-rose-50 dark:bg-rose-950/30 text-rose-700 dark:text-rose-400 border border-rose-100 dark:border-rose-900' 
-                                        : isVlazny 
-                                        ? 'bg-amber-50 dark:bg-amber-950/30 text-amber-700 dark:text-amber-400 border border-amber-100 dark:border-amber-900' 
-                                        : 'bg-stone-100 dark:bg-stone-800 text-stone-600 dark:text-stone-400'
-                                    }`}>
-                                      {isHorky ? 'Horký' : isVlazny ? 'Vlažný' : 'Studený'}
+                                    <span className={`text-[10px] font-semibold px-2 py-0.5 rounded-[4px] uppercase tracking-wider ${si.chip}`}>
+                                      {si.label}
                                     </span>
                                   </div>
 
@@ -4198,9 +4164,9 @@ export const PropertiesView: React.FC<PropertiesViewProps> = ({
                                     {renderProgressBar(deal.stage)}
                                   </div>
 
-                                  {/* Stage text */}
+                                  {/* Step text */}
                                   <div className="w-[80px] flex-none text-stone-400 dark:text-stone-500 font-semibold uppercase tracking-wide text-[10px]">
-                                    {deal.stage}
+                                    {si.step > 0 ? `${si.step}/5` : '—'}
                                   </div>
 
                                   {/* Next step */}
@@ -4219,7 +4185,6 @@ export const PropertiesView: React.FC<PropertiesViewProps> = ({
                                     onClick={() => {
                                       setEditingDealId(deal.id);
                                       setEditDealStage(deal.stage);
-                                      setEditDealTemperature(deal.temperature || 'vlažný (B)');
                                       setEditDealNextStep(deal.next_step || '');
                                     }}
                                     className="text-[#0E8A5F] hover:underline font-semibold flex items-center gap-1 flex-none"
@@ -4250,7 +4215,7 @@ export const PropertiesView: React.FC<PropertiesViewProps> = ({
                                     </div>
                                   </div>
 
-                                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 text-xs">
+                                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">
                                     <div className="space-y-1.5 text-left">
                                       <Label>Fáze</Label>
                                       <Select value={editDealStage} onValueChange={setEditDealStage}>
@@ -4261,19 +4226,6 @@ export const PropertiesView: React.FC<PropertiesViewProps> = ({
                                           {['lead', 'kontaktován', 'kvalifikován', 'prohlídka', 'nabídka', 'rezervace', 'podpis', 'prohráno'].map((opt) => (
                                             <SelectItem key={opt} value={opt}>{opt}</SelectItem>
                                           ))}
-                                        </SelectContent>
-                                      </Select>
-                                    </div>
-                                    <div className="space-y-1.5 text-left">
-                                      <Label>Teplota</Label>
-                                      <Select value={editDealTemperature} onValueChange={setEditDealTemperature}>
-                                        <SelectTrigger className="h-10 text-xs">
-                                          <SelectValue />
-                                        </SelectTrigger>
-                                        <SelectContent>
-                                          <SelectItem value="horký (A)">Horký (A)</SelectItem>
-                                          <SelectItem value="vlažný (B)">Vlažný (B)</SelectItem>
-                                          <SelectItem value="studený (C)">Studený (C)</SelectItem>
                                         </SelectContent>
                                       </Select>
                                     </div>

@@ -349,25 +349,6 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
             <div className="divide-y divide-stone-100 dark:divide-white/5">
               {realLeads.length > 0 ? (
                 realLeads.slice(0, 3).map((c, i) => {
-                  // Get temperature badge colors
-                  let tempColor = colors.grayText;
-                  let tempBg = colors.grayBg;
-                  let tempLabel = 'Vlažný';
-
-                  if (c.temperature === 'horký') {
-                    tempColor = colors.redText;
-                    tempBg = colors.redBg;
-                    tempLabel = 'Horký';
-                  } else if (c.temperature === 'vlažný') {
-                    tempColor = colors.orangeText;
-                    tempBg = colors.orangeBg;
-                    tempLabel = 'Vlažný';
-                  } else if (c.temperature === 'studený') {
-                    tempColor = colors.grayText;
-                    tempBg = colors.grayBg;
-                    tempLabel = 'Studený';
-                  }
-
                   const layouts = c.seeking_layout ? c.seeking_layout.join(', ') : 'neurčeno';
                   const budgetText = c.budget_to ? `do ${formatCurrency(c.budget_to)}` : '';
 
@@ -380,9 +361,6 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
                         </div>
                       </div>
                       <div className="flex items-center gap-3">
-                        <span className="text-[10.5px] font-semibold px-2 py-0.5 rounded-md" style={{ backgroundColor: tempBg, color: tempColor }}>
-                          {tempLabel}
-                        </span>
                         <ChevronRight className="w-4 h-4 text-stone-300 dark:text-stone-600 opacity-0 group-hover:opacity-100 transition-opacity" />
                       </div>
                     </div>
@@ -397,7 +375,6 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
                       <div className="text-[12px] truncate mt-0.5" style={{ color: colors.textSecondary }}>Hledá 3+kk do 5 mil, Plzeň</div>
                     </div>
                     <div className="flex items-center gap-3">
-                      <span className="text-[10.5px] font-semibold px-2 py-0.5 rounded-md" style={{ backgroundColor: colors.redBg, color: colors.redText }}>Horký</span>
                       <ChevronRight className="w-4 h-4 text-stone-300 dark:text-stone-600" />
                     </div>
                   </div>
@@ -407,7 +384,6 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
                       <div className="text-[12px] truncate mt-0.5" style={{ color: colors.textSecondary }}>Pronájem 2+kk, Pardubice centrum</div>
                     </div>
                     <div className="flex items-center gap-3">
-                      <span className="text-[10.5px] font-semibold px-2 py-0.5 rounded-md" style={{ backgroundColor: colors.orangeBg, color: colors.orangeText }}>Vlažný</span>
                       <ChevronRight className="w-4 h-4 text-stone-300 dark:text-stone-600" />
                     </div>
                   </div>
@@ -417,7 +393,6 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
                       <div className="text-[12px] truncate mt-0.5" style={{ color: colors.textSecondary }}>Pozemek do 2 mil, okolí Plzně</div>
                     </div>
                     <div className="flex items-center gap-3">
-                      <span className="text-[10.5px] font-semibold px-2 py-0.5 rounded-md" style={{ backgroundColor: colors.grayBg, color: colors.grayText }}>Studený</span>
                       <ChevronRight className="w-4 h-4 text-stone-300 dark:text-stone-600" />
                     </div>
                   </div>

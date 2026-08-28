@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Contact, Deal, Property, Activity } from '@/types';
 import { createContact, updateContact, createActivity } from '@/lib/db';
+import { stageInfo } from '@/lib/stage';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -789,9 +790,8 @@ export const ContactsView: React.FC<ContactsViewProps> = ({
                         </td>
                         <td className="py-3 px-4">
                           {activeDeal ? (
-                            <span className="text-[10.5px] text-emerald-600 dark:text-emerald-400 font-semibold uppercase tracking-wider flex items-center gap-1.5 whitespace-nowrap">
-                              <span className="h-1.5 w-1.5 rounded-full bg-[#00D991]" />
-                              {activeDeal.stage}
+                            <span className={`text-[9.5px] font-semibold px-2 py-0.5 rounded-[4px] uppercase tracking-wider whitespace-nowrap ${stageInfo(activeDeal.stage).chip}`}>
+                              {stageInfo(activeDeal.stage).label}
                             </span>
                           ) : (
                             <span className="text-[12px] text-stone-400">—</span>
@@ -840,10 +840,9 @@ export const ContactsView: React.FC<ContactsViewProps> = ({
                     ))}
                   </div>
                   {activeDeal && (
-                    <div className="text-[10px] text-emerald-600 dark:text-emerald-400 font-bold uppercase tracking-wider flex items-center gap-1 bg-emerald-500/5 py-1 px-1.5 rounded-md border border-emerald-500/10 w-fit">
-                      <span className="h-1.5 w-1.5 rounded-full bg-[#00D991]" />
-                      <span className="truncate">Fáze: {activeDeal.stage}</span>
-                    </div>
+                    <span className={`text-[9px] font-semibold px-2 py-0.5 rounded-[4px] uppercase tracking-wider w-fit ${stageInfo(activeDeal.stage).chip}`}>
+                      {stageInfo(activeDeal.stage).label}
+                    </span>
                   )}
                 </div>
               );
