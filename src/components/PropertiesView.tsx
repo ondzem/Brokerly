@@ -265,6 +265,22 @@ export const PropertiesView: React.FC<PropertiesViewProps> = ({
   const [galleryOpen, setGalleryOpen] = useState(false);
   const [galleryStartsAdding, setGalleryStartsAdding] = useState(false);
   const docInputRef = useRef<HTMLInputElement>(null);
+
+  // Prohlížečka dokumentů — otevírá soubor přímo v aplikaci
+  const [previewDoc, setPreviewDoc] = useState<PropertyDocument | null>(null);
+
+  // Esc zavře jen prohlížečku, ne panel nemovitosti pod ní
+  useEffect(() => {
+    if (!previewDoc) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        e.stopPropagation();
+        setPreviewDoc(null);
+      }
+    };
+    window.addEventListener('keydown', onKey, true);
+    return () => window.removeEventListener('keydown', onKey, true);
+  }, [previewDoc]);
   const [photoPending, setPhotoPending] = useState(false);   // načtená fotka bez potvrzeného ořezu
   const [photoWarning, setPhotoWarning] = useState(false);   // upozornění „přijdete o ni"
   const [photoDraft, setPhotoDraft] = useState('');
@@ -2390,6 +2406,77 @@ export const PropertiesView: React.FC<PropertiesViewProps> = ({
         </div>
       )}
 
+      {/* DOCUMENT VIEWER — in-app, above everything */}
+      {previewDoc && (() => {
+        const ext = (previewDoc.name.split('.').pop() || '').toLowerCase();
+        const isPdf = ext === 'pdf';
+        const isImage = ['png', 'jpg', 'jpeg', 'webp', 'gif', 'svg'].includes(ext);
+        return (
+          <div
+            className="fixed inset-0 z-[9999] flex items-center justify-center p-3 sm:p-8 animate-in fade-in duration-150"
+            style={{ backgroundColor: 'rgba(11,31,26,0.55)' }}
+            onClick={() => setPreviewDoc(null)}
+          >
+            <div
+              className="bg-white dark:bg-stone-950 border border-stone-200/60 dark:border-stone-800 rounded-xl shadow-lg w-full max-w-[960px] h-[88vh] flex flex-col overflow-hidden"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <div className="flex items-center justify-between gap-3 px-5 py-3.5 border-b border-stone-100 dark:border-stone-850 flex-none">
+                <div className="flex items-center gap-2.5 min-w-0">
+                  <FileText className="w-4 h-4 text-stone-400 flex-none" />
+                  <span className="text-[15px] font-semibold text-stone-900 dark:text-stone-100 truncate">
+                    {previewDoc.name}
+                  </span>
+                  <span className="text-[11px] text-stone-400 dark:text-stone-500 flex-none hidden sm:inline">
+                    {formatDocMeta(previewDoc)}
+                  </span>
+                </div>
+                <div className="flex items-center gap-1 flex-none">
+                  <button
+                    onClick={() => void handleDownloadDocument(previewDoc)}
+                    className="w-8 h-8 rounded-md flex items-center justify-center text-stone-400 hover:text-[#0E8A5F] hover:bg-stone-100 dark:hover:bg-stone-800 cursor-pointer"
+                    aria-label="Stáhnout"
+                    title="Stáhnout"
+                  >
+                    <Download className="w-4 h-4" />
+                  </button>
+                  <button
+                    onClick={() => setPreviewDoc(null)}
+                    className="w-8 h-8 rounded-md flex items-center justify-center text-stone-400 hover:text-stone-700 hover:bg-stone-100 dark:hover:bg-stone-800 dark:hover:text-stone-200 cursor-pointer"
+                    aria-label="Zavřít"
+                    title="Zavřít (Esc)"
+                  >
+                    <X className="w-4 h-4" />
+                  </button>
+                </div>
+              </div>
+              <div className="flex-1 min-h-0 bg-stone-100 dark:bg-stone-900">
+                {isPdf ? (
+                  <iframe src={previewDoc.url} title={previewDoc.name} className="w-full h-full border-0" />
+                ) : isImage ? (
+                  <div className="w-full h-full flex items-center justify-center p-4">
+                    <img src={previewDoc.url} alt={previewDoc.name} className="max-w-full max-h-full object-contain rounded-md" />
+                  </div>
+                ) : (
+                  <div className="w-full h-full flex flex-col items-center justify-center gap-3 text-center px-6">
+                    <FileText className="w-8 h-8 text-stone-300 dark:text-stone-600" />
+                    <div className="text-sm text-stone-500 dark:text-stone-400">
+                      Náhled pro tento typ souboru není k dispozici.
+                    </div>
+                    <button
+                      onClick={() => void handleDownloadDocument(previewDoc)}
+                      className="bg-[#00D991] text-[#00221F] font-semibold text-xs px-3.5 py-2 rounded-lg hover:bg-[#00c583] flex items-center gap-1.5"
+                    >
+                      <Download className="w-3.5 h-3.5" /> Stáhnout
+                    </button>
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+        );
+      })()}
+
             {/* DETAIL DIALOG */}
       {selectedProperty && (() => {
         // Gather active deals for this property
@@ -3988,12 +4075,10 @@ export const PropertiesView: React.FC<PropertiesViewProps> = ({
                           <div className="divide-y divide-stone-100 dark:divide-stone-850">
                             {documents.map((doc, idx) => (
                               <div key={doc.url} className="flex justify-between items-center py-2.5 text-xs min-w-0 gap-3">
-                                <a
-                                  href={doc.url}
-                                  target="_blank"
-                                  rel="noreferrer"
-                                  title="Zobrazit — odtud se dá i vytisknout"
-                                  className="flex items-center gap-2 text-left min-w-0 hover:underline"
+                                <button
+                                  onClick={() => setPreviewDoc(doc)}
+                                  title="Zobrazit"
+                                  className="flex items-center gap-2 text-left min-w-0 hover:underline cursor-pointer"
                                 >
                                   <FileText className="w-3.5 h-3.5 text-stone-400 flex-none" />
                                   <span className="text-sm font-semibold text-[#0E8A5F] dark:text-green-400 truncate">
@@ -4002,18 +4087,16 @@ export const PropertiesView: React.FC<PropertiesViewProps> = ({
                                   <span className="text-[11px] text-stone-400 dark:text-stone-500 flex-none">
                                     {formatDocMeta(doc)}
                                   </span>
-                                </a>
+                                </button>
                                 <div className="flex items-center gap-1 flex-none">
-                                  <a
-                                    href={doc.url}
-                                    target="_blank"
-                                    rel="noreferrer"
+                                  <button
+                                    onClick={() => setPreviewDoc(doc)}
                                     className="w-7 h-7 rounded-md flex items-center justify-center text-stone-400 hover:text-[#0E8A5F] hover:bg-stone-100 dark:hover:bg-stone-800 cursor-pointer"
                                     aria-label={`Zobrazit ${doc.name}`}
                                     title="Zobrazit"
                                   >
                                     <Eye className="w-3.5 h-3.5" />
-                                  </a>
+                                  </button>
                                   <button
                                     onClick={() => void handleDownloadDocument(doc)}
                                     className="w-7 h-7 rounded-md flex items-center justify-center text-stone-400 hover:text-[#0E8A5F] hover:bg-stone-100 dark:hover:bg-stone-800 cursor-pointer"
