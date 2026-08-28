@@ -2916,7 +2916,7 @@ export const PropertiesView: React.FC<PropertiesViewProps> = ({
                               );
                             })}
                             <div className="text-xs text-stone-400 dark:text-stone-500 pt-3 text-left">
-                              {propertyDeals.length > 2 ? `+ ${propertyDeals.length - 2} další · ` : ''}{recommendations.length} doporučení z databáze
+                              {propertyDeals.length > 2 ? `+ ${propertyDeals.length - 2} další · ` : ''}{recommendations.length === 1 ? '1 možný zájemce' : recommendations.length >= 2 && recommendations.length <= 4 ? `${recommendations.length} možní zájemci` : `${recommendations.length} možných zájemců`} v databázi
                             </div>
                           </div>
                         )}
@@ -4134,9 +4134,9 @@ export const PropertiesView: React.FC<PropertiesViewProps> = ({
                               }`}
                             >
                               {!isEditingThisDeal ? (
-                                <div className="text-xs">
-                                  {/* Line 1: name + phone left, badge right */}
-                                  <div className="flex justify-between items-center gap-3">
+                                <div className="flex justify-between gap-4 text-xs">
+                                  {/* Left: name/phone, then bar + note */}
+                                  <div className="flex-1 min-w-0">
                                     <div className="flex items-baseline gap-3 min-w-0">
                                       <button 
                                         onClick={() => {
@@ -4156,37 +4156,39 @@ export const PropertiesView: React.FC<PropertiesViewProps> = ({
                                         </a>
                                       )}
                                     </div>
-                                    <span className={`text-[10px] font-semibold px-2 py-0.5 rounded-[4px] uppercase tracking-wider flex-none ${si.chip}`}>
-                                      {si.label}
-                                    </span>
+                                    <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4 mt-2.5">
+                                      <div className="flex items-center gap-3 flex-none">
+                                        <div className="w-[150px]">
+                                          {renderProgressBar(deal.stage)}
+                                        </div>
+                                        <span className="text-stone-400 dark:text-stone-500 font-semibold uppercase tracking-wide text-[10px] w-7 flex-none">
+                                          {si.step > 0 ? `${si.step}/5` : '—'}
+                                        </span>
+                                      </div>
+                                      <div className="flex-1 min-w-0 text-stone-900 dark:text-stone-200 truncate">
+                                        {deal.next_step ? (
+                                          <span>
+                                            Poznámka: <span className="font-medium text-stone-800 dark:text-stone-300">{deal.next_step}</span>
+                                          </span>
+                                        ) : (
+                                          <span className="italic text-stone-400">Bez poznámky</span>
+                                        )}
+                                      </div>
+                                    </div>
                                   </div>
 
-                                  {/* Line 2: bar + step left, poznámka + edit right */}
-                                  <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4 mt-2.5">
-                                    <div className="flex items-center gap-3 flex-none">
-                                      <div className="w-[150px]">
-                                        {renderProgressBar(deal.stage)}
-                                      </div>
-                                      <span className="text-stone-400 dark:text-stone-500 font-semibold uppercase tracking-wide text-[10px] w-7 flex-none">
-                                        {si.step > 0 ? `${si.step}/5` : '—'}
-                                      </span>
-                                    </div>
-                                    <div className="flex-1 min-w-0 text-stone-900 dark:text-stone-200 truncate">
-                                      {deal.next_step ? (
-                                        <span>
-                                          Poznámka: <span className="font-medium text-stone-800 dark:text-stone-300">{deal.next_step}</span>
-                                        </span>
-                                      ) : (
-                                        <span className="italic text-stone-400">Bez poznámky</span>
-                                      )}
-                                    </div>
+                                  {/* Right rail: badge above edit, one shared right edge */}
+                                  <div className="flex flex-col items-end justify-between gap-2 flex-none">
+                                    <span className={`text-[10px] font-semibold px-2 py-0.5 rounded-[4px] uppercase tracking-wider ${si.chip}`}>
+                                      {si.label}
+                                    </span>
                                     <button
                                       onClick={() => {
                                         setEditingDealId(deal.id);
                                         setEditDealStage(deal.stage);
                                         setEditDealNextStep(deal.next_step || '');
                                       }}
-                                      className="text-[#0E8A5F] hover:underline font-semibold flex items-center gap-1 flex-none self-start sm:self-auto"
+                                      className="text-[#0E8A5F] hover:underline font-semibold flex items-center gap-1"
                                     >
                                       <Edit className="w-3.5 h-3.5" /> Upravit
                                     </button>
@@ -4251,7 +4253,7 @@ export const PropertiesView: React.FC<PropertiesViewProps> = ({
                     <div className="rounded-xl border border-hairline bg-surface p-5">
                       <div className="flex justify-between items-baseline mb-3">
                         <span className="text-[15px] font-semibold text-stone-900 dark:text-stone-100">
-                          Doporučení z databáze · {recommendations.length}
+                          Možní zájemci · {recommendations.length}
                         </span>
                         <span className="text-[11px] text-stone-400 dark:text-stone-500">
                           Vlastník nemovitosti se nikdy nenabízí
