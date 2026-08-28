@@ -2466,15 +2466,19 @@ export const PropertiesView: React.FC<PropertiesViewProps> = ({
           : 'bg-rose-50 dark:bg-rose-950/20 text-rose-700 dark:text-rose-400';
 
         const renderProgressBar = (stage: string) => {
-          const { step } = stageInfo(stage);
+          const { bar } = stageInfo(stage);
           return (
             <div className="flex gap-[3px] w-full sm:w-[150px]">
-              {[1, 2, 3, 4, 5].map((s) => (
-                <div
-                  key={s}
-                  className={`h-[7px] rounded-[3px] flex-1 ${s <= step ? 'bg-[#00D991]' : 'bg-[#E9E8E2] dark:bg-stone-700'}`}
-                />
-              ))}
+              {[1, 2, 3, 4, 5].map((s) => {
+                const fill = Math.min(Math.max(bar - (s - 1), 0), 1); // 0, 0.5 nebo 1 dílku
+                return (
+                  <div key={s} className="h-[7px] rounded-[3px] flex-1 overflow-hidden bg-[#E9E8E2] dark:bg-stone-700">
+                    {fill > 0 && (
+                      <div className="h-full rounded-[3px] bg-[#00D991]" style={{ width: `${fill * 100}%` }} />
+                    )}
+                  </div>
+                );
+              })}
             </div>
           );
         };
@@ -4018,7 +4022,7 @@ export const PropertiesView: React.FC<PropertiesViewProps> = ({
                         { id: 'po prohlídce', label: 'Po prohlídce' },
                         { id: 'rezervace', label: 'Rezervace' },
                         { id: 'kupuje', label: 'Kupuje' },
-                        { id: 'prohráno', label: 'Prohráno' },
+                        { id: 'prohráno', label: 'Odpadl' },
                       ] as const).map((pill) => {
                         const count = pill.id === 'všichni'
                           ? propertyDeals.length
@@ -4130,67 +4134,63 @@ export const PropertiesView: React.FC<PropertiesViewProps> = ({
                               }`}
                             >
                               {!isEditingThisDeal ? (
-                                <div className="flex flex-col md:flex-row md:items-center gap-4 text-xs">
-                                  {/* Left: Contact Info */}
-                                  <div className="w-[200px] flex-none">
-                                    <button 
-                                      onClick={() => {
-                                        setIsDetailOpen(false);
-                                        if (buyerContact) onNavigateToContact(buyerContact.id);
-                                      }}
-                                      className="font-semibold text-stone-950 dark:text-stone-100 hover:text-[#0E8A5F] text-[14px] hover:underline block text-left"
-                                    >
-                                      {buyerContact?.full_name}
-                                    </button>
-                                    {buyerContact?.phone && (
-                                      <a 
-                                        href={`tel:${buyerContact.phone}`} 
-                                        className="text-[12.5px] text-[#0E8A5F] hover:underline mt-0.5 block font-medium"
+                                <div className="text-xs">
+                                  {/* Line 1: name + phone left, badge right */}
+                                  <div className="flex justify-between items-center gap-3">
+                                    <div className="flex items-baseline gap-3 min-w-0">
+                                      <button 
+                                        onClick={() => {
+                                          setIsDetailOpen(false);
+                                          if (buyerContact) onNavigateToContact(buyerContact.id);
+                                        }}
+                                        className="font-semibold text-stone-950 dark:text-stone-100 hover:text-[#0E8A5F] text-[14px] hover:underline truncate"
                                       >
-                                        {buyerContact.phone}
-                                      </a>
-                                    )}
-                                  </div>
-
-                                  {/* Process point badge */}
-                                  <div className="flex-none">
-                                    <span className={`text-[10px] font-semibold px-2 py-0.5 rounded-[4px] uppercase tracking-wider ${si.chip}`}>
+                                        {buyerContact?.full_name}
+                                      </button>
+                                      {buyerContact?.phone && (
+                                        <a 
+                                          href={`tel:${buyerContact.phone}`} 
+                                          className="text-[12.5px] text-[#0E8A5F] hover:underline font-medium flex-none"
+                                        >
+                                          {buyerContact.phone}
+                                        </a>
+                                      )}
+                                    </div>
+                                    <span className={`text-[10px] font-semibold px-2 py-0.5 rounded-[4px] uppercase tracking-wider flex-none ${si.chip}`}>
                                       {si.label}
                                     </span>
                                   </div>
 
-                                  {/* Progress bar */}
-                                  <div className="w-[150px] flex-none">
-                                    {renderProgressBar(deal.stage)}
-                                  </div>
-
-                                  {/* Step text */}
-                                  <div className="w-[80px] flex-none text-stone-400 dark:text-stone-500 font-semibold uppercase tracking-wide text-[10px]">
-                                    {si.step > 0 ? `${si.step}/5` : '—'}
-                                  </div>
-
-                                  {/* Next step */}
-                                  <div className="flex-1 text-stone-900 dark:text-stone-200">
-                                    {deal.next_step ? (
-                                      <span>
-                                        Další krok: <span className="font-medium text-stone-800 dark:text-stone-300">{deal.next_step}</span>
+                                  {/* Line 2: bar + step left, poznámka + edit right */}
+                                  <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4 mt-2.5">
+                                    <div className="flex items-center gap-3 flex-none">
+                                      <div className="w-[150px]">
+                                        {renderProgressBar(deal.stage)}
+                                      </div>
+                                      <span className="text-stone-400 dark:text-stone-500 font-semibold uppercase tracking-wide text-[10px] w-7 flex-none">
+                                        {si.step > 0 ? `${si.step}/5` : '—'}
                                       </span>
-                                    ) : (
-                                      <span className="italic text-stone-400">Chybí další krok</span>
-                                    )}
+                                    </div>
+                                    <div className="flex-1 min-w-0 text-stone-900 dark:text-stone-200 truncate">
+                                      {deal.next_step ? (
+                                        <span>
+                                          Poznámka: <span className="font-medium text-stone-800 dark:text-stone-300">{deal.next_step}</span>
+                                        </span>
+                                      ) : (
+                                        <span className="italic text-stone-400">Bez poznámky</span>
+                                      )}
+                                    </div>
+                                    <button
+                                      onClick={() => {
+                                        setEditingDealId(deal.id);
+                                        setEditDealStage(deal.stage);
+                                        setEditDealNextStep(deal.next_step || '');
+                                      }}
+                                      className="text-[#0E8A5F] hover:underline font-semibold flex items-center gap-1 flex-none self-start sm:self-auto"
+                                    >
+                                      <Edit className="w-3.5 h-3.5" /> Upravit
+                                    </button>
                                   </div>
-
-                                  {/* Edit button */}
-                                  <button
-                                    onClick={() => {
-                                      setEditingDealId(deal.id);
-                                      setEditDealStage(deal.stage);
-                                      setEditDealNextStep(deal.next_step || '');
-                                    }}
-                                    className="text-[#0E8A5F] hover:underline font-semibold flex items-center gap-1 flex-none"
-                                  >
-                                    <Edit className="w-3.5 h-3.5" /> Upravit
-                                  </button>
                                 </div>
                               ) : (
                                 /* Inline edit state */
@@ -4230,11 +4230,11 @@ export const PropertiesView: React.FC<PropertiesViewProps> = ({
                                       </Select>
                                     </div>
                                     <div className="space-y-1.5 text-left">
-                                      <Label>Další krok</Label>
+                                      <Label>Poznámka</Label>
                                       <Input 
                                         value={editDealNextStep} 
                                         onChange={(e) => setEditDealNextStep(e.target.value)} 
-                                        placeholder="Další krok..."
+                                        placeholder="Poznámka…"
                                         className="h-9 text-xs border-[#00D991]"
                                       />
                                     </div>
