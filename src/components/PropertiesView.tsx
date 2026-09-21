@@ -2767,7 +2767,7 @@ export const PropertiesView: React.FC<PropertiesViewProps> = ({
                 {/* Details Panel */}
                 <div className="flex-1 min-w-0 text-left font-sans mt-3.5 sm:mt-0">
                   <div className="flex items-center gap-2.5 flex-wrap">
-                    <span className="text-[11px] font-semibold uppercase tracking-wider text-stone-400 dark:text-stone-500">
+                    <h2 className="font-display text-[26px] font-semibold tracking-tight text-[#0B1F1A] dark:text-stone-100 leading-tight">
                       {selectedProperty.kind === 'byt' 
                         ? `Byt ${selectedProperty.flat_layout || ''}` 
                         : selectedProperty.kind === 'dům' 
@@ -2777,7 +2777,8 @@ export const PropertiesView: React.FC<PropertiesViewProps> = ({
                         : selectedProperty.kind === 'komerční'
                         ? (selectedProperty.comm_subtype ? `Komerční — ${selectedProperty.comm_subtype}` : 'Komerční nemovitost')
                         : 'Garáž/ostatní'}
-                      {' · '}
+                    </h2>
+                    <span className="text-[11px] font-semibold uppercase tracking-wider bg-[#ECEBE6] text-[#55605C] px-2 py-[3px] rounded-[5px]">
                       {selectedProperty.transaction === 'prodej' ? 'Prodej' : 'Pronájem'}
                     </span>
                     <span className="text-[11px] font-semibold uppercase tracking-wider bg-[#00D991]/15 text-[#0B5C3D] px-2 py-[3px] rounded-[5px]">
@@ -2785,14 +2786,9 @@ export const PropertiesView: React.FC<PropertiesViewProps> = ({
                     </span>
                   </div>
 
-                  <h2 className="font-display text-[26px] font-semibold tracking-tight text-[#0B1F1A] dark:text-stone-100 leading-tight mt-2">
-                    {selectedProperty.address.split(',')[0]?.trim() || selectedProperty.address}
-                  </h2>
-                  {selectedProperty.address.includes(',') && (
-                    <div className="text-[13.5px] text-stone-500 dark:text-stone-400 mt-1">
-                      {selectedProperty.address.split(',').slice(1).join(',').trim()}
-                    </div>
-                  )}
+                  <div className="text-[13.5px] text-stone-500 dark:text-stone-400 mt-1.5">
+                    {selectedProperty.address}
+                  </div>
                   
                   <div className="flex items-baseline gap-[10px] mt-4 flex-wrap">
                     <span className="font-display text-[32px] font-light tracking-tight text-[#0B1F1A] dark:text-stone-100 tabular-nums leading-none">
