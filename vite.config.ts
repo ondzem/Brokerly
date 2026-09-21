@@ -12,6 +12,25 @@ export default defineConfig({
     },
   },
   server: {
+    // Tooling rewrites files in these folders on its own (graphify rebuilds
+    // graph.html after every commit, design-sync writes preview .html, ruflo
+    // keeps its state here). Vite reloads the whole page on any .html change,
+    // which threw agents out of an open dialog mid-task.
+    watch: {
+      ignored: [
+        '**/graphify-out/**',
+        '**/ds-bundle/**',
+        '**/.ds-sync/**',
+        '**/.design-sync/**',
+        '**/.claude/**',
+        '**/.claude-flow/**',
+        '**/.swarm/**',
+        '**/supabase/**',
+        '**/docs/**',
+        '**/scripts/**',
+        '**/dist/**',
+      ],
+    },
     proxy: {
       '/api-scraper': {
         target: 'https://api.scraperapi.com',
