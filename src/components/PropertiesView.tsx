@@ -6199,7 +6199,7 @@ export const PropertiesView: React.FC<PropertiesViewProps> = ({
                     <Button type="button" variant="outline" onClick={() => setIsCreateOpen(false)} className="hidden sm:inline-flex">
                       Zrušit
                     </Button>
-                    <Button type="submit">Vytvořit<span className="hidden min-[360px]:inline">&nbsp;nemovitost</span></Button>
+                    <Button type="submit">Vytvořit<span className="hidden min-[360px]:inline">nemovitost</span></Button>
                   </div>
                 </>
               ) : createMode === 'import' ? (
@@ -6213,9 +6213,9 @@ export const PropertiesView: React.FC<PropertiesViewProps> = ({
                   </button>
                   <div className="flex gap-2 sm:gap-3 min-w-0">
                     <Button type="button" variant="outline" onClick={() => setCreateMode('vse')} disabled={isImporting}>
-                      Zkontrolovat<span className="hidden sm:inline">&nbsp;vše</span>
+                      Zkontrolovat<span className="hidden sm:inline">vše</span>
                     </Button>
-                    <Button type="submit" disabled={isImporting || !newAddress}>Uložit<span className="hidden sm:inline">&nbsp;nemovitost</span></Button>
+                    <Button type="submit" disabled={isImporting || !newAddress}>Uložit<span className="hidden sm:inline">nemovitost</span></Button>
                   </div>
                 </>
               ) : createMode === 'hotovo' ? (
