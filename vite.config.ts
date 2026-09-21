@@ -29,6 +29,12 @@ export default defineConfig({
         '**/docs/**',
         '**/scripts/**',
         '**/dist/**',
+        // Tailwind v4 skenuje každý soubor projektu, takže i změna AGENTS.md
+        // (chodí přes synchronizaci od kolegy) jinak znovu načte stránku.
+        '**/*.md',
+        '**/*.sql',
+        '**/agentdb.rvf*',
+        '**/ruvector.db*',
       ],
     },
   },

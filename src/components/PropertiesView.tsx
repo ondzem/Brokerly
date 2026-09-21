@@ -4656,9 +4656,9 @@ export const PropertiesView: React.FC<PropertiesViewProps> = ({
       {/* CREATE DIALOG */}
       <Dialog open={isCreateOpen} onOpenChange={setIsCreateOpen}>
         <DialogContent className="max-w-2xl w-[94vw] sm:w-[90vw] max-h-[100dvh] sm:max-h-[92dvh] h-[100dvh] sm:h-auto overflow-hidden border-stone-200 bg-panel p-0 flex flex-col">
-          <DialogHeader className="shrink-0 px-5 sm:px-7 pt-5 sm:pt-6 pb-4 border-b border-stone-200/80 bg-panel">
-            <DialogTitle className="font-display text-xl sm:text-2xl font-normal text-left text-[#141414] dark:text-stone-100">Přidat nemovitost</DialogTitle>
-            <DialogDescription className="text-xs text-left text-muted-foreground mt-0.5">
+          <DialogHeader className="shrink-0 gap-0 px-5 sm:px-7 pt-5 sm:pt-6 pb-4 border-b border-stone-200/80 bg-panel">
+            <DialogTitle className="font-display text-xl sm:text-2xl font-normal leading-tight text-left text-[#141414] dark:text-stone-100">Přidat nemovitost</DialogTitle>
+            <DialogDescription className="text-xs text-left text-muted-foreground mt-1">
               Vložte odkaz na inzerát, nebo vyplňte údaje ručně.
             </DialogDescription>
           </DialogHeader>
@@ -4688,11 +4688,11 @@ export const PropertiesView: React.FC<PropertiesViewProps> = ({
                       </div>
                       <div className="min-w-0">
                         <div className="flex items-center gap-2">
-                          <span className="font-display text-[15px] font-semibold text-stone-900 dark:text-stone-100">Mám odkaz na inzerát</span>
+                          <span className="font-display text-[15px] font-semibold leading-snug text-stone-900 dark:text-stone-100">Mám odkaz na inzerát</span>
                           <span className="text-[10px] font-semibold uppercase tracking-wider bg-[#00D991]/15 text-[#0E8A5F] px-1.5 py-0.5 rounded">Nejrychlejší</span>
                         </div>
-                        <p className="text-[13px] text-stone-500 dark:text-stone-400 mt-1 leading-relaxed">
-                          Sreality, Bezrealitky, RE/MAX… AI z něj vytáhne adresu, cenu i všechny parametry.
+                        <p className="text-[13px] text-stone-500 dark:text-stone-400 mt-0.5 leading-normal">
+                          Sreality, Bezrealitky, RE/MAX… Vytáhnu z něj adresu, cenu i všechny parametry.
                           Vy jen zkontrolujete a uložíte.
                         </p>
                       </div>
@@ -4710,8 +4710,8 @@ export const PropertiesView: React.FC<PropertiesViewProps> = ({
                         <Edit className="w-4 h-4 text-stone-500" />
                       </div>
                       <div className="min-w-0">
-                        <span className="font-display text-[15px] font-semibold text-stone-900 dark:text-stone-100">Zadám ručně</span>
-                        <p className="text-[13px] text-stone-500 dark:text-stone-400 mt-1 leading-relaxed">
+                        <span className="block font-display text-[15px] font-semibold leading-snug text-stone-900 dark:text-stone-100">Zadám ručně</span>
+                        <p className="text-[13px] text-stone-500 dark:text-stone-400 mt-0.5 leading-normal">
                           Krok za krokem, jedna otázka po druhé.
                         </p>
                       </div>
@@ -5432,7 +5432,7 @@ export const PropertiesView: React.FC<PropertiesViewProps> = ({
               <div className="bg-surface border border-hairline p-3.5 rounded-xl space-y-2 text-left">
                 <Label htmlFor="import_url" className="text-xs font-semibold text-stone-700 dark:text-stone-300 flex items-center gap-1.5">
                   <span className="h-1.5 w-1.5 rounded-full bg-[#0E8A5F] animate-pulse" />
-                  Bleskový import inzerátu pomocí AI
+                  Bleskový import z inzerátu
                 </Label>
                 <div className="flex flex-col sm:flex-row gap-2">
                   <Input
@@ -6172,7 +6172,7 @@ export const PropertiesView: React.FC<PropertiesViewProps> = ({
                   <button
                     type="button"
                     onClick={() => (wizardStep === 0 ? setCreateMode('rozcestí') : setWizardStep(wizardStep - 1))}
-                    className="text-xs font-medium text-stone-500 hover:text-stone-800 dark:hover:text-stone-200 cursor-pointer"
+                    className="text-xs font-medium text-stone-500 hover:text-stone-800 dark:hover:text-stone-200 cursor-pointer whitespace-nowrap shrink-0"
                   >
                     ← Zpět
                   </button>
@@ -6191,15 +6191,15 @@ export const PropertiesView: React.FC<PropertiesViewProps> = ({
                   <button
                     type="button"
                     onClick={() => setCreateMode('rozcestí')}
-                    className="text-xs font-medium text-stone-500 hover:text-stone-800 dark:hover:text-stone-200 cursor-pointer"
+                    className="text-xs font-medium text-stone-500 hover:text-stone-800 dark:hover:text-stone-200 cursor-pointer whitespace-nowrap shrink-0"
                   >
-                    ← Zpět na rozcestí
+                    ← Zpět<span className="hidden sm:inline"> na rozcestí</span>
                   </button>
-                  <div className="flex gap-3">
-                    <Button type="button" variant="outline" onClick={() => setIsCreateOpen(false)}>
+                  <div className="flex gap-3 min-w-0">
+                    <Button type="button" variant="outline" onClick={() => setIsCreateOpen(false)} className="hidden sm:inline-flex">
                       Zrušit
                     </Button>
-                    <Button type="submit">Vytvořit nemovitost</Button>
+                    <Button type="submit">Vytvořit<span className="hidden min-[360px]:inline">&nbsp;nemovitost</span></Button>
                   </div>
                 </>
               ) : createMode === 'import' ? (
@@ -6207,15 +6207,15 @@ export const PropertiesView: React.FC<PropertiesViewProps> = ({
                   <button
                     type="button"
                     onClick={() => setCreateMode('rozcestí')}
-                    className="text-xs font-medium text-stone-500 hover:text-stone-800 dark:hover:text-stone-200 cursor-pointer"
+                    className="text-xs font-medium text-stone-500 hover:text-stone-800 dark:hover:text-stone-200 cursor-pointer whitespace-nowrap shrink-0"
                   >
                     ← Zpět
                   </button>
-                  <div className="flex gap-3">
+                  <div className="flex gap-2 sm:gap-3 min-w-0">
                     <Button type="button" variant="outline" onClick={() => setCreateMode('vse')} disabled={isImporting}>
-                      Zkontrolovat vše
+                      Zkontrolovat<span className="hidden sm:inline">&nbsp;vše</span>
                     </Button>
-                    <Button type="submit" disabled={isImporting || !newAddress}>Uložit nemovitost</Button>
+                    <Button type="submit" disabled={isImporting || !newAddress}>Uložit<span className="hidden sm:inline">&nbsp;nemovitost</span></Button>
                   </div>
                 </>
               ) : createMode === 'hotovo' ? (
