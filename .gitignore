@@ -70,3 +70,5 @@ ds-bundle/
 .claude-flow/sessions/
 .claude/memory.db
 .swarm/
+agentdb.rvf
+agentdb.rvf.lock
