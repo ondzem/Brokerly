@@ -361,7 +361,7 @@ those destroy someone else's day, not just the user's.
 the same feature for different reasons, say so and ask — do not silently pick one.
 `git rebase --abort` is always the safe exit.
 
-**Secrets:** `.env.local` holds the Supabase, Gemini and ScraperAPI keys and is
+**Secrets:** `.env.local` holds the Supabase keys and access token and is
 gitignored. The repo is **public**. Never commit a key, never paste one into a file
 that git tracks, and never print one into the transcript. New environment variables
 get their name (not their value) added to `.env.local.example`.

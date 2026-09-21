@@ -31,16 +31,5 @@ export default defineConfig({
         '**/dist/**',
       ],
     },
-    proxy: {
-      '/api-scraper': {
-        target: 'https://api.scraperapi.com',
-        changeOrigin: true,
-        rewrite: (path) => path.replace(/^\/api-scraper/, ''),
-        headers: {
-          'Cookie': 'sznconsent=1',
-          'Sna-Cookie': 'sznconsent=1'
-        }
-      },
-    },
   },
 });

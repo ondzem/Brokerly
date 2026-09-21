@@ -8,6 +8,7 @@ import { ChipPicker } from '@/components/ui/chip-picker';
 import { PhotoGallery } from '@/components/PhotoGallery';
 import { uploadPropertyDocument, deleteStoredFile, mirrorRemotePhoto } from '@/lib/storage';
 import { extractListingPhotos } from '@/lib/listingPhotos';
+import { loadListing } from '@/lib/listingImport';
 import { PhotoImg } from '@/components/ui/photo-img';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -1380,126 +1381,26 @@ export const PropertiesView: React.FC<PropertiesViewProps> = ({
       normalizedUrl = 'https://' + normalizedUrl;
     }
 
-    const geminiKey = import.meta.env.NEXT_PUBLIC_GEMINI_API_KEY || '';
-    const scraperKey = import.meta.env.NEXT_PUBLIC_SCRAPER_API_KEY || '';
-
-    if (!geminiKey || !scraperKey) {
-      toast.error('Chybí API klíče. Nastavte NEXT_PUBLIC_GEMINI_API_KEY a NEXT_PUBLIC_SCRAPER_API_KEY v .env.local a restartujte aplikaci.');
-      return;
-    }
-
     setIsImporting(true);
     setImportLines([]);
     setImportStage('Stahuji stránku…');
-
-    // Use clear separate toasts to avoid sonner-specific updating bugs
-    const toastId = toast.loading('1/2: Stahuji inzerát přes proxy...');
+    const toastId = toast.loading('Načítám inzerát…');
 
     try {
-      // 1. Download via local Vite development proxy (bypasses CORS completely and forwards consent cookies)
-      const scraperUrl = `/api-scraper?api_key=${encodeURIComponent(scraperKey)}&url=${encodeURIComponent(normalizedUrl)}&keep_headers=true`;
-      const response = await fetch(scraperUrl);
-      const html = await response.text();
-
-      // Check if HTML content exists and is valid. We check html.length instead of response.ok
-      // because already sold or archived properties return a 410 or 404 status code but still contain the full HTML page.
-      if (!html || html.length < 500) {
-        throw new Error('Chyba při stahování stránky. Ověřte Váš API klíč pro ScraperAPI nebo platnost URL.');
-      }
-
-      // Dismiss first toast and start second stage toast
-      toast.dismiss(toastId);
-      setImportStage('Čtu text inzerátu…');
-      const toastId2 = toast.loading('2/2: Analyzuji text inzerátu pomocí AI...');
-
-      // 2. Parse HTML, extract image, and clean up text
-      const parser = new DOMParser();
-      const doc = parser.parseFromString(html, 'text/html');
+      // Stránku stáhne edge funkce (prohlížeč to kvůli CORS nesmí) a údaje se
+      // z ní vyčtou přímo — bez AI a bez placených služeb. Viz lib/listingImport.
+      const loaded = await loadListing(normalizedUrl);
+      setImportStage('Čtu údaje z inzerátu…');
 
       // Z inzerátu bereme celou galerii, ne jen sdílecí og:image — makléř
       // čeká, že se přenesou všechny fotky, které u inzerátu vidí.
-      const listingPhotos = extractListingPhotos(html, normalizedUrl);
+      const listingPhotos = loaded.photos ?? (loaded.html ? extractListingPhotos(loaded.html, loaded.pageUrl) : []);
       const foundPhotoUrl = listingPhotos[0] || '';
 
-      doc.querySelectorAll('script, style, header, footer, nav, noscript, iframe, svg').forEach((el) => el.remove());
-      const text = doc.body.innerText || doc.body.textContent || '';
-      const cleanText = text.replace(/\s+/g, ' ').substring(0, 15000).trim();
-
-      if (cleanText.length < 100) {
-        toast.dismiss(toastId2);
-        throw new Error('Nepodařilo se stáhnout obsah stránky (stránka vrátila prázdný text nebo byla zablokována).');
+      const parsed = loaded.parsed;
+      if (!parsed.kind && !parsed.price && !parsed.address) {
+        throw new Error('Na stránce jsem nenašel údaje inzerátu. Zkuste odkaz přímo na detail nemovitosti.');
       }
-
-      // 3. Call Gemini Structured Outputs API
-      const geminiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${geminiKey}`;
-      const geminiPayload = {
-        contents: [
-          {
-            parts: [
-              {
-                text: `Analyzuj následující text inzerátu realitní nemovitosti a vytáhni z něj parametry pro databázi. \nText inzerátu:\n"""\n${cleanText}\n"""`
-              }
-            ]
-          }
-        ],
-        generationConfig: {
-          responseMimeType: "application/json",
-          responseSchema: {
-            type: "OBJECT",
-            properties: {
-              address: { type: "STRING", description: "Přesná adresa nemovitosti nebo lokalita, např. Bory, Plzeň" },
-              kind: { type: "STRING", enum: ["byt", "dům", "pozemek", "komerční", "garáž/ostatní"] },
-              transaction: { type: "STRING", enum: ["prodej", "pronájem"] },
-              price: { type: "NUMBER", description: "Cena nebo nájemné jako číslo v Kč" },
-              flat_layout: { type: "STRING", enum: ["1+kk", "1+1", "2+kk", "2+1", "3+kk", "3+1", "4+kk", "4+1", "5+kk", "5+1", "6 a více", "atypické"] },
-              flat_area: { type: "NUMBER", description: "Užitná plocha bytu v m2" },
-              floor: { type: "STRING", description: "Patro z pater, např. '3. ze 5'" },
-              ownership: { type: "STRING", enum: ["osobní", "družstevní", "SVJ"] },
-              construction: { type: "STRING", enum: ["cihla", "panel", "jiné"] },
-              flat_condition: { type: "STRING", enum: ["novostavba", "po rekonstrukci", "dobrý", "před rekonstrukcí"] },
-              flat_penb: { type: "STRING", enum: ["A", "B", "C", "D", "E", "F", "G"] },
-              flat_features: {
-                type: "ARRAY",
-                items: { type: "STRING", enum: ["výtah", "balkon/lodžie", "terasa", "sklep"] }
-              },
-              house_layout: { type: "STRING", enum: ["2+kk", "2+1", "3+kk", "3+1", "4+kk", "4+1", "5+kk", "5+1", "6+kk", "6+1", "7 a více", "atypické"] },
-              house_area: { type: "NUMBER", description: "Užitná plocha domu v m2" },
-              land_area: { type: "NUMBER", description: "Plocha pozemku v m2" },
-              house_type: { type: "STRING", enum: ["samostatný", "řadový", "dvojdomek"] },
-              floors_count: { type: "NUMBER", description: "Počet podlaží domu" },
-              house_features: {
-                type: "ARRAY",
-                items: { type: "STRING", enum: ["garáž", "zahrada", "bazén"] }
-              },
-              house_condition: { type: "STRING", enum: ["novostavba", "po rekonstrukci", "dobrý", "před rekonstrukcí"] },
-              house_penb: { type: "STRING", enum: ["A", "B", "C", "D", "E", "F", "G"] },
-              land_size: { type: "NUMBER", description: "Výměra pozemku v m2" },
-              land_type: { type: "STRING", enum: ["bydlení", "komerční", "pole", "louka", "les", "rybník", "sady / vinice", "zahrada", "ostatní"], description: "Druh pozemku" },
-              land_utilities: {
-                type: "ARRAY",
-                items: { type: "STRING", enum: ["elektřina", "voda", "plyn", "kanalizace"] },
-                description: "Inženýrské sítě dostupné na pozemku"
-              },
-              zoning_plan: { type: "STRING", enum: ["zastavitelné — bydlení", "zastavitelné — smíšené obytné", "zastavitelné — komerce / výroba", "zastavitelné — rekreace", "nezastavitelné — zemědělská půda", "nezastavitelné — les", "nezastavitelné — ostatní"], description: "Zařazení podle územního plánu" },
-              land_access: { type: "STRING", enum: ["asfaltová cesta", "zpevněná cesta", "nezpevněná cesta", "přes cizí pozemek", "bez přístupu"], description: "Přístup k pozemku" },
-              land_dimensions: { type: "STRING", description: "Rozměry pozemku" },
-              comm_subtype: { type: "STRING", enum: ["kancelář", "obchodní prostor", "sklad", "výrobní prostor", "restaurace / gastro", "ubytování", "ordinace", "zemědělský objekt", "činžovní dům", "jiné"], description: "Podtyp komerční nemovitosti" },
-              comm_floor_area: { type: "NUMBER", description: "Podlahová/užitná plocha komerčního prostoru v m2" },
-              comm_condition_equipment: { type: "STRING", description: "Stav a vybavenost komerčního prostoru, např. 'po rekonstrukci, klimatizace, kuchyňka'" },
-              comm_parking_entrance: { type: "STRING", description: "Parkování a vjezd, např. '4 stání ve dvoře, vjezd pro dodávku'" },
-              comm_penb: { type: "STRING", enum: ["A", "B", "C", "D", "E", "F", "G"], description: "PENB komerčního prostoru" },
-              rent_deposit: { type: "NUMBER", description: "Vratná kauce (jistota) v Kč, pokud jde o pronájem" },
-              rent_fees_utilities: { type: "NUMBER", description: "Měsíční poplatky za služby a energie v Kč, pokud jde o pronájem" },
-              rent_duration: { type: "STRING", description: "Doba nájmu, např. '1 rok s možností prodloužení', 'na dobu neurčitou'" },
-              rent_available_from: { type: "STRING", description: "Od kdy je nemovitost dostupná k nastěhování, ve formátu YYYY-MM-DD. Vynech, pokud v textu není konkrétní datum." },
-              rent_equipment: { type: "STRING", enum: ["vybaveno", "částečně vybaveno", "nevybaveno"], description: "Vybavení pronajímané nemovitosti" },
-              commission_pct: { type: "NUMBER", description: "Provize makléře / RK v procentech (např. 3)" },
-              commission_val: { type: "NUMBER", description: "Provize makléře / RK v Kč (např. 150000)" },
-              facts_for_answers: { type: "STRING", description: "Jakékoli další důležité poznámky k nemovitosti" }
-            }
-          }
-        }
-      };
 
       // Fotky ukážeme hned z adres portálu, ať makléř nečeká, a na pozadí je
       // přeneseme k nám. Portál inzerát dřív nebo později stáhne a odkaz zmizí
@@ -1510,27 +1411,7 @@ export const PropertiesView: React.FC<PropertiesViewProps> = ({
         void mirrorListingPhotos(listingPhotos);
       }
 
-      const geminiRes = await fetch(geminiUrl, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify(geminiPayload)
-      });
-
-      toast.dismiss(toastId2);
-
-      if (!geminiRes.ok) {
-        throw new Error('Chyba při komunikaci s Gemini API (překročen limit nebo neaktivní klíč).');
-      }
-
-      const geminiData = await geminiRes.json();
-      const rawText = geminiData.candidates?.[0]?.content?.parts?.[0]?.text;
-      if (!rawText) {
-        throw new Error('Z Gemini API nepřišla žádná strukturovaná data.');
-      }
-
-      const parsed = JSON.parse(rawText);
+      toast.dismiss(toastId);
       setImportStage('');
 
       // Vypiš postupně, co se našlo — makléř vidí, že systém odvedl jeho práci
@@ -1602,6 +1483,7 @@ export const PropertiesView: React.FC<PropertiesViewProps> = ({
       if (parsed.flat_condition) setFlatCondition(parsed.flat_condition);
       if (parsed.flat_features) setFlatFeatures(parsed.flat_features);
       if (parsed.flat_penb) setFlatPenb(parsed.flat_penb);
+      if (parsed.flat_parking) setFlatParking(parsed.flat_parking);
 
       // Dům specific
       if (parsed.house_layout) setHouseLayout(parsed.house_layout);
