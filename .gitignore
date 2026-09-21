@@ -60,3 +60,13 @@ ds-bundle/
 .claude-flow/
 .claude/proven-config.json
 .claude/.proven-config-version
+
+# Ruflo local secrets and runtime data
+.env
+.env.local
+.env.*.local
+.claude-flow/data/
+.claude-flow/logs/
+.claude-flow/sessions/
+.claude/memory.db
+.swarm/
