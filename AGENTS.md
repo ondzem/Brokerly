@@ -7,6 +7,7 @@
 
 ## 0. How you (the agent) must work
 
+- **Communication:** Reply in Czech, as briefly as possible. Go straight to the point; include only necessary information, without filler or unsolicited explanations.
 - **Plan first, build second.** Before writing code, produce a short implementation plan (as a plan artifact) and **wait for my approval**. Do not start building until I approve.
 - **Scope is law.** You build **Stage 1 only** (see §7 "Do NOT build"). If any task seems to require a feature from a later stage (automation, AI, email/SMS, matching, portals, documents, reporting), **STOP and ask** instead of building it.
 - **Follow the spec literally.** Build the data model exactly as specified in §4 — fields, types, required flags, enums. **Do not invent extra fields or features** ("Nic nevymýšlet navíc").

@@ -2733,7 +2733,7 @@ export const PropertiesView: React.FC<PropertiesViewProps> = ({
                   type="button"
                   onClick={() => setGalleryOpen(true)}
                   aria-label="Otevřít galerii fotek"
-                  className="group relative w-full aspect-[3/2] sm:w-auto sm:h-auto sm:self-stretch sm:aspect-[3/2] sm:min-h-[130px] sm:max-h-[190px] rounded-[10px] bg-[#E9E8E2] dark:bg-stone-800 flex-none flex items-center justify-center overflow-hidden border border-stone-200/40 dark:border-stone-800 cursor-zoom-in"
+                  className="group relative w-full aspect-[3/2] sm:w-auto sm:h-auto sm:self-stretch sm:aspect-[3/2] sm:min-h-[150px] sm:max-h-[230px] rounded-xl bg-[#E9E8E2] dark:bg-stone-800 flex-none flex items-center justify-center overflow-hidden border border-stone-200/40 dark:border-stone-800 cursor-zoom-in"
                 >
                   {photoUrl ? (
                     <PhotoImg src={photoUrl} thumb priority className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-[1.03]" alt="Náhled" />
@@ -2766,8 +2766,8 @@ export const PropertiesView: React.FC<PropertiesViewProps> = ({
 
                 {/* Details Panel */}
                 <div className="flex-1 min-w-0 text-left font-sans mt-3.5 sm:mt-0">
-                  <div className="flex items-center gap-[10px] flex-wrap">
-                    <span className="font-display text-[23px] font-semibold tracking-tight text-[#0B1F1A] dark:text-stone-100 leading-tight">
+                  <div className="flex items-center gap-2.5 flex-wrap">
+                    <span className="text-[11px] font-semibold uppercase tracking-wider text-stone-400 dark:text-stone-500">
                       {selectedProperty.kind === 'byt' 
                         ? `Byt ${selectedProperty.flat_layout || ''}` 
                         : selectedProperty.kind === 'dům' 
@@ -2777,17 +2777,25 @@ export const PropertiesView: React.FC<PropertiesViewProps> = ({
                         : selectedProperty.kind === 'komerční'
                         ? (selectedProperty.comm_subtype ? `Komerční — ${selectedProperty.comm_subtype}` : 'Komerční nemovitost')
                         : 'Garáž/ostatní'}
-                    </span>
-                    <span className="text-[12px] font-medium bg-[#00221F] text-white px-[9px] py-[2px] rounded-[6px]">
+                      {' · '}
                       {selectedProperty.transaction === 'prodej' ? 'Prodej' : 'Pronájem'}
                     </span>
-                    <span className="text-[12px] font-medium bg-[#00D991] text-[#00221F] px-[9px] py-[2px] rounded-[6px]">
+                    <span className="text-[11px] font-semibold uppercase tracking-wider bg-[#00D991]/15 text-[#0B5C3D] px-2 py-[3px] rounded-[5px]">
                       {selectedProperty.offer_status === 'v nabídce' ? 'V nabídce' : selectedProperty.offer_status}
                     </span>
                   </div>
+
+                  <h2 className="font-display text-[26px] font-semibold tracking-tight text-[#0B1F1A] dark:text-stone-100 leading-tight mt-2">
+                    {selectedProperty.address.split(',')[0]?.trim() || selectedProperty.address}
+                  </h2>
+                  {selectedProperty.address.includes(',') && (
+                    <div className="text-[13.5px] text-stone-500 dark:text-stone-400 mt-1">
+                      {selectedProperty.address.split(',').slice(1).join(',').trim()}
+                    </div>
+                  )}
                   
-                  <div className="flex items-baseline gap-[10px] mt-3 sm:mt-2.5 flex-wrap">
-                    <span className="font-display text-[30px] font-light tracking-tight text-[#0B1F1A] dark:text-stone-100 tabular-nums leading-none">
+                  <div className="flex items-baseline gap-[10px] mt-4 flex-wrap">
+                    <span className="font-display text-[32px] font-light tracking-tight text-[#0B1F1A] dark:text-stone-100 tabular-nums leading-none">
                       {selectedProperty.price.toLocaleString('cs-CZ')} Kč
                     </span>
                     {(() => {
@@ -2802,14 +2810,6 @@ export const PropertiesView: React.FC<PropertiesViewProps> = ({
                         </span>
                       ) : null;
                     })()}
-                  </div>
-
-                  <div className="text-[15px] text-[#0B1F1A] dark:text-stone-200 mt-3 font-semibold">
-                    {selectedProperty.address.split(',')[1]?.trim() || selectedProperty.address}
-                  </div>
-                  
-                  <div className="text-[13px] text-stone-500 dark:text-stone-400 mt-2 leading-relaxed">
-                    {selectedProperty.address}
                   </div>
 
                   {ownerContact && (
@@ -2886,14 +2886,14 @@ export const PropertiesView: React.FC<PropertiesViewProps> = ({
 
               {/* FACT STRIP — icon-led key facts, the portal move: always visible, one glance */}
               {keyParamsFilled && (
-                <div className="flex items-stretch gap-2 px-4 sm:px-6 py-3 border-b border-hairline bg-panel overflow-x-auto scrollbar-none flex-none">
+                <div className="flex items-stretch px-4 sm:px-6 py-2.5 border-b border-hairline bg-panel overflow-x-auto scrollbar-none flex-none divide-x divide-[rgba(11,31,26,0.08)]">
                   {keyParams
                     .filter((f) => f.value !== null && f.value !== '')
                     .map(({ label, value, icon: FactIcon }) => (
                       <div
                         key={label}
                         title={label}
-                        className="flex items-center gap-2 rounded-[10px] bg-surface border border-hairline px-3 h-9 flex-none text-[#0B1F1A] dark:text-stone-100"
+                        className="flex items-center gap-2 px-4 first:pl-0 h-8 flex-none text-[#0B1F1A] dark:text-stone-100"
                       >
                         <FactIcon className="w-4 h-4 flex-none" strokeWidth={1.7} />
                         <span className="text-[13px] font-medium tabular-nums whitespace-nowrap max-w-[220px] truncate">
@@ -2903,7 +2903,7 @@ export const PropertiesView: React.FC<PropertiesViewProps> = ({
                     ))}
                   <button
                     onClick={() => setActiveDetailTab('informace')}
-                    className="flex items-center gap-1 text-[12px] font-medium text-[#0E8A5F] hover:underline px-1.5 flex-none cursor-pointer"
+                    className="flex items-center gap-1 text-[12px] font-medium text-[#0E8A5F] hover:underline pl-4 flex-none cursor-pointer"
                   >
                     Vše
                     <ArrowRight className="w-3 h-3" />
@@ -2951,7 +2951,7 @@ export const PropertiesView: React.FC<PropertiesViewProps> = ({
                       {!keyParamsFilled && (
                         <div className="bg-surface rounded-xl border border-hairline p-5">
                           <div className="flex justify-between items-baseline mb-4">
-                            <span className="text-[15px] font-semibold text-stone-900 dark:text-stone-100">
+                            <span className="text-[11px] font-semibold uppercase tracking-wider text-stone-400 dark:text-stone-500">
                               Základní parametry
                             </span>
                           </div>
@@ -2972,7 +2972,7 @@ export const PropertiesView: React.FC<PropertiesViewProps> = ({
                       {/* Subcard 2: Zájemci summary */}
                       <div className="bg-surface rounded-xl border border-hairline p-5">
                         <div className="flex justify-between items-baseline mb-4">
-                          <span className="text-[15px] font-semibold text-stone-900 dark:text-stone-100">
+                          <span className="text-[11px] font-semibold uppercase tracking-wider text-stone-400 dark:text-stone-500">
                             Zájemci
                           </span>
                           <button 
@@ -3028,7 +3028,7 @@ export const PropertiesView: React.FC<PropertiesViewProps> = ({
                       {/* Subcard 3: Finance summary */}
                       <div className="bg-surface rounded-xl border border-hairline p-5">
                         <div className="flex justify-between items-baseline mb-4">
-                          <span className="text-[15px] font-semibold text-stone-900 dark:text-stone-100">
+                          <span className="text-[11px] font-semibold uppercase tracking-wider text-stone-400 dark:text-stone-500">
                             Finance
                           </span>
                           <button 
@@ -3078,16 +3078,16 @@ export const PropertiesView: React.FC<PropertiesViewProps> = ({
                     </div>
 
                     {/* Right side: Co dál a timeline */}
-                    <div className="bg-surface rounded-xl border border-hairline p-5 self-stretch">
-                      <span className="text-[15px] font-semibold text-stone-900 dark:text-stone-100 block mb-4">
+                    <div className="bg-surface rounded-xl border border-hairline p-5 self-start">
+                      <span className="text-[11px] font-semibold uppercase tracking-wider text-stone-400 dark:text-stone-500 block mb-4">
                         Co dál a aktivita
                       </span>
 
                       {/* Reminders section */}
                       <div className="space-y-4">
                         {pendingReminders.length === 0 && pastEvents.length === 0 ? (
-                          <div className="text-sm text-stone-400 dark:text-stone-500 italic py-4 text-center">
-                            Zatím žádné úkoly ani historie.
+                          <div className="text-[13px] text-stone-400 dark:text-stone-500 py-2 leading-relaxed">
+                            Zatím žádné úkoly ani historie. První připomínka nebo zápis z hovoru se objeví tady.
                           </div>
                         ) : (
                           <>
@@ -3176,7 +3176,7 @@ export const PropertiesView: React.FC<PropertiesViewProps> = ({
                         isEditingGeneral ? "border-[#00D991] shadow-sm" : "border-hairline"
                       )}>
                         <div className="flex justify-between items-baseline mb-4">
-                          <span className="text-[15px] font-semibold text-stone-900 dark:text-stone-100">
+                          <span className="text-[11px] font-semibold uppercase tracking-wider text-stone-400 dark:text-stone-500">
                             Obecné parametry
                           </span>
                           {!isEditingGeneral ? (
@@ -3216,7 +3216,7 @@ export const PropertiesView: React.FC<PropertiesViewProps> = ({
                           <div className="grid grid-cols-2 gap-y-4 gap-x-6">
                             <div className="break-words whitespace-normal min-w-0">
                               <span className="text-xs text-stone-400 dark:text-stone-500">Vlastník</span>
-                              <div className="text-[14.5px] font-semibold text-[#0E8A5F] dark:text-green-400 mt-0.5 hover:underline cursor-pointer break-words whitespace-normal leading-tight">
+                              <div className="text-[14.5px] font-semibold text-[#0B1F1A] dark:text-stone-100 mt-0.5 hover:text-[#0E8A5F] hover:underline cursor-pointer break-words whitespace-normal leading-tight">
                                 {ownerContact ? (
                                   <span 
                                     onClick={() => {
@@ -3236,11 +3236,11 @@ export const PropertiesView: React.FC<PropertiesViewProps> = ({
                               </span>
                               <div className="text-[14.5px] font-semibold text-stone-900 dark:text-stone-100 mt-0.5 tabular-nums">
                                 {ownerContact?.phone ? (
-                                  <a href={`tel:${ownerContact.phone}`} className="text-[#0E8A5F] dark:text-green-400 hover:underline">
+                                  <a href={`tel:${ownerContact.phone}`} className="text-[#0B1F1A] dark:text-stone-100 hover:text-[#0E8A5F] hover:underline">
                                     {ownerContact.phone}
                                   </a>
                                 ) : ownerContact?.email ? (
-                                  <a href={`mailto:${ownerContact.email}`} className="text-[#0E8A5F] dark:text-green-400 hover:underline break-all">
+                                  <a href={`mailto:${ownerContact.email}`} className="text-[#0B1F1A] dark:text-stone-100 hover:text-[#0E8A5F] hover:underline break-all">
                                     {ownerContact.email}
                                   </a>
                                 ) : '—'}
@@ -3345,7 +3345,7 @@ export const PropertiesView: React.FC<PropertiesViewProps> = ({
                       isEditingSpecifics ? "border-[#00D991] shadow-sm" : "border-hairline"
                     )}>
                       <div className="flex justify-between items-baseline mb-4">
-                        <span className="text-[15px] font-semibold text-stone-900 dark:text-stone-100">
+                        <span className="text-[11px] font-semibold uppercase tracking-wider text-stone-400 dark:text-stone-500">
                           {isEditingSpecifics
                             ? `Parametry ${specificsLabel} — úprava`
                             : `Parametry ${specificsLabel}`}
@@ -3951,7 +3951,7 @@ export const PropertiesView: React.FC<PropertiesViewProps> = ({
                       isEditingNote ? "border-[#00D991] shadow-sm" : "border-hairline"
                     )}>
                       <div className="flex justify-between items-baseline mb-4">
-                        <span className="text-[15px] font-semibold text-stone-900 dark:text-stone-100">
+                        <span className="text-[11px] font-semibold uppercase tracking-wider text-stone-400 dark:text-stone-500">
                           Poznámka
                         </span>
                         {!isEditingNote ? (
@@ -4021,7 +4021,7 @@ export const PropertiesView: React.FC<PropertiesViewProps> = ({
                     {/* Section 4: Dokumenty a historie ceny */}
                     <div className="bg-surface rounded-xl border border-hairline p-5">
                       <div className="flex justify-between items-baseline mb-4">
-                        <span className="text-[15px] font-semibold text-stone-900 dark:text-stone-100">
+                        <span className="text-[11px] font-semibold uppercase tracking-wider text-stone-400 dark:text-stone-500">
                           Dokumenty
                         </span>
                         <button
@@ -4377,7 +4377,7 @@ export const PropertiesView: React.FC<PropertiesViewProps> = ({
                     {/* Recommendations from CRM Database */}
                     <div className="rounded-xl border border-hairline bg-surface p-5">
                       <div className="flex justify-between items-baseline mb-3">
-                        <span className="text-[15px] font-semibold text-stone-900 dark:text-stone-100">
+                        <span className="text-[11px] font-semibold uppercase tracking-wider text-stone-400 dark:text-stone-500">
                           Možní zájemci · {recommendations.length}
                         </span>
                         <span className="text-[11px] text-stone-400 dark:text-stone-500">
@@ -4429,7 +4429,7 @@ export const PropertiesView: React.FC<PropertiesViewProps> = ({
                     {/* Commission block */}
                     <div className="bg-surface rounded-xl border border-hairline p-5">
                       <div className="flex justify-between items-center mb-4">
-                        <span className="text-[15px] font-semibold text-stone-900 dark:text-stone-100">
+                        <span className="text-[11px] font-semibold uppercase tracking-wider text-stone-400 dark:text-stone-500">
                           Provize
                         </span>
                         {!isEditingCommission ? (
@@ -4572,7 +4572,7 @@ export const PropertiesView: React.FC<PropertiesViewProps> = ({
                     {/* Expenses list block */}
                     <div className="bg-surface rounded-xl border border-hairline p-5">
                       <div className="flex justify-between items-center mb-3">
-                        <span className="text-[15px] font-semibold text-stone-900 dark:text-stone-100">
+                        <span className="text-[11px] font-semibold uppercase tracking-wider text-stone-400 dark:text-stone-500">
                           Náklady nemovitosti
                         </span>
                         {!isAddingExpense && (
