@@ -57,3 +57,6 @@ ds-bundle/
 .design-sync/.cache/
 .design-sync/learnings/
 .design-sync/node_modules
+.claude-flow/
+.claude/proven-config.json
+.claude/.proven-config-version
