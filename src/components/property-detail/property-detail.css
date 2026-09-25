@@ -55,16 +55,16 @@
 .pd-address { margin-top: 14px; font-size: 13.5px; line-height: 1.6; overflow-wrap: anywhere; }
 .pd-price { display: flex; flex-direction: column; align-items: flex-start; gap: 8px; margin-top: 24px; }
 .pd-price > span:first-child { font-size: 30px; line-height: 1.15; overflow-wrap: anywhere; }
-.pd-owner { margin-top: 24px; padding: 18px 0; border-block: 1px solid var(--hairline); display: flex; align-items: flex-start; gap: 8px; }
+.pd-owner { margin-top: 24px; padding: 18px 0; border-top: 1px solid var(--hairline); display: flex; align-items: flex-start; gap: 8px; }
 .pd-owner > svg { flex: none; margin-top: 5px; }
 .pd-owner button { display: block; text-align: left; overflow-wrap: anywhere; line-height: 1.6; }
 .pd-owner-role { display: block; margin-top: 4px; }
-.pd-facts { display: grid; grid-template-columns: minmax(0,1fr) minmax(0,1fr); gap: 22px 14px; padding: 26px var(--pd-rail-pad) 0; }
-.pd-fact { display: flex; gap: 8px; min-width: 0; align-items: flex-start; }
+.pd-facts { display: grid; grid-template-columns: minmax(0,1fr) minmax(0,1fr); gap: 0; padding: 0 var(--pd-rail-pad); }
+.pd-fact { display: flex; gap: 8px; min-width: 0; align-items: flex-start; padding: 14px 14px 14px 0; border-top: 1px solid var(--hairline); }
 .pd-fact > svg { width: 16px; height: 16px; flex: none; margin-top: 2px; }
 .pd-fact-label { display: block; font-size: 10px; line-height: 1.4; margin-bottom: 4px; color: #a8a29e; }
 .pd-fact-value { font-size: 13px; font-weight: 500; line-height: 1.5; overflow-wrap: anywhere; font-variant-numeric: tabular-nums; }
-.pd-facts-all { justify-self: start; display: flex; align-items: center; gap: 8px; min-height: 36px; font-size: 12px; color: #0E8A5F; }
+.pd-facts-all { grid-column: 1 / -1; justify-self: start; display: flex; align-items: center; gap: 8px; min-height: 36px; margin-top: 4px; font-size: 12px; color: #0E8A5F; }
 .pd-toolbar {
   grid-column: 2;
   position: sticky;
@@ -173,7 +173,7 @@
   .pd-summary-progress { flex-direction: row; justify-content: space-between; }
 }
 @media (max-width: 959px) {
-  .property-detail-dialog { width: calc(100vw - 32px); }
+  .property-detail-dialog { width: calc(100vw - 32px); scroll-padding-top: 116px; }
   .pd-layout { display: flex; flex-direction: column; --pd-space: 24px; }
   .pd-profile { position: static; height: auto; max-height: none; overflow: visible; border-right: 0; border-bottom: 1px solid var(--hairline); padding: 24px; --pd-rail-pad: 0px; }
   .pd-portrait { display: grid; grid-template-columns: minmax(0,.85fr) minmax(0,1fr); gap: 24px; }
@@ -181,7 +181,8 @@
   .pd-photo { align-self: start; margin-top: 0; aspect-ratio: 4 / 3; border-radius: 9px; }
   .pd-price { margin-top: 16px; }
   .pd-owner { margin-top: 16px; padding-block: 12px; }
-  .pd-facts { grid-template-columns: repeat(4,minmax(0,1fr)); padding: 24px 0 0; }
+  .pd-facts { grid-template-columns: repeat(4,minmax(0,1fr)); padding: 0; }
+  .pd-workspace { min-height: calc(92dvh - 116px); }
   .pd-toolbar { order: -1; flex-wrap: wrap; min-height: 92px; padding-top: 8px; gap: 0; flex: none; }
   .pd-tabs { order: 2; flex-basis: 100%; gap: 24px; }
   .pd-tabs button { min-height: 48px; }
@@ -190,14 +191,15 @@
 @media (max-width: 599px) {
   .property-detail-dialog { width: 100vw; height: 100dvh; max-height: 100dvh; border-radius: 0; border: 0; }
   .pd-layout { --pd-space: 20px; }
+  .pd-workspace { min-height: calc(100dvh - 116px); }
   .pd-profile { padding: 20px; }
   .pd-portrait { display: flex; flex-direction: column; gap: 20px; }
   .pd-photo { margin: 0; aspect-ratio: 2 / 1; }
   .pd-identity { padding: 0; }
-  .pd-facts { padding: 20px 0 0; }
+  .pd-facts { padding: 0; }
   .pd-title-row h2 { font-size: 25px; }
   .pd-price > span:first-child { font-size: 32px; }
-  .pd-facts { grid-template-columns: repeat(3,minmax(0,1fr)); gap: 18px 12px; }
+  .pd-facts { grid-template-columns: repeat(3,minmax(0,1fr)); }
   .pd-tabs { gap: 20px; }
   .pd-tabs button { font-size: 13px; min-height: 56px; }
   .pd-toolbar { min-height: 56px; padding-top: max(8px, env(safe-area-inset-top)); }

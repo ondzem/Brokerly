@@ -181,6 +181,21 @@ const parseSafeNumber = (val: string | number | null | undefined): number | null
   return isNaN(num) ? null : num;
 };
 
+/**
+ * Na mobilu a tabletu stojí lišta se záložkami nad fotkou a panel obsahu je
+ * až pod ní, takže by klepnutí na záložku vypadalo, že se nic nestalo.
+ * Lišta je sticky, proto stačí obsah přisunout pod ni.
+ */
+const revealDetailPanel = (tab: string) => {
+  if (typeof window === 'undefined' || window.innerWidth >= 960) return;
+  const panel = document.getElementById(`pd-panel-${tab}`);
+  if (!panel) return;
+  panel.scrollIntoView({
+    block: 'start',
+    behavior: window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth',
+  });
+};
+
 interface PropertiesViewProps {
   properties: Property[];
   contacts: Contact[];
@@ -387,6 +402,18 @@ export const PropertiesView: React.FC<PropertiesViewProps> = ({
 
   // Active detail tab
   const [activeDetailTab, setActiveDetailTab] = useState<'prehled' | 'informace' | 'zajemci' | 'ekonomika'>('prehled');
+  // Skok na obsah záložky musí počkat, až React vykreslí nový panel.
+  const pendingTabJump = useRef(false);
+  const openDetailTab = (tab: 'prehled' | 'informace' | 'zajemci' | 'ekonomika') => {
+    if (tab === activeDetailTab) revealDetailPanel(tab);
+    else pendingTabJump.current = true;
+    setActiveDetailTab(tab);
+  };
+  useEffect(() => {
+    if (!pendingTabJump.current) return;
+    pendingTabJump.current = false;
+    revealDetailPanel(activeDetailTab);
+  }, [activeDetailTab]);
 
   // Inline editing toggles
   const [isEditingGeneral, setIsEditingGeneral] = useState(false);
@@ -2646,7 +2673,7 @@ export const PropertiesView: React.FC<PropertiesViewProps> = ({
                         <div><span className="pd-fact-label">{label}</span><span className="pd-fact-value">{value}</span></div>
                       </div>
                     ))}
-                    <button onClick={() => setActiveDetailTab('informace')} className="pd-facts-all">Vše <ArrowRight className="w-3 h-3" /></button>
+                    <button onClick={() => openDetailTab('informace')} className="pd-facts-all">Vše <ArrowRight className="w-3 h-3" /></button>
                   </div>
                 )}
 </>}
@@ -2729,10 +2756,10 @@ export const PropertiesView: React.FC<PropertiesViewProps> = ({
                           : event.key === 'Home' ? 0 : event.key === 'End' ? tabs.length - 1 : -1;
                         if (next < 0) return;
                         event.preventDefault();
-                        setActiveDetailTab(tabs[next]);
+                        openDetailTab(tabs[next]);
                         document.getElementById(`pd-tab-${tabs[next]}`)?.focus();
                       }}
-                      onClick={() => setActiveDetailTab(tab)}
+                      onClick={() => openDetailTab(tab)}
                       className="py-3 text-[14px] font-medium transition cursor-pointer border-b-2 text-left whitespace-nowrap"
                       style={{
                         color: active ? colors.textPrimary : colors.textMuted,
