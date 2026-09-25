@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
+import { PropertyDetailLayout } from '@/components/property-detail/PropertyDetailLayout';
 import { Property, Contact, Deal, Activity, PropertyDocument } from '@/types';
 import { createProperty, updateProperty, createContact, deleteProperty, createDeal, updateDeal } from '@/lib/db';
 import { cn } from '@/lib/utils';
@@ -2437,13 +2438,13 @@ export const PropertiesView: React.FC<PropertiesViewProps> = ({
         const renderProgressBar = (stage: string) => {
           const { bar } = stageInfo(stage);
           return (
-            <div className="flex gap-[3px] w-full sm:w-[150px]">
+            <div className="pd-progress" role="img" aria-label={`${stageInfo(stage).label} · ${stageInfo(stage).step}/5`}>
               {[1, 2, 3, 4, 5].map((s) => {
                 const fill = Math.min(Math.max(bar - (s - 1), 0), 1); // 0, 0.5 nebo 1 dílku
                 return (
-                  <div key={s} className="h-[7px] rounded-[3px] flex-1 overflow-hidden bg-[#E9E8E2] dark:bg-stone-700">
+                  <div key={s} className="pd-progress-track">
                     {fill > 0 && (
-                      <div className="h-full rounded-[3px] bg-[#00D991]" style={{ width: `${fill * 100}%` }} />
+                      <div className="pd-progress-fill" style={{ transform: `scaleX(${fill})` }} />
                     )}
                   </div>
                 );
@@ -2552,104 +2553,31 @@ export const PropertiesView: React.FC<PropertiesViewProps> = ({
             setIsDetailOpen(open);
             if (!open) onClearFocusProperty?.();
           }}>
-            <DialogContent showCloseButton={false} className="max-w-6xl lg:max-w-7xl w-[92vw] lg:w-full p-0 overflow-y-auto overflow-x-hidden border border-stone-200 dark:border-stone-850 bg-panel rounded-[14px] max-h-[92vh] !flex !flex-col gap-0 text-left font-sans shadow-2xl mobile-scrollbar-none">
-              
-              {/* TOP HEADER BAR */}
-              <div className="relative flex flex-col sm:flex-row gap-4 sm:gap-[18px] p-4 sm:p-6 pb-4.5 border-b border-hairline bg-panel items-start sm:items-stretch flex-none">
-                
-                {/* Mobile Actions Row: Renders at the very top on mobile, before the photo to prevent overlap */}
-                <div className="flex sm:hidden justify-end gap-2 w-full mb-2 flex-none">
-                  <div className="relative">
-                    <button 
-                      onClick={() => setIsHeaderMenuOpen(!isHeaderMenuOpen)}
-                      className="w-8 h-8 rounded-lg border border-hairline bg-surface flex items-center justify-center hover:bg-stone-50 dark:hover:bg-stone-850 transition text-[16px] text-[#0B1F1A] dark:text-stone-100 cursor-pointer shadow-sm"
-                    >
-                      <MoreHorizontal className="w-4 h-4" />
-                    </button>
-
-                    {isHeaderMenuOpen && (
-                      <>
-                        <div 
-                          className="fixed inset-0 z-40" 
-                          onClick={() => setIsHeaderMenuOpen(false)}
-                        />
-                        <div className="absolute right-0 mt-1.5 w-60 bg-surface border border-hairline shadow-lg rounded-xl z-50 py-1.5 text-left text-sm font-normal">
-                          <button
-                            onClick={() => {
-                              handleDuplicateProperty();
-                              setIsHeaderMenuOpen(false);
-                            }}
-                            className="w-full text-left px-4 py-2 hover:bg-stone-50 dark:hover:bg-stone-800 text-stone-700 dark:text-stone-300 font-medium transition cursor-pointer"
-                          >
-                            Duplikovat nemovitost
-                          </button>
-                          <div className="h-px bg-stone-100 dark:bg-stone-800 my-1" />
-                          <button
-                            onClick={() => {
-                              setIsHeaderMenuOpen(false);
-                              handleDeletePropertyClick();
-                            }}
-                            className="w-full text-left px-4 py-2 hover:bg-rose-50 dark:hover:bg-rose-950/30 text-rose-600 font-medium transition flex flex-col items-start cursor-pointer"
-                          >
-                            <span>Odstranit nemovitost...</span>
-                            <span className="text-[11px] text-stone-400 dark:text-stone-500 font-normal mt-0.5">
-                              Odstranění vyžaduje potvrzení
-                            </span>
-                          </button>
-                        </div>
-                      </>
+            <DialogContent showCloseButton={false} aria-labelledby="property-detail-title" className="property-detail-dialog text-left font-sans">
+              <PropertyDetailLayout
+                profile={<><div className="pd-portrait">
+                <div className="pd-photo">
+                  <button type="button" onClick={() => setGalleryOpen(true)} aria-label="Otevřít galerii fotek" className="pd-photo-open">
+                    {photoUrl ? (
+                      <PhotoImg src={photoUrl} thumb priority className="w-full h-full object-cover" alt="Náhled" />
+                    ) : (
+                      <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="rgba(11,31,26,0.2)" strokeWidth="1.4" aria-hidden="true">
+                        <path d="M4.5 10.5L12 4l7.5 6.5V20h-5.5v-5.5h-4V20H4.5z" />
+                      </svg>
                     )}
-                  </div>
-
-                  <button 
-                    onClick={() => setIsDetailOpen(false)}
-                    className="w-8 h-8 rounded-lg border border-hairline bg-surface flex items-center justify-center hover:bg-stone-50 dark:hover:bg-stone-850 transition cursor-pointer text-[#0B1F1A] dark:text-stone-100 shadow-sm"
-                  >
-                    <X className="w-3.5 h-3.5" />
-                  </button>
-                </div>
-
-                {/* Details Panel */}
-                {/* Thumbnail Icon */}
-                <button
-                  type="button"
-                  onClick={() => setGalleryOpen(true)}
-                  aria-label="Otevřít galerii fotek"
-                  className="group relative w-full aspect-[3/2] sm:w-auto sm:h-auto sm:self-stretch sm:aspect-[3/2] sm:min-h-[150px] sm:max-h-[230px] rounded-xl bg-[#E9E8E2] dark:bg-stone-800 flex-none flex items-center justify-center overflow-hidden border border-stone-200/40 dark:border-stone-800 cursor-zoom-in"
-                >
-                  {photoUrl ? (
-                    <PhotoImg src={photoUrl} thumb priority className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-[1.03]" alt="Náhled" />
-                  ) : (
-                    <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="rgba(11,31,26,0.2)" strokeWidth="1.4">
-                      <path d="M4.5 10.5L12 4l7.5 6.5V20h-5.5v-5.5h-4V20H4.5z" />
-                    </svg>
-                  )}
-                  <span className="absolute inset-0 bg-[#00221F]/0 group-hover:bg-[#00221F]/20 transition-colors" />
-
-                  <span className="absolute bottom-[6px] left-[6px] right-[6px] flex items-end justify-between gap-2 pointer-events-none">
-                    <span className="inline-flex items-center h-[22px] bg-[#00221F]/80 text-white text-[11.5px] font-medium px-2 rounded-[5px]">
+                    <span className="pd-photo-count inline-flex items-center h-[22px] bg-[#00221F]/80 text-white text-[11.5px] font-medium px-2 rounded-[5px]">
                       {selectedProperty.attachments?.length
                         ? `${selectedProperty.attachments.length} ${selectedProperty.attachments.length === 1 ? 'fotka' : selectedProperty.attachments.length < 5 ? 'fotky' : 'fotek'}`
                         : 'bez fotek'}
                     </span>
-                    <span
-                      role="button"
-                      tabIndex={0}
-                      aria-label="Přidat fotky"
-                      onClick={(e) => { e.stopPropagation(); setGalleryStartsAdding(true); setGalleryOpen(true); }}
-                      onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); e.stopPropagation(); setGalleryStartsAdding(true); setGalleryOpen(true); } }}
-                      className="pointer-events-auto inline-flex items-center gap-1 h-[22px] bg-[#00D991] text-[#00221F] text-[11.5px] font-semibold px-2 rounded-[5px] cursor-pointer hover:opacity-90 shadow-sm"
-                    >
-                      <Plus className="w-3 h-3" />
-                      Přidat
-                    </span>
-                  </span>
-                </button>
-
-                {/* Details Panel */}
-                <div className="flex-1 min-w-0 text-left font-sans mt-3.5 sm:mt-0">
-                  <div className="flex items-center gap-2.5 flex-wrap">
-                    <h2 className="font-display text-[26px] font-semibold tracking-tight text-[#0B1F1A] dark:text-stone-100 leading-tight">
+                  </button>
+                  <button type="button" aria-label="Přidat fotky" onClick={() => { setGalleryStartsAdding(true); setGalleryOpen(true); }} className="pd-photo-add inline-flex items-center gap-1 bg-[#00D991] text-[#00221F] text-[11.5px] font-semibold px-2 rounded-[5px] cursor-pointer hover:opacity-90">
+                    <Plus className="w-3 h-3" /> Přidat
+                  </button>
+                </div>
+                <div className="pd-identity">
+                  <div className="pd-title-row">
+                    <DialogTitle id="property-detail-title" className="font-display text-[26px] font-semibold tracking-tight text-[#0B1F1A] dark:text-stone-100 leading-tight">
                       {selectedProperty.kind === 'byt' 
                         ? `Byt ${selectedProperty.flat_layout || ''}` 
                         : selectedProperty.kind === 'dům' 
@@ -2659,7 +2587,7 @@ export const PropertiesView: React.FC<PropertiesViewProps> = ({
                         : selectedProperty.kind === 'komerční'
                         ? (selectedProperty.comm_subtype ? `Komerční — ${selectedProperty.comm_subtype}` : 'Komerční nemovitost')
                         : 'Garáž/ostatní'}
-                    </h2>
+                    </DialogTitle>
                     <span className="text-[11px] font-semibold uppercase tracking-wider bg-[#ECEBE6] text-[#55605C] px-2 py-[3px] rounded-[5px]">
                       {selectedProperty.transaction === 'prodej' ? 'Prodej' : 'Pronájem'}
                     </span>
@@ -2668,11 +2596,11 @@ export const PropertiesView: React.FC<PropertiesViewProps> = ({
                     </span>
                   </div>
 
-                  <div className="text-[13.5px] text-stone-500 dark:text-stone-400 mt-1.5">
+                  <div className="pd-address text-stone-500 dark:text-stone-400">
                     {selectedProperty.address}
                   </div>
                   
-                  <div className="flex items-baseline gap-[10px] mt-4 flex-wrap">
+                  <div className="pd-price">
                     <span className="font-display text-[32px] font-light tracking-tight text-[#0B1F1A] dark:text-stone-100 tabular-nums leading-none">
                       {selectedProperty.price.toLocaleString('cs-CZ')} Kč
                     </span>
@@ -2691,9 +2619,9 @@ export const PropertiesView: React.FC<PropertiesViewProps> = ({
                   </div>
 
                   {ownerContact && (
-                    <div className="flex items-center gap-[6px] mt-4 flex-wrap">
+                    <div className="pd-owner">
                       <Phone className="w-3 h-3 text-[#0E8A5F]" strokeWidth={1.8} />
-                      <span 
+                      <div><button type="button"
                         onClick={() => {
                           setIsDetailOpen(false);
                           onNavigateToContact(ownerContact.id);
@@ -2701,18 +2629,31 @@ export const PropertiesView: React.FC<PropertiesViewProps> = ({
                         className="text-[13.5px] text-[#0E8A5F] hover:underline cursor-pointer font-semibold"
                       >
                         {ownerContact.full_name} · {ownerContact.phone || ownerContact.email}
-                      </span>
-                      <span className="text-[12px] text-stone-400 dark:text-stone-500 font-medium">
+                      </button>
+                      <span className="pd-owner-role text-[12px] text-stone-400 dark:text-stone-500 font-medium">
                         vlastník
-                      </span>
+                      </span></div>
                     </div>
                   )}
                 </div>
 
-                {/* Desktop Actions Row: Renders inline on tablet and desktop */}
-                <div className="hidden sm:flex gap-2 items-start ml-auto flex-none">
+</div>
+                {keyParamsFilled && (
+                  <div className="pd-facts">
+                    {keyParams.filter((f) => f.value !== null && f.value !== '').map(({ label, value, icon: FactIcon }) => (
+                      <div key={label} className="pd-fact text-[#0B1F1A] dark:text-stone-100">
+                        <FactIcon strokeWidth={1.7} aria-hidden="true" />
+                        <div><span className="pd-fact-label">{label}</span><span className="pd-fact-value">{value}</span></div>
+                      </div>
+                    ))}
+                    <button onClick={() => setActiveDetailTab('informace')} className="pd-facts-all">Vše <ArrowRight className="w-3 h-3" /></button>
+                  </div>
+                )}
+</>}
+                actions={<div className="flex gap-2 items-start">
                   <div className="relative">
                     <button 
+                      aria-label="Akce nemovitosti" aria-expanded={isHeaderMenuOpen}
                       onClick={() => setIsHeaderMenuOpen(!isHeaderMenuOpen)}
                       className="w-8 h-8 rounded-lg border border-hairline bg-surface flex items-center justify-center hover:bg-stone-50 dark:hover:bg-stone-850 transition text-[16px] text-[#0B1F1A] dark:text-stone-100 cursor-pointer shadow-sm sm:shadow-none"
                     >
@@ -2754,43 +2695,15 @@ export const PropertiesView: React.FC<PropertiesViewProps> = ({
                   </div>
 
                   <button 
-                    onClick={() => setIsDetailOpen(false)}
+                    aria-label="Zavřít detail nemovitosti"
+                    onClick={() => { setIsDetailOpen(false); onClearFocusProperty?.(); }}
                     className="w-8 h-8 rounded-lg border border-hairline bg-surface flex items-center justify-center hover:bg-stone-50 dark:hover:bg-stone-850 transition cursor-pointer text-[#0B1F1A] dark:text-stone-100 shadow-sm sm:shadow-none"
                   >
                     <X className="w-3.5 h-3.5" />
                   </button>
-                </div>
-              </div>
-
-              {/* FACT STRIP — icon-led key facts, the portal move: always visible, one glance */}
-              {keyParamsFilled && (
-                <div className="flex items-stretch px-4 sm:px-6 py-2.5 border-b border-hairline bg-panel overflow-x-auto scrollbar-none flex-none divide-x divide-[rgba(11,31,26,0.08)]">
-                  {keyParams
-                    .filter((f) => f.value !== null && f.value !== '')
-                    .map(({ label, value, icon: FactIcon }) => (
-                      <div
-                        key={label}
-                        title={label}
-                        className="flex items-center gap-2 px-4 first:pl-0 h-8 flex-none text-[#0B1F1A] dark:text-stone-100"
-                      >
-                        <FactIcon className="w-4 h-4 flex-none" strokeWidth={1.7} />
-                        <span className="text-[13px] font-medium tabular-nums whitespace-nowrap max-w-[220px] truncate">
-                          {value}
-                        </span>
-                      </div>
-                    ))}
-                  <button
-                    onClick={() => setActiveDetailTab('informace')}
-                    className="flex items-center gap-1 text-[12px] font-medium text-[#0E8A5F] hover:underline pl-4 flex-none cursor-pointer"
-                  >
-                    Vše
-                    <ArrowRight className="w-3 h-3" />
-                  </button>
-                </div>
-              )}
-
-              {/* TABS SELECTOR */}
-              <div className="flex gap-4 sm:gap-[26px] px-4 sm:px-6 border-b border-hairline bg-panel overflow-x-auto scrollbar-none flex-none">
+                </div>}
+                navigation={<>              {/* TABS SELECTOR */}
+              <div className="pd-tabs" role="tablist" aria-label="Detail nemovitosti">
                 {(['prehled', 'informace', 'zajemci', 'ekonomika'] as const).map((tab) => {
                   const label = 
                     tab === 'prehled' ? 'Přehled' :
@@ -2802,6 +2715,23 @@ export const PropertiesView: React.FC<PropertiesViewProps> = ({
                   return (
                     <button
                       key={tab}
+                      type="button"
+                      role="tab"
+                      id={`pd-tab-${tab}`}
+                      aria-controls={`pd-panel-${tab}`}
+                      aria-selected={active}
+                      tabIndex={active ? 0 : -1}
+                      onKeyDown={(event) => {
+                        const tabs = ['prehled', 'informace', 'zajemci', 'ekonomika'] as const;
+                        const index = tabs.indexOf(tab);
+                        const next = event.key === 'ArrowRight' ? (index + 1) % tabs.length
+                          : event.key === 'ArrowLeft' ? (index + tabs.length - 1) % tabs.length
+                          : event.key === 'Home' ? 0 : event.key === 'End' ? tabs.length - 1 : -1;
+                        if (next < 0) return;
+                        event.preventDefault();
+                        setActiveDetailTab(tabs[next]);
+                        document.getElementById(`pd-tab-${tabs[next]}`)?.focus();
+                      }}
                       onClick={() => setActiveDetailTab(tab)}
                       className="py-3 text-[14px] font-medium transition cursor-pointer border-b-2 text-left whitespace-nowrap"
                       style={{
@@ -2815,20 +2745,22 @@ export const PropertiesView: React.FC<PropertiesViewProps> = ({
                 })}
               </div>
 
+</>}
+              >
               {/* DETAIL CONTENT BODY (SCROLLABLE) */}
-              <div className="overflow-visible overflow-x-hidden flex-none h-auto px-4 sm:px-6 pt-3 sm:pt-3.5 pb-4 sm:pb-6 space-y-4">
+              <div className="pd-body">
                 
                 {/* 1. TAB: PŘEHLED */}
                 {activeDetailTab === 'prehled' && (
-                  <div className="grid grid-cols-1 lg:grid-cols-[1fr_360px] gap-6 items-start">
+                  <div role="tabpanel" id="pd-panel-prehled" aria-labelledby="pd-tab-prehled" className="pd-overview">
                     
                     {/* Left side details cards */}
-                    <div className="space-y-4">
+                    <div className="pd-overview-primary">
                       
                       {/* Subcard 1: Základní parametry — jen výzva; vyplněná fakta nese lišta v hlavičce */}
                       {!keyParamsFilled && (
-                        <div className="bg-surface rounded-xl border border-hairline p-5">
-                          <div className="flex justify-between items-baseline mb-4">
+                        <div className="pd-card pd-overview-missing">
+                          <div className="pd-card-heading">
                             <span className="text-[11px] font-semibold uppercase tracking-wider text-stone-400 dark:text-stone-500">
                               Základní parametry
                             </span>
@@ -2848,8 +2780,8 @@ export const PropertiesView: React.FC<PropertiesViewProps> = ({
                       )}
 
                       {/* Subcard 2: Zájemci summary */}
-                      <div className="bg-surface rounded-xl border border-hairline p-5">
-                        <div className="flex justify-between items-baseline mb-4">
+                      <div className="pd-card pd-summary-buyers">
+                        <div className="pd-card-heading">
                           <span className="text-[11px] font-semibold uppercase tracking-wider text-stone-400 dark:text-stone-500">
                             Zájemci
                           </span>
@@ -2870,8 +2802,8 @@ export const PropertiesView: React.FC<PropertiesViewProps> = ({
                               const buyerContact = contacts.find((c) => c.id === deal.buyer_id);
                               const si = stageInfo(deal.stage);
                               return (
-                                <div key={deal.id} className="py-3 first:pt-0 last:pb-0">
-                                  <div className="flex justify-between items-center">
+                                <div key={deal.id} className="pd-summary-buyer first:pt-0 last:pb-0">
+                                  <div className="pd-summary-buyer-title">
                                     <button
                                       onClick={() => {
                                         setIsDetailOpen(false);
@@ -2885,7 +2817,7 @@ export const PropertiesView: React.FC<PropertiesViewProps> = ({
                                       {si.label}
                                     </span>
                                   </div>
-                                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1 sm:gap-4 mt-2.5">
+                                  <div className="pd-summary-progress">
                                     <div className="flex-1 w-full sm:w-auto">
                                       {renderProgressBar(deal.stage)}
                                     </div>
@@ -2904,8 +2836,8 @@ export const PropertiesView: React.FC<PropertiesViewProps> = ({
                       </div>
 
                       {/* Subcard 3: Finance summary */}
-                      <div className="bg-surface rounded-xl border border-hairline p-5">
-                        <div className="flex justify-between items-baseline mb-4">
+                      <div className="pd-card pd-finance-summary">
+                        <div className="pd-card-heading">
                           <span className="text-[11px] font-semibold uppercase tracking-wider text-stone-400 dark:text-stone-500">
                             Finance
                           </span>
@@ -2917,7 +2849,7 @@ export const PropertiesView: React.FC<PropertiesViewProps> = ({
                           </button>
                         </div>
                         <div className="space-y-3">
-                          <div className="flex justify-between items-center text-sm">
+                          <div className="pd-finance-row text-sm">
                             <span className="text-stone-500 dark:text-stone-400 flex items-center gap-1.5">
                               Provize {selectedProperty.commission_pct ? `(${selectedProperty.commission_pct} %)` : ''}
                               {hasCommission && (
@@ -2938,13 +2870,13 @@ export const PropertiesView: React.FC<PropertiesViewProps> = ({
                               <span className="font-medium text-rose-700 dark:text-rose-400">Nenastaveno</span>
                             )}
                           </div>
-                          <div className="flex justify-between items-center text-sm pt-2 border-t border-stone-100 dark:border-stone-900">
+                          <div className="pd-finance-row text-sm pt-2 border-t border-stone-100 dark:border-stone-900">
                             <span className="text-stone-500 dark:text-stone-400">Náklady celkem</span>
                             <span className="font-medium text-stone-900 dark:text-stone-100 tabular-nums">
                               {totalExpenses > 0 ? `–${totalExpenses.toLocaleString('cs-CZ')}` : '0'} Kč
                             </span>
                           </div>
-                          <div className={`flex justify-between items-center rounded-lg p-3 mt-2 ${netTone}`}>
+                          <div className={`pd-finance-net ${netTone}`}>
                             <span className="text-xs font-semibold">Čistá provize</span>
                             <span className="text-lg font-bold tabular-nums">
                               {hasCommission ? `${netCommission.toLocaleString('cs-CZ')} Kč` : '—'}
@@ -2956,7 +2888,7 @@ export const PropertiesView: React.FC<PropertiesViewProps> = ({
                     </div>
 
                     {/* Right side: Co dál a timeline */}
-                    <div className="bg-surface rounded-xl border border-hairline p-5 self-start">
+                    <div className="pd-card pd-activity">
                       <span className="text-[11px] font-semibold uppercase tracking-wider text-stone-400 dark:text-stone-500 block mb-4">
                         Co dál a aktivita
                       </span>
@@ -3044,16 +2976,16 @@ export const PropertiesView: React.FC<PropertiesViewProps> = ({
 
                 {/* 2. TAB: INFORMACE */}
                 {activeDetailTab === 'informace' && (
-                  <div className="grid grid-cols-1 lg:grid-cols-[1fr_360px] gap-6 items-start">
+                  <div role="tabpanel" id="pd-panel-informace" aria-labelledby="pd-tab-informace" className="pd-info">
                     
                     {/* Left Column */}
-                    <div className="space-y-6">
+                    <div className="pd-info-primary">
                       {/* Section 1: Obecné parametry */}
                       <div className={cn(
-                        "bg-surface rounded-xl transition-all p-5 border",
+                        "pd-info-section transition-colors border",
                         isEditingGeneral ? "border-[#00D991] shadow-sm" : "border-hairline"
                       )}>
-                        <div className="flex justify-between items-baseline mb-4">
+                        <div className="pd-card-heading">
                           <span className="text-[11px] font-semibold uppercase tracking-wider text-stone-400 dark:text-stone-500">
                             Obecné parametry
                           </span>
@@ -3219,10 +3151,10 @@ export const PropertiesView: React.FC<PropertiesViewProps> = ({
 
                     {/* Section 2: Specifické parametry Byt / Dům */}
                     <div className={cn(
-                      "bg-surface rounded-xl transition-all p-5 border",
+                      "pd-info-section transition-colors border",
                       isEditingSpecifics ? "border-[#00D991] shadow-sm" : "border-hairline"
                     )}>
-                      <div className="flex justify-between items-baseline mb-4">
+                      <div className="pd-card-heading">
                         <span className="text-[11px] font-semibold uppercase tracking-wider text-stone-400 dark:text-stone-500">
                           {isEditingSpecifics
                             ? `Parametry ${specificsLabel} — úprava`
@@ -3822,13 +3754,13 @@ export const PropertiesView: React.FC<PropertiesViewProps> = ({
                   </div>
 
                   {/* Right Column */}
-                  <div className="space-y-6">
+                  <div className="pd-info-secondary">
                     {/* Section 3: Poznámka */}
                     <div className={cn(
-                      "bg-surface rounded-xl transition-all p-5 border",
+                      "pd-info-section transition-colors border",
                       isEditingNote ? "border-[#00D991] shadow-sm" : "border-hairline"
                     )}>
-                      <div className="flex justify-between items-baseline mb-4">
+                      <div className="pd-card-heading">
                         <span className="text-[11px] font-semibold uppercase tracking-wider text-stone-400 dark:text-stone-500">
                           Poznámka
                         </span>
@@ -3898,7 +3830,7 @@ export const PropertiesView: React.FC<PropertiesViewProps> = ({
 
                     {/* Section 4: Dokumenty a historie ceny */}
                     <div className="bg-surface rounded-xl border border-hairline p-5">
-                      <div className="flex justify-between items-baseline mb-4">
+                      <div className="pd-card-heading">
                         <span className="text-[11px] font-semibold uppercase tracking-wider text-stone-400 dark:text-stone-500">
                           Dokumenty
                         </span>
@@ -3941,11 +3873,11 @@ export const PropertiesView: React.FC<PropertiesViewProps> = ({
                         ) : (
                           <div className="divide-y divide-stone-100 dark:divide-stone-850">
                             {documents.map((doc, idx) => (
-                              <div key={doc.url} className="flex justify-between items-center py-2.5 text-xs min-w-0 gap-3">
+                              <div key={doc.url} className="pd-document py-2.5 text-xs min-w-0">
                                 <button
                                   onClick={() => setPreviewDoc(doc)}
                                   title="Zobrazit"
-                                  className="flex items-center gap-2 text-left min-w-0 hover:underline cursor-pointer"
+                                  className="pd-document-title text-left min-w-0 hover:underline cursor-pointer"
                                 >
                                   <FileText className="w-3.5 h-3.5 text-stone-400 flex-none" />
                                   <span className="text-sm font-semibold text-[#0E8A5F] dark:text-green-400 truncate">
@@ -4014,10 +3946,10 @@ export const PropertiesView: React.FC<PropertiesViewProps> = ({
 
                 {/* 3. TAB: ZÁJEMCI */}
                 {activeDetailTab === 'zajemci' && (
-                  <div className="space-y-6">
+                  <div role="tabpanel" id="pd-panel-zajemci" aria-labelledby="pd-tab-zajemci" className="pd-buyers">
                     
                     {/* Stepper progress and pills */}
-                    <div className="flex items-center gap-2 flex-wrap bg-surface border border-hairline p-3 rounded-xl">
+                    <div className="pd-buyer-filters">
                       {([
                         { id: 'všichni', label: 'Všichni' },
                         { id: 'nový', label: 'Nový zájemce' },
@@ -4035,6 +3967,7 @@ export const PropertiesView: React.FC<PropertiesViewProps> = ({
                         return (
                           <button
                             key={pill.id}
+                            aria-pressed={active}
                             onClick={() => setZajemciFilter(pill.id)}
                             className={`px-3 py-1.5 rounded-full text-xs font-semibold border transition ${
                               active
@@ -4123,7 +4056,7 @@ export const PropertiesView: React.FC<PropertiesViewProps> = ({
                         </button>
                       </div>
                     ) : (
-                      <div className="rounded-xl border border-hairline bg-surface p-1 md:p-3 space-y-2.5">
+                      <div className="pd-buyer-list">
                         {filteredDeals.map((deal) => {
                           const buyerContact = contacts.find((c) => c.id === deal.buyer_id);
                           const isEditingThisDeal = editingDealId === deal.id;
@@ -4132,15 +4065,15 @@ export const PropertiesView: React.FC<PropertiesViewProps> = ({
                           return (
                             <div 
                               key={deal.id} 
-                              className={`border-b last:border-b-0 border-stone-100 dark:border-stone-900/60 p-4 transition ${
+                              className={`pd-buyer-card ${
                                 isEditingThisDeal ? 'bg-[#FCFDFC] dark:bg-stone-900/40 border border-[#00D991] rounded-xl my-2' : ''
                               }`}
                             >
                               {!isEditingThisDeal ? (
-                                <div className="flex justify-between gap-4 text-xs">
+                                <div className="pd-buyer-row">
                                   {/* Left: name/phone, then bar + note */}
                                   <div className="flex-1 min-w-0">
-                                    <div className="flex items-baseline gap-3 min-w-0">
+                                    <div className="pd-buyer-contact">
                                       <button 
                                         onClick={() => {
                                           setIsDetailOpen(false);
@@ -4159,7 +4092,7 @@ export const PropertiesView: React.FC<PropertiesViewProps> = ({
                                         </a>
                                       )}
                                     </div>
-                                    <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4 mt-2.5">
+                                    <div className="pd-buyer-details">
                                       <div className="flex items-center gap-3 flex-none">
                                         <div className="w-[150px]">
                                           {renderProgressBar(deal.stage)}
@@ -4168,7 +4101,7 @@ export const PropertiesView: React.FC<PropertiesViewProps> = ({
                                           {si.step > 0 ? `${si.step}/5` : '—'}
                                         </span>
                                       </div>
-                                      <div className="flex-1 min-w-0 text-stone-900 dark:text-stone-200 truncate">
+                                      <div className="pd-buyer-note text-stone-900 dark:text-stone-200">
                                         {deal.next_step ? (
                                           <span>
                                             Poznámka: <span className="font-medium text-stone-800 dark:text-stone-300">{deal.next_step}</span>
@@ -4181,7 +4114,7 @@ export const PropertiesView: React.FC<PropertiesViewProps> = ({
                                   </div>
 
                                   {/* Right rail: badge above edit, one shared right edge */}
-                                  <div className="flex flex-col items-end justify-between gap-2 flex-none">
+                                  <div className="pd-buyer-status">
                                     <span className={`text-[10px] font-semibold px-2 py-0.5 rounded-[4px] uppercase tracking-wider ${si.chip}`}>
                                       {si.label}
                                     </span>
@@ -4302,10 +4235,10 @@ export const PropertiesView: React.FC<PropertiesViewProps> = ({
 
                 {/* 4. TAB: EKONOMIKA */}
                 {activeDetailTab === 'ekonomika' && (
-                  <div className="space-y-6">
+                  <div role="tabpanel" id="pd-panel-ekonomika" aria-labelledby="pd-tab-ekonomika" className="pd-economics">
                     
                     {/* Commission block */}
-                    <div className="bg-surface rounded-xl border border-hairline p-5">
+                    <div className="pd-card pd-commission">
                       <div className="flex justify-between items-center mb-4">
                         <span className="text-[11px] font-semibold uppercase tracking-wider text-stone-400 dark:text-stone-500">
                           Provize
@@ -4357,7 +4290,7 @@ export const PropertiesView: React.FC<PropertiesViewProps> = ({
                             </button>
                           </div>
                         ) : (
-                          <div className="flex items-baseline gap-3 flex-wrap">
+                          <div className="pd-commission-value">
                             {selectedProperty.commission_pct && (
                               <span className="text-sm font-semibold text-stone-900 dark:text-stone-100 tabular-nums">
                                 {selectedProperty.commission_pct} % z {propertyPrice.toLocaleString('cs-CZ')} Kč
@@ -4448,7 +4381,7 @@ export const PropertiesView: React.FC<PropertiesViewProps> = ({
                     </div>
 
                     {/* Expenses list block */}
-                    <div className="bg-surface rounded-xl border border-hairline p-5">
+                    <div className="pd-card pd-expenses">
                       <div className="flex justify-between items-center mb-3">
                         <span className="text-[11px] font-semibold uppercase tracking-wider text-stone-400 dark:text-stone-500">
                           Náklady nemovitosti
@@ -4551,7 +4484,7 @@ export const PropertiesView: React.FC<PropertiesViewProps> = ({
                                     const updated = expenseList.filter((_, i) => i !== idx);
                                     handleSaveExpense(updated);
                                   }}
-                                  className="text-stone-400 hover:text-red-500"
+                                  aria-label={`Odebrat náklad ${item.name}`} className="text-stone-400 hover:text-red-500"
                                 >
                                   <Trash2 className="w-3.5 h-3.5" />
                                 </button>
@@ -4567,7 +4500,7 @@ export const PropertiesView: React.FC<PropertiesViewProps> = ({
                     </div>
 
                     {/* Net commission block */}
-                    <div className={`flex justify-between items-center rounded-xl p-4 md:p-5 ${netTone}`}>
+                    <div className={`pd-net ${netTone}`}>
                       <div>
                         <span className="text-sm font-bold block">Čistá provize</span>
                         <span className="text-xs opacity-75 mt-0.5 leading-normal block">
@@ -4585,7 +4518,7 @@ export const PropertiesView: React.FC<PropertiesViewProps> = ({
               </div>
 
               {/* FOOTER ACTION BAR */}
-              <div className="px-6 py-4 border-t border-hairline bg-panel flex justify-end">
+              <div className="pd-footer">
                 <Button 
                   onClick={() => setIsDetailOpen(false)}
                   className="bg-stone-900 hover:bg-stone-800 dark:bg-stone-100 dark:hover:bg-stone-200 text-white dark:text-stone-900 font-medium"
@@ -4594,6 +4527,7 @@ export const PropertiesView: React.FC<PropertiesViewProps> = ({
                 </Button>
               </div>
 
+              </PropertyDetailLayout>
             </DialogContent>
 
             {galleryOpen && selectedProperty && (

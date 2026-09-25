@@ -1,6 +1,6 @@
 # Detail nemovitosti — návrh a implementační plán
 
-**Stav:** Připraveno ke schválení. Implementace zatím nezačala.
+**Stav:** Schváleno uživatelem („continue“), implementováno. Výsledky a omezení kontrol: `docs/verification/2026-09-25-property-detail-redesign.md`.
 
 **Cíl:** Výrazně přepracovat kompozici otevřeného detailu nemovitosti, aby byl přehledný, příjemný a působil osobitě. Zachovat všechny současné informace, české texty, barvy, rodiny písem a funkce.
 
@@ -54,41 +54,41 @@ Pracovat postupně v tomto úkolu. Použít `superpowers:executing-plans` a pře
 
 ### 1. Zaznamenat výchozí stav a funkční inventář
 
-- [ ] Ověřit aktuální stav souborů kvůli souběžné práci druhého vývojáře.
-- [ ] Zaznamenat vzhled všech čtyř záložek, nabídky akcí a editorů; zahrnout byt, dům a prázdné stavy.
-- [ ] Připravit inventář současných textů, polí a akcí detailu z `src/components/PropertiesView.tsx`; kontrolovat proti němu výsledný stav.
-- [ ] Spustit `npm run build` a `npm run lint`, zaznamenat případné již existující chyby.
+- [x] Ověřit aktuální stav souborů kvůli souběžné práci druhého vývojáře.
+- [x] Zaznamenat vzhled všech čtyř záložek, nabídky akcí a editorů; zahrnout byt, dům a prázdné stavy.
+- [x] Připravit inventář současných textů, polí a akcí detailu z `src/components/PropertiesView.tsx`; kontrolovat proti němu výsledný stav.
+- [x] Spustit `npm run build` a `npm run lint`, zaznamenat případné již existující chyby.
 
 ### 2. Změnit kompozici detailu
 
 **Soubory:** `src/components/PropertiesView.tsx`, nový `src/components/property-detail/PropertyDetailLayout.tsx`, nový `src/components/property-detail/property-detail.css`.
 
-- [ ] Vytvořit prezentační obal přijímající React obsah pro profil, navigaci a pracovní část; bez Supabase volání a bez přesunu obchodní logiky.
-- [ ] Do obalu přesunout stávající fotografii, souhrn a navigaci se stávajícími obsluhami. Zachovat dialog, chování Escape, návrat fokusu a nabídku akcí.
-- [ ] Oddělit široké a úzké uspořádání podle dostupného prostoru; dlouhé názvy a adresy smějí zalomit text. Nepoužít globální změny tokenů nebo sdíleného dialogu.
-- [ ] Ověřit profil a všechny záložky při šířkách 1440, 1280, 1024, 768 a 390 px, včetně nízkého okna.
+- [x] Vytvořit prezentační obal přijímající React obsah pro profil, navigaci a pracovní část; bez Supabase volání a bez přesunu obchodní logiky.
+- [x] Do obalu přesunout stávající fotografii, souhrn a navigaci se stávajícími obsluhami. Zachovat dialog, chování Escape, návrat fokusu a nabídku akcí.
+- [x] Oddělit široké a úzké uspořádání podle dostupného prostoru; dlouhé názvy a adresy smějí zalomit text. Nepoužít globální změny tokenů nebo sdíleného dialogu.
+- [x] Ověřit profil a všechny záložky při šířkách 1440, 1280, 1024, 768 a 390 px, včetně nízkého okna.
 
 ### 3. Přeuspořádat obsah všech čtyř záložek
 
 **Soubor:** `src/components/PropertiesView.tsx` a lokální styly detailu.
 
-- [ ] Upravit mřížku Přehledu, skupiny Informací, řádky Zájemců a kompozici Provize podle návrhu výše.
-- [ ] Zachovat `handleSaveGeneral`, `handleSaveSpecifics`, `handleSaveNote`, `handleSaveCommission`, `handleSaveExpense`, `handleConnectBuyer` a `handleUpdateDealInline` i jejich vstupy.
-- [ ] Zachovat galerii a ořez, náhledy, nahrání, stažení a odebrání dokumentů, kopírování a odstranění nemovitosti, navigaci na vlastníka a obchody; nic z toho při vizuální kontrole nespouštět nad sdílenými daty destruktivně.
-- [ ] Porovnat úplnost s inventářem: žádné odstraněné pole, český text, filtr, hodnota, výpočet nebo akce.
+- [x] Upravit mřížku Přehledu, skupiny Informací, řádky Zájemců a kompozici Provize podle návrhu výše.
+- [x] Zachovat `handleSaveGeneral`, `handleSaveSpecifics`, `handleSaveNote`, `handleSaveCommission`, `handleSaveExpense`, `handleConnectBuyer` a `handleUpdateDealInline` i jejich vstupy.
+- [x] Zachovat galerii a ořez, náhledy, nahrání, stažení a odebrání dokumentů, kopírování a odstranění nemovitosti, navigaci na vlastníka a obchody; nic z toho při vizuální kontrole nespouštět nad sdílenými daty destruktivně.
+- [x] Porovnat úplnost s inventářem: žádné odstraněné pole, český text, filtr, hodnota, výpočet nebo akce.
 
 ### 4. Doplnit odezvu a ověřit výsledek
 
 **Soubory:** lokální styly detailu; `docs/verification/2026-09-25-property-detail-redesign.md`.
 
-- [ ] Doplnit přechody, hover, stisk, fokus a omezení pohybu. Zachovat ovládání dotykem i klávesnicí; žádná akce nesmí být dostupná jen při hoveru.
-- [ ] V prohlížeči projít otevření/zavření, všechny záložky, filtry, galerii, náhledy a otevření/zrušení editorů. Zápisy a mazání ověřovat na izolovaných testovacích datech nebo simulovaném datovém rozhraní, ne na sdílených klientských záznamech.
-- [ ] Zkontrolovat dlouhé adresy, více zájemců, prázdnou galerii, chybějící údaje, dlouhé dokumenty a nulovou či zápornou čistou provizi.
-- [ ] Spustit `npm run build`, `npm run lint`, `git diff --check`; provést kontrolu přístupnosti pomocí `web-design-guidelines` a vizuálně ověřit uvedené šířky.
-- [ ] Zapsat výsledky a případná omezení do ověřovacího dokumentu, aktualizovat graf a vytvořit commit pouze s vlastními změnami.
+- [x] Doplnit přechody, hover, stisk, fokus a omezení pohybu. Zachovat ovládání dotykem i klávesnicí; žádná akce nesmí být dostupná jen při hoveru.
+- [x] V prohlížeči projít otevření/zavření, všechny záložky, filtry, galerii, náhledy a otevření/zrušení editorů. Zápisy a mazání ověřovat na izolovaných testovacích datech nebo simulovaném datovém rozhraní, ne na sdílených klientských záznamech.
+- [x] Zkontrolovat dlouhé adresy, více zájemců, prázdnou galerii, chybějící údaje, dlouhé dokumenty a nulovou či zápornou čistou provizi.
+- [x] Spustit `npm run build`, `npm run lint`, `git diff --check`; provést kontrolu přístupnosti pomocí `web-design-guidelines` a vizuálně ověřit uvedené šířky.
+- [x] Zapsat výsledky a případná omezení do ověřovacího dokumentu, aktualizovat graf a vytvořit commit pouze s vlastními změnami.
 
 ## Podmínky dokončení
 
 Všechny čtyři záložky jsou skutečně přepracované; změna není jen kosmetická úprava odsazení. Na široké obrazovce přehled začne vedle profilu, ne pod vysokou hlavičkou. Na mobilu se obsah ani ovládání neořezávají. Všechny původní informace, texty, barvy, písma a funkce zůstávají. Výsledek je zkontrolovaný vizuálně i funkčně a doložený ověřovacím dokumentem.
 
-**Schválení:** Před změnou aplikačního kódu je potřeba souhlas s doporučenou kompozicí podle §0 projektového `AGENTS.md`.
+**Schválení:** Uživatel schválil pokračování před implementací. Rozsah ověření zápisů: paměťové rozhraní; skutečné operace se soubory a destruktivní akce nebyly spouštěny, jejich obsluhy byly porovnány se základem.
