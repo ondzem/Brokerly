@@ -2896,7 +2896,7 @@ export const PropertiesView: React.FC<PropertiesViewProps> = ({
                       {/* Reminders section */}
                       <div className="space-y-4">
                         {pendingReminders.length === 0 && pastEvents.length === 0 ? (
-                          <div className="text-[13px] text-stone-400 dark:text-stone-500 py-2 leading-relaxed">
+                          <div className="pd-activity-empty text-[13px] text-stone-400 dark:text-stone-500 py-2 leading-relaxed">
                             Zatím žádné úkoly ani historie. První připomínka nebo zápis z hovoru se objeví tady.
                           </div>
                         ) : (
@@ -4515,16 +4515,6 @@ export const PropertiesView: React.FC<PropertiesViewProps> = ({
                   </div>
                 )}
 
-              </div>
-
-              {/* FOOTER ACTION BAR */}
-              <div className="pd-footer">
-                <Button 
-                  onClick={() => setIsDetailOpen(false)}
-                  className="bg-stone-900 hover:bg-stone-800 dark:bg-stone-100 dark:hover:bg-stone-200 text-white dark:text-stone-900 font-medium"
-                >
-                  Zavřít panel
-                </Button>
               </div>
 
               </PropertyDetailLayout>
