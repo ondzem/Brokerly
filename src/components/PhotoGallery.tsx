@@ -12,8 +12,10 @@ interface PhotoGalleryProps {
   onChange: (photos: string[]) => void | Promise<void>;
   onClose: () => void;
   title?: string;
-  /** Otevřít rovnou na přidávání — z tlačítka „Přidat" na kartě. */
+  /** Otevřít rovnou na přidávání — z tlačítka „Přidat foto" na kartě. */
   startInAdd?: boolean;
+  /** Otevřít rovnou tuhle fotku — z náhledu na kartě nemovitosti. */
+  startIndex?: number;
   theme?: 'light' | 'dark';
 }
 
@@ -31,9 +33,10 @@ export const PhotoGallery: React.FC<PhotoGalleryProps> = ({
   onClose,
   title,
   startInAdd = false,
+  startIndex,
   theme = 'dark',
 }) => {
-  const [openIndex, setOpenIndex] = useState<number | null>(null);
+  const [openIndex, setOpenIndex] = useState<number | null>(startIndex ?? null);
   const [adding, setAdding] = useState(startInAdd);
   const [pendingCrop, setPendingCrop] = useState(false);
   const [mirroring, setMirroring] = useState<string | null>(null);

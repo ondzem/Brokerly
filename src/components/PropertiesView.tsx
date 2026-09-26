@@ -281,6 +281,7 @@ export const PropertiesView: React.FC<PropertiesViewProps> = ({
   const [uploadingDoc, setUploadingDoc] = useState(false);
   const [galleryOpen, setGalleryOpen] = useState(false);
   const [galleryStartsAdding, setGalleryStartsAdding] = useState(false);
+  const [galleryStartIndex, setGalleryStartIndex] = useState<number | undefined>(undefined);
   const docInputRef = useRef<HTMLInputElement>(null);
 
   // Prohlížečka dokumentů — otevírá soubor přímo v aplikaci
@@ -2575,6 +2576,21 @@ export const PropertiesView: React.FC<PropertiesViewProps> = ({
           : editKind === 'pozemek' ? !(landSize || landType || landUtilities || zoningPlan || landAccess || landDimensions)
           : !(commSubtype || commFloorArea || commCondition || commParking);
 
+        // Stejný obsah ve dvou místech: v panelu (mobil, tablet) a pod
+        // záložkami (sloupcové rozvržení). Vždy je vidět jen jeden — druhý
+        // je přes CSS schovaný, takže se nečte dvakrát.
+        const keyFacts = keyParamsFilled ? (
+          <div className="pd-facts">
+            {keyParams.filter((f) => f.value !== null && f.value !== '').map(({ label, value, icon: FactIcon }) => (
+              <div key={label} className="pd-fact text-[#0B1F1A] dark:text-stone-100">
+                <FactIcon strokeWidth={1.7} aria-hidden="true" />
+                <div><span className="pd-fact-label">{label}</span><span className="pd-fact-value">{value}</span></div>
+              </div>
+            ))}
+            <button onClick={() => openDetailTab('informace')} className="pd-facts-all">Vše <ArrowRight className="w-3 h-3" /></button>
+          </div>
+        ) : null;
+
         return (
           <Dialog open={isDetailOpen} onOpenChange={(open) => {
             setIsDetailOpen(open);
@@ -2583,6 +2599,7 @@ export const PropertiesView: React.FC<PropertiesViewProps> = ({
             <DialogContent showCloseButton={false} aria-labelledby="property-detail-title" className="property-detail-dialog text-left font-sans">
               <PropertyDetailLayout
                 profile={<><div className="pd-portrait">
+                <div className="pd-media">
                 <div className="pd-photo">
                   <button type="button" onClick={() => setGalleryOpen(true)} aria-label="Otevřít galerii fotek" className="pd-photo-open">
                     {photoUrl ? (
@@ -2599,8 +2616,27 @@ export const PropertiesView: React.FC<PropertiesViewProps> = ({
                     </span>
                   </button>
                   <button type="button" aria-label="Přidat fotky" onClick={() => { setGalleryStartsAdding(true); setGalleryOpen(true); }} className="pd-photo-add inline-flex items-center gap-1 bg-[#00D991] text-[#00221F] text-[11.5px] font-semibold px-2 rounded-[5px] cursor-pointer hover:opacity-90">
-                    <Plus className="w-3 h-3" /> Přidat
+                    <Plus className="w-3 h-3" /> Přidat foto
                   </button>
+                </div>
+                {(selectedProperty.attachments?.length ?? 0) > 1 && (
+                  <div className="pd-thumbs">
+                    {selectedProperty.attachments!.slice(0, 12).map((url, index) => (
+                      <button
+                        key={url}
+                        type="button"
+                        className="pd-thumb"
+                        aria-label={`Otevřít fotku ${index + 1}`}
+                        onClick={() => { setGalleryStartIndex(index); setGalleryOpen(true); }}
+                      >
+                        <PhotoImg src={url} thumb className="w-full h-full object-cover" alt="" />
+                        {index === 11 && selectedProperty.attachments!.length > 12 && (
+                          <span className="pd-thumb-more">+{selectedProperty.attachments!.length - 12}</span>
+                        )}
+                      </button>
+                    ))}
+                  </div>
+                )}
                 </div>
                 <div className="pd-identity">
                   <div className="pd-title-row">
@@ -2665,18 +2701,9 @@ export const PropertiesView: React.FC<PropertiesViewProps> = ({
                 </div>
 
 </div>
-                {keyParamsFilled && (
-                  <div className="pd-facts">
-                    {keyParams.filter((f) => f.value !== null && f.value !== '').map(({ label, value, icon: FactIcon }) => (
-                      <div key={label} className="pd-fact text-[#0B1F1A] dark:text-stone-100">
-                        <FactIcon strokeWidth={1.7} aria-hidden="true" />
-                        <div><span className="pd-fact-label">{label}</span><span className="pd-fact-value">{value}</span></div>
-                      </div>
-                    ))}
-                    <button onClick={() => openDetailTab('informace')} className="pd-facts-all">Vše <ArrowRight className="w-3 h-3" /></button>
-                  </div>
-                )}
+                {keyFacts}
 </>}
+                facts={keyFacts}
                 actions={<div className="flex gap-2 items-start">
                   <div className="relative">
                     <button 
@@ -4552,8 +4579,9 @@ export const PropertiesView: React.FC<PropertiesViewProps> = ({
                 photos={selectedProperty.attachments ?? []}
                 title={describeProperty(selectedProperty) + ' · ' + selectedProperty.address}
                 startInAdd={galleryStartsAdding}
+                startIndex={galleryStartIndex}
                 theme={theme}
-                onClose={() => { setGalleryOpen(false); setGalleryStartsAdding(false); }}
+                onClose={() => { setGalleryOpen(false); setGalleryStartsAdding(false); setGalleryStartIndex(undefined); }}
                 onChange={async (next) => {
                   try {
                     const updated = await updateProperty(selectedProperty.id, {
