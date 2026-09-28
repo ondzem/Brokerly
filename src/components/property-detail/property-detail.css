@@ -154,8 +154,17 @@
 }
 .pd-tabs { display: flex; gap: 24px; min-width: 0; overflow-x: auto; scrollbar-width: none; flex: 1; }
 .pd-tabs button { display: flex; align-items: center; min-height: 60px; white-space: nowrap; font-size: 14px; font-weight: 500; cursor: pointer; }
-.pd-tab-label { display: block; padding-bottom: 5px; border-bottom: 2px solid transparent; }
-.pd-tabs button[aria-selected="true"] .pd-tab-label { border-bottom-color: #00D991; }
+.pd-tab-label { position: relative; display: block; }
+.pd-tabs button[aria-selected="true"] .pd-tab-label::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: calc(100% + 4px);
+  height: 2px;
+  border-radius: 1px;
+  background: #00D991;
+}
 .pd-actions { margin-left: auto; display: flex; gap: 8px; flex: none; }
 .pd-actions > div { display: flex; gap: 8px; }
 .pd-actions button { cursor: pointer; }
@@ -258,7 +267,18 @@
   .pd-thumb { width: 64px; height: 44px; }
   .pd-price { margin-top: 16px; }
   .pd-owner { margin-top: 16px; padding-block: 12px; }
-  .pd-profile .pd-facts { display: grid; grid-template-columns: repeat(4,minmax(0,1fr)); padding: 0; }
+  .pd-profile .pd-facts {
+    display: grid;
+    grid-template-columns: repeat(3,minmax(0,1fr));
+    margin-top: 20px;
+    padding: 0 16px 4px;
+    background: var(--surface);
+    border: 1px solid var(--hairline);
+    border-radius: 10px;
+  }
+  .pd-profile .pd-fact { padding: 12px 12px 12px 0; }
+  .pd-profile .pd-fact:nth-child(-n+3) { border-top: 0; padding-top: 14px; }
+  .pd-profile .pd-facts-all { justify-self: stretch; margin-top: 0; padding-top: 11px; border-top: 1px solid var(--hairline); }
   .pd-workspace .pd-facts { display: none; }
   .pd-workspace { min-height: calc(92dvh - 72px); }
   .pd-toolbar { order: -1; min-height: 58px; gap: 8px; flex: none; }
@@ -273,11 +293,12 @@
   .pd-profile { padding: 20px; }
   .pd-portrait { display: flex; flex-direction: column; gap: 20px; }
   .pd-media { align-self: stretch; }
-  .pd-photo { margin: 0; aspect-ratio: 2 / 1; }
+  .pd-photo { margin: 0; aspect-ratio: 3 / 2; }
   .pd-identity { padding: 0; }
   .pd-title-row h2 { font-size: 25px; }
   .pd-price > span:first-child { font-size: 32px; }
-  .pd-profile .pd-facts { grid-template-columns: repeat(3,minmax(0,1fr)); padding: 0; }
+  .pd-profile .pd-facts { grid-template-columns: repeat(2,minmax(0,1fr)); padding: 0 14px 4px; }
+  .pd-profile .pd-fact:nth-child(3) { border-top: 1px solid var(--hairline); padding-top: 12px; }
   .pd-tabs { gap: 14px; }
   .pd-tabs button { font-size: 13px; min-height: 56px; }
   .pd-toolbar { min-height: 56px; gap: 6px; padding-inline: 14px; padding-top: max(0px, env(safe-area-inset-top)); }
@@ -293,6 +314,11 @@
   .pd-body button { min-height: 36px; }
   .pd-body input, .pd-body textarea { font-size: 16px; }
   .pd-body .pd-net { min-height: 150px; }
+}
+/* Na úzkém telefonu se čtyři české názvy záložek vejdou jen takhle natěsno. */
+@media (max-width: 389px) {
+  .pd-tabs { gap: 10px; }
+  .pd-toolbar { padding-inline: 12px; }
 }
 @media (prefers-reduced-motion: reduce) {
   .property-detail-dialog, .property-detail-dialog *, .property-detail-dialog *::before, .property-detail-dialog *::after { animation: none !important; transition: none !important; scroll-behavior: auto !important; }
