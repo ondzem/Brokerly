@@ -2787,13 +2787,10 @@ export const PropertiesView: React.FC<PropertiesViewProps> = ({
                         document.getElementById(`pd-tab-${tabs[next]}`)?.focus();
                       }}
                       onClick={() => openDetailTab(tab)}
-                      className="py-3 text-[14px] font-medium transition cursor-pointer border-b-2 text-left whitespace-nowrap"
-                      style={{
-                        color: active ? colors.textPrimary : colors.textMuted,
-                        borderColor: active ? '#00D991' : 'transparent'
-                      }}
+                      className="text-[14px] font-medium transition cursor-pointer text-left whitespace-nowrap"
+                      style={{ color: active ? colors.textPrimary : colors.textMuted }}
                     >
-                      {label}
+                      <span className="pd-tab-label">{label}</span>
                     </button>
                   );
                 })}

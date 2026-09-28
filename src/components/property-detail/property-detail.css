@@ -121,14 +121,17 @@
   align-items: center;
   gap: 0;
   min-width: 0;
-  padding: 0 var(--pd-space);
+  margin: 18px var(--pd-space) 0;
+  padding: 11px 18px;
   overflow-x: auto;
   scrollbar-width: none;
-  border-bottom: 1px solid var(--hairline);
+  background: var(--surface);
+  border: 1px solid var(--hairline);
+  border-radius: 10px;
   flex: none;
 }
 .pd-workspace .pd-facts::-webkit-scrollbar { display: none; }
-.pd-workspace .pd-fact { flex: none; padding: 9px 0; gap: 7px; }
+.pd-workspace .pd-fact { flex: none; padding: 0; gap: 7px; }
 .pd-workspace .pd-fact > svg { width: 15px; height: 15px; margin-top: 1px; }
 .pd-workspace .pd-fact-label { margin-bottom: 1px; }
 .pd-workspace .pd-fact-value { line-height: 1.4; }
@@ -144,20 +147,21 @@
   align-items: center;
   gap: 12px;
   min-width: 0;
-  min-height: 76px;
+  min-height: 60px;
   padding: 0 var(--pd-space);
   background: var(--panel);
   border-bottom: 1px solid var(--hairline);
 }
 .pd-tabs { display: flex; gap: 24px; min-width: 0; overflow-x: auto; scrollbar-width: none; flex: 1; }
-.pd-tabs button { min-height: 76px; border-bottom: 2px solid transparent; white-space: nowrap; font-size: 14px; font-weight: 500; cursor: pointer; }
-.pd-tabs button[aria-selected="true"] { border-bottom-color: #00D991; }
+.pd-tabs button { display: flex; align-items: center; min-height: 60px; white-space: nowrap; font-size: 14px; font-weight: 500; cursor: pointer; }
+.pd-tab-label { display: block; padding-bottom: 5px; border-bottom: 2px solid transparent; }
+.pd-tabs button[aria-selected="true"] .pd-tab-label { border-bottom-color: #00D991; }
 .pd-actions { margin-left: auto; display: flex; gap: 8px; flex: none; }
 .pd-actions > div { display: flex; gap: 8px; }
 .pd-actions button { cursor: pointer; }
 .pd-actions > div > button, .pd-actions > div > div > button { width: 36px; height: 36px; box-shadow: none; }
 .pd-workspace { grid-column: 2; min-width: 0; display: flex; flex-direction: column; }
-.pd-body { padding: var(--pd-space); flex: 1; min-width: 0; display: flex; flex-direction: column; }
+.pd-body { padding: 18px var(--pd-space) var(--pd-space); flex: 1; min-width: 0; display: flex; flex-direction: column; }
 .pd-body > [role="tabpanel"] { flex: 1; min-height: 0; animation: pd-reveal 180ms cubic-bezier(.2,.7,.2,1); }
 .pd-overview { display: grid; grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr); grid-template-rows: auto minmax(0, 1fr); gap: 20px; align-items: stretch; }
 .pd-overview-primary { display: contents; }
@@ -243,7 +247,7 @@
   .pd-summary-progress { flex-direction: row; justify-content: space-between; }
 }
 @media (max-width: 959px) {
-  .property-detail-dialog { width: calc(100vw - 32px); scroll-padding-top: 78px; }
+  .property-detail-dialog { width: calc(100vw - 32px); scroll-padding-top: 72px; }
   .pd-layout { display: flex; flex-direction: column; --pd-space: 24px; }
   .pd-profile { position: static; height: auto; max-height: none; overflow: visible; border-right: 0; border-bottom: 1px solid var(--hairline); padding: 24px; --pd-rail-pad: 0px; }
   .pd-portrait { display: grid; grid-template-columns: minmax(0,.85fr) minmax(0,1fr); gap: 24px; flex: none; }
@@ -256,16 +260,16 @@
   .pd-owner { margin-top: 16px; padding-block: 12px; }
   .pd-profile .pd-facts { display: grid; grid-template-columns: repeat(4,minmax(0,1fr)); padding: 0; }
   .pd-workspace .pd-facts { display: none; }
-  .pd-workspace { min-height: calc(92dvh - 78px); }
-  .pd-toolbar { order: -1; min-height: 64px; gap: 8px; flex: none; }
+  .pd-workspace { min-height: calc(92dvh - 72px); }
+  .pd-toolbar { order: -1; min-height: 58px; gap: 8px; flex: none; }
   .pd-tabs { gap: 20px; }
-  .pd-tabs button { min-height: 64px; }
+  .pd-tabs button { min-height: 58px; }
   .pd-actions { position: static; margin-left: auto; }
 }
 @media (max-width: 599px) {
-  .property-detail-dialog { width: 100vw; height: 100dvh; max-height: 100dvh; border-radius: 0; border: 0; scroll-padding-top: 68px; }
+  .property-detail-dialog { width: 100vw; height: 100dvh; max-height: 100dvh; border-radius: 0; border: 0; scroll-padding-top: 66px; }
   .pd-layout { --pd-space: 20px; }
-  .pd-workspace { min-height: calc(100dvh - 68px); }
+  .pd-workspace { min-height: calc(100dvh - 66px); }
   .pd-profile { padding: 20px; }
   .pd-portrait { display: flex; flex-direction: column; gap: 20px; }
   .pd-media { align-self: stretch; }
