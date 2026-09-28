@@ -80,10 +80,16 @@ Four passes of tuning, all driven by the same complaint getting narrower:
    hairline and the gap do all of it. Then `#FCFDFA` — `#FDFDFB` read as too
    light, so the value sits at the midpoint of the two rejected ends.
 
-The whole usable range turned out to be about half an L\* unit wide
-(contrast-vs-white 1.028 → 1.018). Anything outside it has been rejected in both
-directions, so the fill is a spent lever: if the separation reads wrong again,
-change the hairline or the spacing, not this.
+5. `#F4F6F1` (28. 9. 2026). With the detail dossier built out — a parameter
+   card, buyer and finance cards, all white on the ground — the near-invisible
+   step stopped doing its job: the cards no longer read as raised. Asked for
+   directly ("ztmavit to pozadí, decentně"), so passes 1–4 are not overturned,
+   only their conclusion for a screen that now carries far more cards.
+
+The range between passes 3 and 4 is about half an L\* unit wide
+(contrast-vs-white 1.028 → 1.018). That is the range for a screen with one or
+two cards; a card-dense screen wants the step of pass 5. Reach for the hairline
+or the spacing first — the fill is the coarse lever, not the first one.
 
 Do not reintroduce a second line weight or widen the fill step — both were tried
 and rejected. `--hairline-soft` existed briefly in pass 3 and is gone.
