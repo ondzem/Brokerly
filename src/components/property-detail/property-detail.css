@@ -128,10 +128,13 @@
   flex: none;
 }
 .pd-workspace .pd-facts::-webkit-scrollbar { display: none; }
-.pd-workspace .pd-fact { flex: none; padding: 15px 0; }
+.pd-workspace .pd-fact { flex: none; padding: 9px 0; gap: 7px; }
+.pd-workspace .pd-fact > svg { width: 15px; height: 15px; margin-top: 1px; }
+.pd-workspace .pd-fact-label { margin-bottom: 1px; }
+.pd-workspace .pd-fact-value { line-height: 1.4; }
 .pd-workspace .pd-fact + .pd-fact { margin-left: 20px; padding-left: 20px; border-left: 1px solid var(--hairline); }
 .pd-workspace .pd-fact .pd-fact-value { white-space: nowrap; }
-.pd-workspace .pd-facts-all { margin-left: auto; padding-left: 20px; }
+.pd-workspace .pd-facts-all { margin-left: auto; padding-left: 20px; min-height: 0; }
 .pd-toolbar {
   grid-column: 2;
   position: sticky;

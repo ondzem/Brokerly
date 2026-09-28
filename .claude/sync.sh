@@ -5,6 +5,10 @@
 #   sync.sh pull   — volá se při startu session (SessionStart)
 #   sync.sh push   — volá se po každé odpovědi Claude (Stop)
 #
+# Nahrávání jde pozastavit souborem .claude/.sync-paused (je v .gitignore).
+# Práce se pak pořád commituje lokálně, jen se neposílá na GitHub — pro
+# případ, kdy člověk nechce po každé odpovědi nový commit v repozitáři.
+#
 # Skript VŽDY končí kódem 0. Hook nesmí zablokovat práci: když se
 # synchronizovat nedá (offline, konflikt), jen to oznámí a nechá běžet dál.
 # Zprávy pro uživatele jdou ven jako JSON se systemMessage.
@@ -79,6 +83,12 @@ $incoming" "$EVENT"
     ;;
 
   push)
+    # Pauza: uložit, ale nenahrávat.
+    if [ -f .claude/.sync-paused ]; then
+      dirty && commit_work "Práce" >/dev/null
+      quiet
+    fi
+
     ahead=$(git rev-list --count "origin/$BRANCH..HEAD" 2>/dev/null || echo 0)
     if ! dirty && [ "$ahead" -eq 0 ]; then quiet; fi
 

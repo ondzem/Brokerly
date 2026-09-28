@@ -72,3 +72,4 @@ ds-bundle/
 .swarm/
 agentdb.rvf
 agentdb.rvf.lock
+.claude/.sync-paused
