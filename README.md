@@ -30,6 +30,8 @@ Bez skriptu: `npm install && npm run dev`.
 
 | soubor | co v něm je |
 |---|---|
+| [docs/projekt/00-mapa.md](docs/projekt/00-mapa.md) | **začni tady** — mise a vize, produkt a služby, stav aplikace, design, nástroje, postup, otevřené otázky |
+| [docs/master-dokument-2026-07.md](docs/master-dokument-2026-07.md) | textová verze zakládajícího master dokumentu (červenec 2026) |
 | [AGENTS.md](AGENTS.md) | pravidla projektu — datový model, rozsah etapy 1, design systém |
 | [docs/spoluprace.md](docs/spoluprace.md) | jak na projektu pracovat ve dvou |
 | [docs/image-crop-uploader.md](docs/image-crop-uploader.md) | logika nahrávání a ořezu fotek (přenositelné do jiných projektů) |
