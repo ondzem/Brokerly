@@ -27,6 +27,10 @@ každý realiťák prožívá, převede do přehledné a zábavné podoby — po
 automatizací, funkcí a systémů. Všestranný systém: **jediný nástroj, který
 budou potřebovat pro technickou a informační stránku realitního světa.**
 
+*Doplnění:* „asistent, který jedná za tebe" zní líp než „pomocníček, co šetří
+čas" — ale **tečka za „jedná za tebe"**, ne „aby nepropadl lead". Systém
+nepomáhá jen s leady, ale i s organizací, s vytvářením věcí atd.
+
 Filip:
 
 **2. Jak jste se každý k realitám dostali a co vás u nich drží?**
@@ -92,7 +96,9 @@ okolní země, celá Evropa, pak americký trh a svět. Za tři roky nebudeme
 celosvětoví, ale budeme **známější firma v Česku a okolních zemích**;
 dlouhodobá vize je celosvětová dominance v realitním světě.
 
-- **Cíl za 3 roky:** ~10 000 makléřů, z toho 5–10 % kanceláře.
+- **Cíl za 3 roky:** po reality checku (v ČR je aktivních ~10–15 tisíc
+  makléřů celkem): **~1 000 makléřů v Česku**, ~10 000 celosvětově; z toho
+  5–10 % kanceláře.
 - **Tým:** ne korporát — do 100 pečlivě vybraných, ambiciózních lidí, kteří
   chtějí zůstat a udělat z toho něco víc.
 - **Hodiny:** zpočátku vedlejší projekt; až uvidíme, že se mu daří, stane se
@@ -179,7 +185,11 @@ Ondřej:
 Černovický.** Známé osoby s vlastními weby a prezentací. Artem je na úplně jiné
 úrovni, ale i z toho jde vytěžit co nejvíc. Typ: makléř, který už to má
 rozjeté, není junior, a chce se posunout na vyšší laťku v realitním světě.
-*(Pilot — zatím neurčen.)*
+**Pilot: Dorina Šedíková.** (Věk ani délka praxe zatím neznámé.) Aby řekla
+„to chci", musí vidět: (1) že na jednom místě zpracuje věci, na které jinde
+používá několik nástrojů; (2) že je to napojené tak, že jí **neutíkají žádné
+leady**; (3) že automatizace, propojenost všeho a generování věcí jsou
+dohromady něco, co jinde nemá.
 
 Filip:
 
@@ -187,7 +197,8 @@ Filip:
 *„AI bude odpovídat za mě a napíše blbost." „Chcete číst moje e-maily." „Když to vypnu, přijdu o data." „Klienti poznají, že to píše robot." „Sreality mě zablokují." Napište **doslova** věty, které říkáte — patří do prodejní prezentace, na web i do onboardingu.*
 
 Ondřej:
-Zatím jsem nad tím nepřemýšlel — jsme v procesu stavby. Nevím.
+Zatím jsem nad tím nepřemýšlel — jsme v procesu stavby. Nevím. *(K probrání;
+nejlíp z rozhovoru s Dorinou: „co by vás odradilo?")*
 
 Filip:
 
@@ -228,8 +239,8 @@ Ondřej:
 **Já:** stát se v Česku známým za náš projekt. Peníze — realisticky
 ~150 tisíc/měs, když to půjde dobře kolem 3.–4. měsíce; ke konci roku
 500 tisíc až 1 milion/měs. Osobní měřítko: BMW M3.
-**Klient:** ušetřený čas — kolik hodin měsíčně mu to ušetří, aby se mohl
-věnovat prodeji a koupi. *(Konkrétní číslo neurčeno.)*
+**Klient:** ušetřený čas, aby se mohl věnovat prodeji a koupi — měřítko:
+**40 a více hodin měsíčně** a žádná propadlá poptávka.
 
 Filip:
 
@@ -254,7 +265,9 @@ Filip:
 
 Ondřej:
 Chci slyšet: **přehledný, profesionální, funkční.** Nechci: nespolehlivý,
-nefunkční, nepřehledný. *(Inspirační značky neuvedeny.)*
+nefunkční, nepřehledný. Inspirace: [luxurypresence.com](https://www.luxurypresence.com),
+[mozekrealit.cz](https://mozekrealit.cz), [wextra.cz](https://www.wextra.cz)
+(portfolio dělají výborně), [burocratik.com](https://www.burocratik.com).
 
 Filip:
 
