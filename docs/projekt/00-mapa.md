@@ -14,13 +14,15 @@
 
 | # | Dokument | Co v něm je | Na co odpovídá |
 |---|---|---|---|
-| 01 | [Mise a vize](01-mise-a-vize.md) | Co Brokerly je, jaký problém řeší, pro koho, čím vyhrává, kam míří, kolik stojí, kdo ho dělá | *Proč to děláme a pro koho?* |
+| 01 | [Mise a vize](01-mise-a-vize.md) | Základní pravidla: co Brokerly je, jaký problém řeší, pro koho, čím vyhrává | *Proč to děláme a pro koho?* |
+| — | [Dotazník mise a vize](dotaznik-mise-a-vize.md) | 17 otázek pro oba zakladatele, které 01 doladí (podle metodiky anamnézy) | *Co si o tom každý z nás doopravdy myslí?* |
 | 02 | [Produkt a služby](02-produkt-a-sluzby.md) | Kompletní katalog všeho, co má systém umět: balíčky, hero funkce, mapa automatizace po fázích práce makléře, provozní detaily každé funkce, KPI, etapy stavby | *Co všechno chceme postavit a v jakém pořadí?* |
 | 03 | [Stav aplikace](03-stav-aplikace.md) | Co dnes reálně existuje v kódu a databázi, čím se to liší od specifikace, časová osa stavby, známé problémy, co je balast k vyčištění | *Kde právě jsme?* |
 | 04 | [Design](04-design.md) | Vizuální identita, tokeny, pravidla, reference, rozhodnutí, co je nekonzistentní | *Jak to má vypadat?* |
 | 05 | [Nástroje a technika](05-nastroje-a-technika.md) | Stack, databáze, hosting, vývojářské nástroje, AI nástroje, tajné klíče, náklady | *Na čem to stavíme a čím?* |
 | 06 | [Postup a spolupráce](06-postup-a-spoluprace.md) | Jak pracujeme ve dvou, pravidla etap, definice hotového, jak navazuje Ondřejova webová metodika | *Jak pracujeme?* |
 | 07 | [Otevřené otázky](07-otevrene-otazky.md) | Rozpory mezi dokumenty a realitou, co nevíme, co musíme rozhodnout — podklad pro dotazník a strategii | *Co si musíme ujasnit, než uděláme strategii?* |
+| 08 | [Byznys a plán](08-byznys-a-plan.md) | Ceny, go-to-market, roadmapa, tým, rizika — plán, jak misi uskutečnit; bude se přepisovat ve strategii | *Jak a kdy to zpeněžíme?* |
 
 ## Zdroje, ze kterých to vzniklo
 
