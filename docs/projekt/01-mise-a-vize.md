@@ -38,11 +38,9 @@ Tabidoo) a my ho **nenutíme ho vyhazovat** — necháme jeho CRM jako sklad a
 nasadíme na něj naši vrstvu. Vlastní CRM bylo myšleno jako jedna z možností
 „hubu", ne jediná.
 
-Notion (procesy 1.4) to upřesňuje: **hub měl být náš Airtable + „portál"**;
-když makléř má vlastní CRM (Raynet, CRM kanceláře), přidá se druhý krok —
-po zápisu k nám se pošle API volání do jeho CRM (mapování polí). Pro makléře
-bez CRM je hub Airtable + portál. **Ten „portál" je to, co se dnes staví jako
-aplikace** — jen místo Airtable má vlastní databázi.
+Notion (procesy 1.4) to upřesňuje: **hub je vždy náš** (dnešní aplikace);
+když makléř má vlastní CRM (Raynet, CRM kanceláře), přidá se volitelně druhý
+krok — po zápisu k nám se pošle API volání do jeho CRM (mapování polí).
 
 > ► **Stav 10/2026:** stavíme výhradně vlastní CRM. Napojení na cizí CRM se
 > nikde neřeší a nikdo o něm od července nemluvil. Je to jedna z klíčových
@@ -218,23 +216,22 @@ rezervovaná prohlídka). Follow-up majitelů a Studio jsou „přidáme příš
 
 Z master dokumentu (červenec):
 
-- **Filip — technický build.** Automatizace (Make), AI prompty a logika
-  kvalifikace, API napojení (CRM, Google Drive, kalendář, SMS), scraping
-  infrastruktura, logika digestu.
-- **Kolega (Ondřej) — data, design a Studio.** Airtable struktura, šablony
-  textů, vizuální podoba (HTML šablona digestu, PDF reporty pro vedení, Cal.com
-  pod brandem klienta), kompletní provoz AI Studia (objednávky, zpracování,
-  dodání do 24 h).
+- **Filip — technika.** Automatizace, AI prompty a logika kvalifikace, API
+  napojení (CRM, Google Drive, kalendář, SMS), scraping, logika digestu.
+- **Ondřej — data, design a Studio.** Datová struktura, šablony textů,
+  vizuální podoba (digest, PDF reporty pro vedení, rezervační stránka pod
+  brandem klienta), kompletní provoz AI Studia (objednávky, zpracování, dodání
+  do 24 h).
 - Později: Adéla na admin (září–říjen), externí builder od 8 klientů.
 
 **Pravidla provozu:**
 - Call-centrum blok **8:45–11:00 je nedotknutelný**; build probíhá večery a víkendy.
 - Závazné kapacitní pořadí: **Studio → automatizace → asistentka.** Nikdy vše naráz.
 
-> ► **Stav 10/2026:** realita se od rozdělení rolí liší. Celou aplikaci (CRM
-> jádro) staví Ondřej s Claude Code — 151 commitů, všechny od `ondzem`. Filipův
-> podíl na kódu není v repu vidět (druhý vývojář je od 20. 8. nastavený, ale
-> commity nejsou). Make/Airtable z původního plánu se nepoužívají. Viz
+> ► **Stav 10/2026:** celou aplikaci staví Ondřej s Claude Code — 151 commitů,
+> všechny od `ondzem`. Filipův podíl na kódu není v repu vidět (druhý vývojář je
+> od 20. 8. nastavený, ale commity nejsou). Staví se **v kódu nad Supabase**,
+> ne v no-code nástrojích, se kterými červenec počítal. Viz
 > [07 §2](07-otevrene-otazky.md).
 
 ---
@@ -261,8 +258,8 @@ Tři věci, které v červencovém dokumentu drží pohromadě a dnes drží mí
 2. **Hero funkce (speed-to-lead) je důvod, proč to někdo koupí** — a je to
    jediná věc, která se zatím vůbec nestavěla. Etapa 1 je nutný základ, ale sama
    o sobě neprodává.
-3. **Roadmapa počítala s rolí Filipa jako buildera automatizací v Make.** Pokud
-   automatizace poběží nad vlastním Supabase/React CRM, je to jiná práce a jiné
-   dovednosti.
+3. **Roadmapa počítala s no-code automatizacemi; stavíme v kódu nad Supabase.**
+   Je to jiná práce a jiné dovednosti — a rozdělení rolí z července tomu
+   neodpovídá.
 
 Tohle nejsou závěry — jsou to místa, kde dotazník a strategie musí začít.

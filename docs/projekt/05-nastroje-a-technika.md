@@ -104,26 +104,25 @@ ani do chatu.** Nové proměnné: název do `.env.local.example`, hodnota soukro
 | 21st.dev MCP (`.mcp.json`) | knihovna UI komponent | používá se? `?` |
 | headroom proxy (port 8787) | lokální proxy pro Claude API | infrastruktura Ondřejova počítače, ne projektu |
 
-### Původně plánovaný řetězec pro vrstvu 2 (Notion „procesy" — konkrétní nástroje)
+### Služby, se kterými zadání počítá pro vrstvu 2 (nic z toho není napojené)
 
-| Krok | Nástroj | Poznámka |
+Vrstva 2 se bude stavět **v kódu nad Supabase** (Edge Functions, pg_cron),
+ne v no-code nástrojích. Tohle jsou externí služby, které zadání (Notion
+„procesy") jmenuje a které zůstávají kandidáty:
+
+| Potřeba | Kandidát ze zadání | Poznámka |
 |---|---|---|
-| příjem poptávky | alias `makler@brokerly.cz` nebo forward z Gmail/Seznam → **Mailparser.io** | vytáhne jméno, telefon, ID inzerátu, text |
-| orchestrace | **Make.com** | webhooky, filtry, plánování |
-| data | **Airtable** (Leads, Viewings, Activities…) | + volitelně API push do Raynetu / CRM kanceláře |
+| příjem poptávky | alias `makler@brokerly.cz` nebo forward z Gmail/Seznam | parsování e-mailu si napíšeme sami (edge funkce), stejně jako import inzerátu |
 | AI | **Claude API** | odpovědi v tónu makléře, triáž, digest, kontrola dokumentů |
 | e-mail jménem makléře | **Resend** | HTML šablona digestu |
 | SMS | **smsbrana** | remindery, notifikace; STOP = zrušení |
-| rezervace | **Cal.com** napojený na Google/Outlook kalendář | pod brandem klienta; webhook do Make |
-| podklady | **Google Drive API** | složka na makléřově Drive |
-| scraping | **stávající Sreality scraper pro CC listy** (Filip, „NEMO_tracker") + Bazoš | denní cron, vlastní datum prvního výskytu |
+| rezervace | **Cal.com** napojený na Google/Outlook kalendář makléře | pod brandem klienta; webhook k nám |
+| podklady od majitelů | **Google Drive API** | složka na makléřově Drive (GDPR) |
+| scraping | **Filipův existující Sreality scraper pro CC listy** („NEMO_tracker") + Bazoš | jediná hotová technika vrstvy 2, leží mimo repo |
 | Studio | CubiCasa / Matterport, Floorplanner, Virtual Staging AI, Reimagine Home, Photoshop | servis, ne build |
 
-**Nic z toho není napojené.** Místo Airtable je Supabase, místo portálu
-vlastní React aplikace. Make, Mailparser, Resend, smsbrana, Cal.com — rozhodnutí,
-zda je použít nad Supabase, nebo nahradit (Edge Functions, pg_cron, n8n), nepadlo.
-Filipův existující scraper je jediná hotová technická věc z téhle vrstvy a leží
-mimo repo.
+Výběr konkrétních služeb (a jestli např. rezervaci nepostavit vlastní) je
+otevřený — [07 §3](07-otevrene-otazky.md).
 
 ---
 

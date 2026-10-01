@@ -26,7 +26,7 @@
 
 | Zdroj | Co obsahuje | Stav |
 |---|---|---|
-| `Brokerly_master_dokument.docx` (5. 7. 2026) | **Hlavní zdroj pravdy.** 24 kapitol: produkt, byznys, trh, ceny, roadmapa, tým, celý datový model, automatizace, provozní detaily, pořadí stavby, KPI | Přečteno celé. Je to Word v kořeni repa; měl by se přesunout do `docs/` (viz 03) |
+| `docs/archiv/Brokerly_master_dokument.docx` (5. 7. 2026) | **Hlavní zdroj pravdy.** 24 kapitol: produkt, byznys, trh, ceny, roadmapa, tým, celý datový model, automatizace, provozní detaily, pořadí stavby, KPI | Přečteno celé. Textová verze: `docs/master-dokument-2026-07.md` |
 | `AGENTS.md` | Pravidla pro AI agenty: rozsah etapy 1, datový model, design systém, práce ve dvou | Přečteno |
 | `README.md`, `docs/spoluprace.md` | Spuštění, synchronizace, onboarding kolegy | Přečteno |
 | `docs/design-system.md`, `.design-sync/*` | Design systém a historie ladění palety | Přečteno |

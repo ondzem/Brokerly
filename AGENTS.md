@@ -46,7 +46,7 @@ Because every automation only reads/writes the tables, **the tables are built fi
 
 ## 3. Tech stack (fixed — do not substitute)
 
-- **Framework:** Next.js (App Router) + **TypeScript**
+- **Framework:** Vite + React 19 + **TypeScript** (single-page app, bez routeru)
 - **Styling:** Tailwind CSS
 - **UI components:** shadcn/ui (customized — must not look like stock defaults; see §8)
 - **Database & backend:** **Supabase** (Postgres). Real database from day one.

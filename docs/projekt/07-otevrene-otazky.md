@@ -16,10 +16,10 @@ automatizační vrstvu" (stret.ai, Raynet, Tabidoo). Současně kap. 14–17
 specifikuje vlastní jádro a od 5. 7. se **staví výhradně vlastní CRM**.
 Napojení na cizí CRM se nikde neřeší.
 
-Notion (procesy 1.4) ukazuje, že záměr byl **hybridní**: náš hub (Airtable +
-portál) je vždy, cizí CRM se k němu volitelně synchronizuje přes API. Současná
-aplikace je ten „portál" + hub v jednom — takže rozpor je menší, než vypadá;
-chybí jen rozhodnutí o synchronizaci do cizích CRM.
+Notion (procesy 1.4) ukazuje, že záměr byl **hybridní**: náš hub je vždy,
+cizí CRM se k němu volitelně synchronizuje přes API. Současná aplikace je ten
+hub — takže rozpor je menší, než vypadá; chybí jen rozhodnutí o synchronizaci
+do cizích CRM.
 
 **Otázky:**
 - Je vlastní CRM *jedna z možností hubu*, nebo *ten produkt*?
@@ -36,18 +36,19 @@ CRM vs. jen vlastní tabulky), konkurenční pozici.
 
 ## 2. Kdo co dělá — role vs. realita
 
-**Rozpor:** Kap. 9: Filip = technický build (Make, AI, API, scraping), Ondřej =
-data, design, Studio. Realita: Ondřej s Claude Code postavil celé CRM (151
-commitů), Filip v repu nemá commit. Make a Airtable se nepoužívají.
+**Rozpor:** Kap. 9: Filip = technika (AI, API, scraping, automatizace), Ondřej
+= data, design, Studio. Realita: Ondřej s Claude Code postavil celé CRM (151
+commitů), Filip v repu nemá commit.
 
 Z Notionu: Filip má **existující scraping infrastrukturu Sreality pro
 call-centrové listy** („NEMO_tracker") — jediná hotová technická věc vrstvy 2,
-mimo repo. Notion u každé funkce píše „Staví: Filip (Make + AI prompty)".
+mimo repo. Notion u každé funkce píše „Staví: Filip".
 
 **Otázky:**
 - Co Filip reálně dělal od července? Kde je scraper, v čem běží, jde ho
   použít pro monitoring (3.5) rovnou?
-- Má Filip stavět vrstvu 2 v Make/n8n nad Supabase? Nebo v kódu? Umí/chce?
+- Vrstva 2 se staví v kódu nad Supabase — staví ji Filip, Ondřej s Claude
+  Code, nebo oba? Co z toho Filip umí/chce?
 - Kdo vlastní produkt (rozhoduje o rozsahu) a kdo vlastní techniku?
 - Je Claude Code „třetí člen týmu" i pro Filipa, nebo jen pro Ondřeje?
 
@@ -57,18 +58,15 @@ mimo repo. Notion u každé funkce píše „Staví: Filip (Make + AI prompty)".
 
 ## 3. Kde poběží automatizace (vrstva 2)
 
-**Rozpor:** Plán: Make + Airtable + Cal.com + SMS brána. Realita: React +
-Supabase, nic z toho. Vrstva 2 potřebuje: příjem e-mailů, AI generování
-odpovědí, odesílání e-mailů jménem makléře, kalendář s rezervací, SMS,
-plánované úlohy (remindery, digest 7:30, urgence každé 3 dny).
-
-Notion řetězec byl konkrétní: Mailparser → Make → Claude API → Resend /
-smsbrana / Cal.com → Airtable (viz [05 §5](05-nastroje-a-technika.md)).
-Plánovaný LLM byl **Claude API**.
+**Stav:** rozhodnuto, že v kódu nad Supabase. Vrstva 2 potřebuje: příjem
+e-mailů, AI generování odpovědí, odesílání e-mailů jménem makléře, kalendář
+s rezervací, SMS, plánované úlohy (remindery, digest 7:30, urgence každé
+3 dny). Kandidáti služeb ze zadání: Claude API, Resend, smsbrana, Cal.com,
+Google Drive API (viz [05 §5](05-nastroje-a-technika.md)).
 
 **Otázky:**
-- Make a spol. nad Supabase (nejrychlejší, Filip to umí), nebo Supabase Edge
-  Functions + pg_cron + Resend/smsbrana/Cal.com (bez Make, v kódu), nebo n8n?
+- Které z externích služeb vzít, a co postavit vlastní (rezervační stránka?
+  SMS přes jiného poskytovatele?)?
 - Náklad na poptávku (Claude API + SMS)?
 - Odesílání e-mailů **jménem makléře** — z jeho schránky (OAuth Gmail/Outlook)
   nebo z našeho aliasu `makler@brokerly.cz` (kap. 19.1 zmiňuje obojí)?

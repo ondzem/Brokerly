@@ -204,21 +204,25 @@ počty), C13 (hledání), C16 (filtr stavů), část D. **Otevřené:**
 
 ---
 
-## 6. Balast — co v projektu leží a nepoužívá se
+## 6. Balast — co v projektu leželo a nepoužívá se
 
-Kandidáti na vyčištění (nic z toho jsem nemazal; je to seznam k rozhodnutí):
+Vyčištěno 1. 10. 2026 (vše je v git historii, kdyby bylo třeba):
+
+| Co | Proč to tam bylo | Hotovo |
+|---|---|---|
+| `Brokerly Dashboard - standalone.html`, `Detail nemovitosti - mobil.html` | makety z července, od té doby dvakrát předělané | smazáno |
+| `Brokerly_master_dokument.docx` v kořeni | hlavní zdroj pravdy jako Word v kořeni | přesunut do `docs/archiv/`; textová verze v `docs/master-dokument-2026-07.md` |
+| `scratch/` | pracovní soubory z července | smazáno |
+| `public/next.svg`, `vercel.svg`, `file.svg`, `globe.svg`, `window.svg` | zbytky po Create Next App, nikde nepoužité | smazáno |
+| `public/_redirects` | Netlify proxy pro ScraperAPI, které už není | smazáno |
+| AGENTS.md §3 „Next.js (App Router)" | nepravda — projekt je Vite + React | opraveno |
+
+Zbývá k rozhodnutí:
 
 | Co | Proč je to tam | Co s tím |
 |---|---|---|
-| `Brokerly Dashboard - standalone.html` (812 KB, 8. 7.) | zabalená maketa dashboardu | smazat, nebo přesunout do `docs/archiv/` |
-| `Detail nemovitosti - mobil.html` (117 KB, 14. 7.) | maketa mobilního detailu — od té doby dvakrát předělán | totéž |
-| `Brokerly_master_dokument.docx` v kořeni | **hlavní zdroj pravdy** leží jako Word v kořeni repa, git ho neumí porovnávat | textová verze je od 1. 10. v `docs/master-dokument-2026-07.md`; Word přesunout do `docs/archiv/` |
-| `scratch/` (6 souborů, 12.–16. 7.) | pracovní soubory z úprav přes ChatGPT/skripty | smazat |
-| `dist/`, `tsconfig.tsbuildinfo` | výstup buildu, cache TypeScriptu | oba jsou v `.gitignore` — jen lokální balast, nic k řešení |
-| `public/next.svg`, `vercel.svg`, `file.svg`, `globe.svg`, `window.svg` | zbytky po Create Next App | smazat |
-| `public/_redirects` | Netlify proxy pro ScraperAPI, které už není | smazat |
-| `eslint.config.mjs` → `eslint-config-next` | zbytek po Next.js; lint nejde | přepsat na Vite/React config |
-| AGENTS.md §3 „Framework: Next.js (App Router)" | **nepravda** — projekt je Vite + React | opravit |
+| `dist/`, `tsconfig.tsbuildinfo` | výstup buildu, cache TypeScriptu | v `.gitignore`, jen lokální — nic k řešení |
+| `eslint.config.mjs` → `eslint-config-next` | zbytek po Next.js; lint nejde spustit | přepsat na Vite/React config (změna, ne mazání) |
 | `components.json` | shadcn konfigurace | nechat |
 | `.ds-sync/` (vč. vlastního `node_modules`), `ds-bundle/` | nástroje a výstup synchronizace do Claude Designu (26.–27. 8.) | nechat, ale sync se dělá jen na vyžádání |
 | `agentdb.rvf`, `agentdb.rvf.lock`, `ruvector.db` (1,6 MB), `.claude-flow/`, `.swarm/`, `.claude/memory.db` | lokální stav ruflo/agentdb | v `.gitignore`; ověřit, že `ruvector.db` tam je |

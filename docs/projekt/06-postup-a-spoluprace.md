@@ -9,8 +9,8 @@ Ondřejova metodika z webových projektů.
 
 | | Role podle master dokumentu (7/2026) | Realita (10/2026) |
 |---|---|---|
-| **Ondřej Zeman** | data (Airtable), design, šablony textů, vizuál digestu a reportů, provoz AI Studia | staví **celou aplikaci** s Claude Code; design; dokumentace; vlastník repa a Supabase |
-| **Filip Netolický** | technický build: automatizace (Make), AI prompty, kvalifikace, API napojení, scraping, digest | druhý vývojář s přístupem (od 20. 8.); vlastník Notionu; v git historii bez commitů — co dělá mimo repo, není zaznamenáno |
+| **Ondřej Zeman** | data, design, šablony textů, vizuál digestu a reportů, provoz AI Studia | staví **celou aplikaci** s Claude Code; design; dokumentace; vlastník repa a Supabase |
+| **Filip Netolický** | technika: automatizace, AI prompty, kvalifikace, API napojení, scraping, digest | druhý vývojář s přístupem (od 20. 8.); vlastník Notionu; má hotový scraper Sreality mimo repo; v git historii bez commitů |
 | Adéla (admin), externí builder | od podzimu / od 8 klientů | nezačalo |
 
 Doménové vymezení z července **neodpovídá tomu, co se staví** (viz 07 §2).
