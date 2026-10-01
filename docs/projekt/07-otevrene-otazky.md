@@ -16,8 +16,14 @@ automatizační vrstvu" (stret.ai, Raynet, Tabidoo). Současně kap. 14–17
 specifikuje vlastní jádro a od 5. 7. se **staví výhradně vlastní CRM**.
 Napojení na cizí CRM se nikde neřeší.
 
+Notion (procesy 1.4) ukazuje, že záměr byl **hybridní**: náš hub (Airtable +
+portál) je vždy, cizí CRM se k němu volitelně synchronizuje přes API. Současná
+aplikace je ten „portál" + hub v jednom — takže rozpor je menší, než vypadá;
+chybí jen rozhodnutí o synchronizaci do cizích CRM.
+
 **Otázky:**
 - Je vlastní CRM *jedna z možností hubu*, nebo *ten produkt*?
+- Zůstává v plánu synchronizace do Raynetu / CRM kanceláře (Notion 1.4)?
 - Když makléř má Raynet, nabízíme mu migraci k nám, nebo vrstvu nad Raynetem?
 - Konkurujeme stret.ai (CRM), nebo jsme „implementátor nad stret.ai" (kap. 13
   to zvažuje jako odpověď na komoditizaci)?
@@ -34,9 +40,13 @@ CRM vs. jen vlastní tabulky), konkurenční pozici.
 data, design, Studio. Realita: Ondřej s Claude Code postavil celé CRM (151
 commitů), Filip v repu nemá commit. Make a Airtable se nepoužívají.
 
+Z Notionu: Filip má **existující scraping infrastrukturu Sreality pro
+call-centrové listy** („NEMO_tracker") — jediná hotová technická věc vrstvy 2,
+mimo repo. Notion u každé funkce píše „Staví: Filip (Make + AI prompty)".
+
 **Otázky:**
-- Co Filip reálně dělal od července? (Notion může obsahovat odpověď — nebyl
-  přístupný.)
+- Co Filip reálně dělal od července? Kde je scraper, v čem běží, jde ho
+  použít pro monitoring (3.5) rovnou?
 - Má Filip stavět vrstvu 2 v Make/n8n nad Supabase? Nebo v kódu? Umí/chce?
 - Kdo vlastní produkt (rozhoduje o rozsahu) a kdo vlastní techniku?
 - Je Claude Code „třetí člen týmu" i pro Filipa, nebo jen pro Ondřeje?
@@ -52,11 +62,14 @@ Supabase, nic z toho. Vrstva 2 potřebuje: příjem e-mailů, AI generování
 odpovědí, odesílání e-mailů jménem makléře, kalendář s rezervací, SMS,
 plánované úlohy (remindery, digest 7:30, urgence každé 3 dny).
 
+Notion řetězec byl konkrétní: Mailparser → Make → Claude API → Resend /
+smsbrana / Cal.com → Airtable (viz [05 §5](05-nastroje-a-technika.md)).
+Plánovaný LLM byl **Claude API**.
+
 **Otázky:**
-- Supabase Edge Functions + pg_cron + externí služby (Resend, Twilio/GoSMS,
-  Cal.com) — nebo n8n/Make nad Supabase — nebo vlastní server?
-- Který LLM pro odpovědi (Claude? OpenAI? Gemini byl odstraněn)? Náklad na
-  poptávku?
+- Make a spol. nad Supabase (nejrychlejší, Filip to umí), nebo Supabase Edge
+  Functions + pg_cron + Resend/smsbrana/Cal.com (bez Make, v kódu), nebo n8n?
+- Náklad na poptávku (Claude API + SMS)?
 - Odesílání e-mailů **jménem makléře** — z jeho schránky (OAuth Gmail/Outlook)
   nebo z našeho aliasu `makler@brokerly.cz` (kap. 19.1 zmiňuje obojí)?
 - SMS brána a cena za SMS (plán ~1K/měs na klienta).
@@ -135,7 +148,8 @@ Nejsou otázky, jsou to fakta k rozhodnutí *kdy*:
 | „Realitní turisté" — SMS/WhatsApp dokvalifikace: WhatsApp Business API je placené a schvalované; je to reálné? | kap. 12 |
 | Monitoring Bazoš/Sreality — právně „data servis", ale scraping Sreality je proti jejich podmínkám; riziko blokace | kap. 19.4 |
 | `Checklist_stavby_CRM.xlsx` (120 úkolů) — existuje? kde? | kap. 23 |
-| Notion „Brokerly" (Filipův workspace) — co tam je? | zadání 1. 10. |
+| Notion: kořenové poznámky chtějí „udělat umělou inteligenci – chatbot", procesy 1.2 říkají „po dni 90, nestavět" — co platí? | Notion |
+| Notion: archivace kontaktů a nemovitostí — jak (stav `archivován`? skrytí?) | Notion poznámky |
 | 21st.dev MCP v `.mcp.json` — používá se? | repo |
 | Tmavý režim — vrátit, nebo vyčistit z kódu? | 26. 8. |
 | Kancelářský segment — Q4 2026 je za rohem; pořád platí? | kap. 7, 8 |

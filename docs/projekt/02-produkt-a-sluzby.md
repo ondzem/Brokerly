@@ -128,6 +128,21 @@ upozornění. Pravidlo je textově v Nastavení, jde měnit bez zásahu do syst�
 makléře s rezervačním odkazem → rezervace → notifikace → follow-up den po
 prohlídce. End-to-end bez ručního zásahu.
 
+**Ukázkový průchod** (Notion „První krok v Brokerly") — konkrétní makléř Petr
+Zach, zájemce Jan Novák, byt 2+kk Slovanská v Plzni: poptávka ze Sreality se
+ptá na sklep → do 2 min odpověď jménem makléře („ano, zděný sklep 3 m²")
++ rezervační link + 2 otázky (financování, stěhování) → Novák si vybere úterý
+15:00 a napíše „předschválená hypotéka u KB" → SMS makléři → SMS zájemci 24 h
+a 2 h předem (s číslem makléře kvůli parkování) → ráno 7:30 digest („Dobré
+ráno, Petře! ☕ …") → den po prohlídce e-mail se třemi tlačítky [1] vážný zájem
+/ [2] zvažuji / [3] nezaujalo → [1] = „HORKÝ ZÁJEMCE", [3] = do matchingu.
+Celé znění e-mailů a SMS je v exportu — **použitelné rovnou jako šablony**.
+
+Doplňující pravidla z Notionu (procesy 1.1, 2.1–2.3): délka prohlídky **45 min
+výchozí**; zájemce může na SMS odpovědět **STOP** → rezervace se zruší;
+follow-up po prohlídce má mít **nastavitelný čas**; bez reakce do 48 h → další
+jemné připomenutí; bez reakce do týdne → stav „vychladlý" + matching.
+
 Status: `plán` — nezačalo se. Nic z toho v kódu není.
 
 ### 3.2 Kvalifikace proti realitním turistům (rozšíření hero toku)
@@ -185,8 +200,13 @@ Balík MAKLÉŘ. Status: `plán`.
 ### 3.7 Matching (párování poptávky na nabídku)
 
 Spouštěč: nová Nemovitost „v nabídce". Projdou se kupující; filtr transakce →
-druh → lokalita → rozpočet od–do → dispozice. Shoda = sedícím zájemcům odejde
-nabídka tónem makléře, založí se Deal (lead) + Aktivita. Balík MAKLÉŘ+.
+druh → lokalita → rozpočet od–do (Notion: **±10 %**) → dispozice. Shoda =
+sedícím zájemcům odejde nabídka tónem makléře („Vzpomněli jsme si na vás, mám
+pro vás vhodný byt"), založí se Deal (lead) + Aktivita. Balík MAKLÉŘ+ —
+Notion: vyžaduje **aspoň 50 leadů v databázi**, tj. 1–2 měsíce běhu. Prodejní
+věta: „máte v telefonu 200 lidí, kteří kdysi hledali — kdy jste jim naposled
+poslal něco nového?" Notion navíc navrhuje **dvoustranné párování** (nový
+kupující → existující nabídky, a naopak).
 
 > ► **Stav 10/2026:** `rozestavěno` — **jediná funkce z vrstvy 2, která v kódu
 > existuje**, byť jen v ruční podobě: karta nemovitosti ukazuje „Možní zájemci"
@@ -222,7 +242,23 @@ Status: `plán`, druhá fáze.
 ### 3.11 Odloženo po dni 90
 
 AI chatbot pro makléře v aplikaci („napiš za mě e-mail", „shrň komunikaci") —
-hodnota nízká vzhledem k buildu. Zvážit jako součást MAKLÉŘ+. Status: `odloženo`.
+hodnota nízká vzhledem k buildu („makléř si to řekne ChatGPT za 200 Kč sám").
+Zvážit jako součást MAKLÉŘ+. Status: `odloženo`. (V kořenových poznámkách
+Notionu je přesto „udělat umělou inteligenci – chatbot" — rozpor uvnitř
+Notionu, viz 07.)
+
+### 3.12 Chytré detaily navíc (Notion „CRM Systém struktura")
+
+Věci, které stret.ai nemá a stojí za zvážení:
+
+| Návrh | Stav 10/2026 |
+|---|---|
+| Dokumenty a smlouvy v systému — generování rezervační / zprostředkovatelské smlouvy z dat dealu + e-podpis + úložiště u dealu | úložiště dokumentů u nemovitosti `hotovo`; generování a e-podpis `plán` |
+| **Provize a finanční přehled** — kolik vydělal, co je v pipeline, **predikce příjmu z otevřených dealů** | provize u nemovitosti `hotovo`; souhrn a predikce `plán` |
+| GDPR a evidence souhlasů | pole `hotovo`, hlídání `plán` |
+| **Mobilní použití** — rychlý zápis z telefonu / hlasem po prohlídce | responzivní UI `hotovo`; hlasový zápis `plán` |
+| Archivace kontaktů a nemovitostí | `plán` (kořenové poznámky Notionu) |
+| Označení „prodá později" s filtrací | stav nabídky `prodá později` existuje; filtr `plán` |
 
 ---
 
@@ -231,7 +267,12 @@ hodnota nízká vzhledem k buildu. Zvážit jako součást MAKLÉŘ+. Status: `o
 ### 4.1 AI Studio
 
 Čistě servisní tok (objednávka → zpracování → dodání do 24 h), žádný build
-automatizací. Objednávka v portálu, výsledky na sdílený Drive.
+automatizací. Objednávka v portálu, výsledky na sdílený Drive. **Ondřejova
+doména od dne 1.** Nástroje podle Notionu: CubiCasa / Matterport (scan
+telefonem, ~15 min práce), Floorplanner (ruční překreslení, ~45 min), Virtual
+Staging AI + Reimagine Home (staging, vizualizace), Photoshop (retuš 10–15 min),
+Claude API (popisky), Higgsfield (zmíněn jako možnost). Instruktážní video pro
+scanování pošleme makléři.
 
 | Výstup | Cena | Náklad | Marže | Poznámka |
 |---|---|---|---|---|
@@ -287,6 +328,7 @@ Co z práce makléře řešíme a čím. Klíčové: makléř neprodává nemovi
 | | recenze | automatická žádost o Google recenzi | v systému | — |
 | | aftercare | výroční zprávy + dotazy na doporučení | v systému | — |
 | **Průřezově** | denní organizace | ranní digest | v systému | `rozestavěno` (Dashboard, částečně mock) |
+| | *(podrobnější kroky fází 1–6 z Notionu: lead magnety a kampaně, nákup leadů, cenová analýza z katastru, výhradní/nevýhradní smlouva, den otevřených dveří, 20denní ochranná lhůta vkladu, daňové povinnosti)* | — | — | — |
 | | péče o majitele | dlouhodobý follow-up + reporty | v systému | — |
 | | **provize a náklady obchodu** | — | není ve spec | **`hotovo`** — sazba, částka, stav, náklady, čistá provize |
 

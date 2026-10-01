@@ -37,7 +37,7 @@
 | `src/` (36 souborů, 14 700 řádků) | Kód aplikace — prošly se obrazovky, ne řádek po řádku | Prošlo se |
 | Git historie (151 commitů, 5. 7.–28. 9. 2026) | Co se kdy stavělo a proč | Prošlo se |
 | Paměť z předchozích Claude sessions (claude-mem, ruflo, memory) | Rozhodnutí a preference z práce od 16. 8. | Prošlo se |
-| **Notion „Brokerly"** (Filipův workspace) | Prvotní poznámky, jak to celé bude | **Nepřečteno** — stránka je soukromá a Notion konektor v téhle session nejel. Doplnit (viz 07) |
+| **Notion „Brokerly"** (Filipův workspace, 5 stránek) | Business plán, „Co bude aplikace umět", **procesy s konkrétními nástroji a pravidly**, ukázkový průchod hero tokem, tři patra CRM vs. stret.ai, 6 fází práce makléře, prodejní trychtýř | Přečteno celé 1. 10. (export). Kopie v `docs/notion-export-2026-10/`. Je to **předloha master dokumentu** — ten z něj vznikl; Notion má navíc konkrétní nástroje, pravidla a chytré detaily |
 | `Checklist_stavby_CRM.xlsx` (zmíněn v master dokumentu, kap. 23) | 120 úkolů stavby s vysvětlením | **Nenalezen** v repu ani ve složce |
 
 ## Jak dokumenty číst

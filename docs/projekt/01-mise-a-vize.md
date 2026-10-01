@@ -38,6 +38,12 @@ Tabidoo) a my ho **nenutíme ho vyhazovat** — necháme jeho CRM jako sklad a
 nasadíme na něj naši vrstvu. Vlastní CRM bylo myšleno jako jedna z možností
 „hubu", ne jediná.
 
+Notion (procesy 1.4) to upřesňuje: **hub měl být náš Airtable + „portál"**;
+když makléř má vlastní CRM (Raynet, CRM kanceláře), přidá se druhý krok —
+po zápisu k nám se pošle API volání do jeho CRM (mapování polí). Pro makléře
+bez CRM je hub Airtable + portál. **Ten „portál" je to, co se dnes staví jako
+aplikace** — jen místo Airtable má vlastní databázi.
+
 > ► **Stav 10/2026:** stavíme výhradně vlastní CRM. Napojení na cizí CRM se
 > nikde neřeší a nikdo o něm od července nemluvil. Je to jedna z klíčových
 > otevřených otázek — viz [07 §1](07-otevrene-otazky.md).
@@ -98,6 +104,17 @@ proto dává smysl **cross-sell existujícím klientům**.
 
 ## 4. Čím vyhráváme — konkurence a odlišení
 
+### Tři patra (Notion „CRM Systém struktura")
+
+| Patro | Co | Kdo to má |
+|---|---|---|
+| **Jádro CRM** | kontakty s úplnou historií, nemovitosti, pipeline dealů, úkoly a připomínky, propojení všeho se vším | každé CRM; **to je naše etapa 1** |
+| **Laťka dnešní špičky** (stret.ai) | AI asistent s kontextem CRM („Volal Petr Černý, hledá 2+kk v Karlíně do 6M" → kontakt + deal + doporučení), hlasové diktování, e-mailová integrace, publikace na portály jedním klikem, stahování poptávek, briefing a reporting | stret.ai; „pokud postavíte jen tohle, jste další stret.ai" |
+| **Kde předběhnout** | speed-to-lead s odpovědí *za* makléře, rezervace + SMS, follow-up po prohlídce, dlouhodobý follow-up majitelů (**největší moat**), akviziční monitoring, kvalifikace proti turistům, AI Studio, recenze a výročí | nikdo |
+
+**Důsledek:** etapa 1 je nutná, ale sama o sobě není důvod ke koupi. Důvod je
+třetí patro.
+
 **Trh:** vzdělaný (existují AI kurzy pro makléře = poptávka je), ale
 **done-for-you segment je prázdný**. Konkurence je bodová:
 
@@ -155,6 +172,17 @@ zaplatí službu trojnásobně. Jeden vrácený majitel = 100K+ provize.
 ---
 
 ## 6. Go-to-market
+
+### Prodejní a servisní trychtýř (Notion „Proces fungování")
+
+1. Cold call / reklama → 2. web — zjistí o produktu → 3. prodejní prezentace →
+4. **uzavření = peníze (setup)** → 5. onboarding = dotazník, informace
+o klientovi → 6. personalizované nastavení, zaškolení → 7. převedení do praxe →
+8. **3 měsíce revizní cally** na zlepšení jeho zkušenosti → 9. **předplatné =
+peníze (maintenance)**.
+
+Stejný rytmus jako u Ondřejových webů: dotazník na vstupu, 3 měsíce péče po
+spuštění (viz `o-me-a-me-sluzbe.md` §6).
 
 1. **Cross-sell existujícím realitním klientům** (nejteplejší leady).
 2. **Denní call-centrum** — Brokerly jako druhý opener vedle contentu,

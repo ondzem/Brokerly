@@ -104,10 +104,26 @@ ani do chatu.** Nové proměnné: název do `.env.local.example`, hodnota soukro
 | 21st.dev MCP (`.mcp.json`) | knihovna UI komponent | používá se? `?` |
 | headroom proxy (port 8787) | lokální proxy pro Claude API | infrastruktura Ondřejova počítače, ne projektu |
 
-Nástroje **z master dokumentu, které se NEPOUŽÍVAJÍ** (plán z července počítal
-s no-code stackem): **Make** (automatizace), **Airtable** (data), **Cal.com**
-(rezervace pod brandem klienta), Google Drive (sběr podkladů), SMS brána. Nic
-z toho není napojené; rozhodnutí, čím to nahradit, nepadlo.
+### Původně plánovaný řetězec pro vrstvu 2 (Notion „procesy" — konkrétní nástroje)
+
+| Krok | Nástroj | Poznámka |
+|---|---|---|
+| příjem poptávky | alias `makler@brokerly.cz` nebo forward z Gmail/Seznam → **Mailparser.io** | vytáhne jméno, telefon, ID inzerátu, text |
+| orchestrace | **Make.com** | webhooky, filtry, plánování |
+| data | **Airtable** (Leads, Viewings, Activities…) | + volitelně API push do Raynetu / CRM kanceláře |
+| AI | **Claude API** | odpovědi v tónu makléře, triáž, digest, kontrola dokumentů |
+| e-mail jménem makléře | **Resend** | HTML šablona digestu |
+| SMS | **smsbrana** | remindery, notifikace; STOP = zrušení |
+| rezervace | **Cal.com** napojený na Google/Outlook kalendář | pod brandem klienta; webhook do Make |
+| podklady | **Google Drive API** | složka na makléřově Drive |
+| scraping | **stávající Sreality scraper pro CC listy** (Filip, „NEMO_tracker") + Bazoš | denní cron, vlastní datum prvního výskytu |
+| Studio | CubiCasa / Matterport, Floorplanner, Virtual Staging AI, Reimagine Home, Photoshop | servis, ne build |
+
+**Nic z toho není napojené.** Místo Airtable je Supabase, místo portálu
+vlastní React aplikace. Make, Mailparser, Resend, smsbrana, Cal.com — rozhodnutí,
+zda je použít nad Supabase, nebo nahradit (Edge Functions, pg_cron, n8n), nepadlo.
+Filipův existující scraper je jediná hotová technická věc z téhle vrstvy a leží
+mimo repo.
 
 ---
 
