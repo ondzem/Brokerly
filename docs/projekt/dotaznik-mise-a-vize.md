@@ -53,8 +53,10 @@ Filip:
 *V dokumentech už jsou tři takové věty: AI nikdy nevymýšlí (odpovídá jen z karty), systém nikdy sám neoslovuje majitele, nejistota = notifikace, nikdy spam. Které z nich jsou opravdu vaše a které byste doplnili? Ke každé jedna situace, kdy vás to něco stálo nebo bude stát.*
 
 Ondřej:
-Tři věty z dokumentů bych do „na čem si zakládáme" nedával — nic ohledně
-umělé inteligence bych nezmiňoval. Na čem si zakládám doopravdy:
+Tři věty z dokumentů (AI odpovídá jen z karty nemovitosti; systém nikdy sám
+neoslovuje majitele; nejistota = notifikace, nikdy spam) **platí dál** — ale
+jsou to pojistky systému, ne hodnoty; jsou zapsané v [02](02-produkt-a-sluzby.md)
+§3.1, §3.3 a §3.5. Na čem si zakládám doopravdy:
 
 - **Lidi.** Férovost a aspoň část priorit v realitách. Člověk, který není
   ambiciózní, bere to jen jako nástroj na peníze a nemá rád lidi, se časem
@@ -197,8 +199,28 @@ Filip:
 *„AI bude odpovídat za mě a napíše blbost." „Chcete číst moje e-maily." „Když to vypnu, přijdu o data." „Klienti poznají, že to píše robot." „Sreality mě zablokují." Napište **doslova** věty, které říkáte — patří do prodejní prezentace, na web i do onboardingu.*
 
 Ondřej:
-Zatím jsem nad tím nepřemýšlel — jsme v procesu stavby. Nevím. *(K probrání;
-nejlíp z rozhovoru s Dorinou: „co by vás odradilo?")*
+Zatím jsem nad tím nepřemýšlel — jsme v procesu stavby.
+
+**Návrh (Claude, 2. 10. 2026) — k ověření s Dorinou.** Obavy jsou seřazené
+od nejčastější. U každé: co makléř řekne → co mu odpovíme doslova → co musí
+být pravda, aby to nebyl jen slib.
+
+| # | Strach makléře | Co řekneme (doslova) | Co musí být pravda |
+|---|---|---|---|
+| 1 | **„AI napíše blbost. Slíbí cenu, termín, nebo sklep, který tam není — a já to pak žehlím."** | „AI odpovídá jen z toho, co máte v kartě nemovitosti. Na co tam odpověď není, napíše *ozve se vám makléř* a vám přijde upozornění. Nikdy nic nevymyslí a nikdy nic neslíbí." | pravidlo „jen z karty" + eskalace; AI nesmí psát ceny, slevy, právní věci; první týden **schvalovací režim** — každou odpověď vidí makléř dřív, než odejde |
+| 2 | **„Chcete číst moje e-maily. Jsou tam klienti, banky, advokáti."** | „Vaše schránka zůstává vaše. Systém si bere jen to, co mu přepošlete — poptávky z portálů. Když později zapnete třídění schránky, AI e-maily jen čte a třídí, neukládá je a neučí se na nich. Máte to v zpracovatelské smlouvě a přístup zrušíte jedním kliknutím." | start přes **přeposílání**, ne přes přístup do schránky; triáž až jako volitelný krok; zpracovatelská smlouva (GDPR čl. 28) — v realitách běžná ([MACEK.LEGAL](https://www.macek.legal/2802/gdpr-v-realitni-kancelari-co-s-daty-klientu-smite-a-co-ne/)); OAuth s odvolatelným přístupem; **pozor:** čtení Gmailu přes API vyžaduje u Googlu ověření a u plného přístupu i placený bezpečnostní audit CASA (~6 týdnů, ročně) — [Google](https://developers.google.com/identity/protocols/oauth2/production-readiness/restricted-scope-verification) |
+| 3 | **„Klienti poznají, že jim píše robot. Ztratím osobní kontakt."** | „Píše to vaším tónem, z vašich tří reálných odpovědí, a podepsané vámi. AI dělá první odpověď a logistiku — rezervaci, připomínky. Vztah, prohlídka a vyjednávání zůstávají vám. Vy jen přijdete k zájemci, který už má termín." | ukázky odpovědí v Nastavení; podpis makléře; tón volitelný; žádný „robotický" jazyk |
+| 4 | **„Když skončím, přijdu o data. Nebo je použijete pro konkurenci."** | „Data jsou vaše. Kdykoli si je stáhnete celá (kontakty, nemovitosti, historie) a kdykoli odejdete. Nikdo jiný je nevidí — ani jiný makléř v systému, ani my pro jiného klienta." | export dat jedním tlačítkem; oddělení dat makléřů (dnes **není** — jedna DB, viz 03); interní pravidlo: data klienta se nepoužívají pro nic jiného |
+| 5 | **„Sreality mě zablokují."** | „Nic se do Sreality nepřipojuje. Poptávky vám chodí e-mailem jako dnes, jen je přepošlete. Monitoring samoprodejců jen čte veřejné inzeráty a ukáže vám seznam — nikdy nikomu nepíše." | vstup přes e-mail, ne scraping schránky portálu; monitoring read-only; **systém nikdy sám neoslovuje** |
+| 6 | **„Co když to vypadne a lead mi propadne — a já se to dozvím, až bude u konkurence."** | „Když systém nemůže odpovědět, nepřijde ticho — přijde vám notifikace. Každou poptávku vidíte v ranním přehledu, i tu, kterou AI nezvládla. Nic nezmizí beze stopy." | každá automatická akce = zapsaná Aktivita; monitoring selhání; digest ukazuje i neodbavené; červená čára z ot. 16 |
+| 7 | **„Vy mi něco nastavíte, a já tomu nerozumím. Budu závislý na vás."** | „Nastavíme to s vámi za 20 minut po vzdálené ploše a všechno, co AI dělá, vidíte v jedné historii. Pravidla — tón, kdy eskalovat, pracovní doba — měníte sami v Nastavení, bez nás." | onboarding ≤ 20 min; Nastavení editovatelné makléřem; historie čitelná |
+| 8 | **„Zájemce si zarezervuje prohlídku a nepřijde. Nebo se mi tam nahrnou zvědavci."** | „Rezervační odkaz dostane jen ten, kdo odpověděl na financování a termín. Před prohlídkou dostane dvě SMS a může zrušit jedním kliknutím — vy to víte okamžitě." | kvalifikace A/B/C; link jen pro A/B; remindery 24 h + 2 h; STOP |
+| 9 | **„Kdo za to odpovídá, když AI něco slíbí?"** | „AI neslibuje — neuzavírá ceny, nepotvrzuje právní věci, neposílá smlouvy. Kde by měla slíbit, předá to vám. Odpovědnost za jednání se zájemci zůstává u vás, systém vám k tomu dává záznam všeho." | smluvně vymezeno (viz 08 §5 — kontaktování je odpovědnost klienta); AI bez pravomoci uzavírat |
+| 10 | **„Vyplatí se to? 3,5 tisíce měsíčně…"** | „Jeden zachráněný obchod za půl roku to zaplatí třikrát. A ušetří vám to 40 hodin měsíčně — spočítáme to na vašich číslech." | měřit reakční čas, propadlé leady a ušetřený čas od prvního dne (KPI v 02 §7) |
+
+**Co z toho plyne pro stavbu:** schvalovací režim na začátku, export dat,
+oddělení dat makléřů a zpracovatelská smlouva nejsou „nice to have" — jsou
+to podmínky, bez kterých se obavy 1, 2 a 4 nedají vyvrátit.
 
 Filip:
 
