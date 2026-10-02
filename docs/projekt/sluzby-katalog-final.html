@@ -1,0 +1,229 @@
+<!doctype html>
+<html lang="cs">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Brokerly — katalog služeb a systémů (finální)</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Hanken+Grotesk:wght@300;500&display=swap" rel="stylesheet">
+<style>
+  :root{--ground:#F4F6F1;--surface:#FFFFFF;--ink:#0B1F1A;--muted:rgba(11,31,26,.55);--hair:rgba(11,31,26,.08);
+        --green:#0E8A5F;--amber:#C27A12;--red:#A33A28;--grey:rgba(11,31,26,.35)}
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--ground);color:var(--ink);font:14px/1.45 Inter,system-ui,sans-serif;-webkit-font-smoothing:antialiased}
+  .page{max-width:1180px;margin:0 auto;padding:40px 24px 80px}
+  h1{font:300 34px/1.1 'Hanken Grotesk',Inter,sans-serif;letter-spacing:-.01em;margin:0 0 6px}
+  .sub{color:var(--muted);margin:0 0 10px;font-size:13.5px}
+  .legend{display:flex;gap:16px;flex-wrap:wrap;margin:0 0 32px;font-size:12px;color:var(--muted)}
+  .legend span{display:inline-flex;align-items:center;gap:6px}
+  .dot{width:9px;height:9px;border-radius:50%;display:inline-block;flex:none;border:1.5px solid var(--green)}
+  .dot.have{background:var(--green)}
+  .dot.part{background:linear-gradient(90deg,var(--green) 50%,transparent 50%)}
+  .dot.new{border-color:var(--amber);background:var(--amber)}
+  .dot.drop{border-color:var(--red);background:var(--red)}
+  .dot.later{border-color:var(--grey)}
+
+  .block{background:var(--surface);border:1px solid var(--hair);border-radius:12px;padding:18px 18px 14px;margin-bottom:14px}
+  .block h2{font:600 15px/1.2 Inter,sans-serif;margin:0 0 2px}
+  .block .what{margin:0 0 12px;font-size:12.5px;color:var(--muted)}
+  .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:8px}
+  .card{background:var(--ground);border:1px solid var(--hair);border-radius:8px;padding:9px 11px 8px;min-width:0}
+  .card .t{font-weight:600;font-size:12.5px;display:flex;align-items:flex-start;gap:6px;margin:0 0 2px}
+  .card .t .dot{margin-left:auto;margin-top:5px}
+  .card p{margin:0;font-size:11.5px;color:var(--muted);line-height:1.4}
+  .card .src{display:block;margin-top:3px;font-size:10px;color:var(--amber);font-weight:600;letter-spacing:.02em}
+  .card.new{border-color:rgba(194,122,18,.35)}
+  .card.drop{border-color:rgba(163,58,40,.3)}
+  .card.drop .t{text-decoration:line-through;color:var(--red)}
+  .card.later{opacity:.6}
+  @media print{body{background:#fff}.page{padding:0}.block,.card{break-inside:avoid}}
+
+  .card .src{color:var(--muted);font-weight:500;letter-spacing:0}
+  .card .t{padding-right:0}
+  details.changes{background:var(--surface);border:1px solid var(--hair);border-radius:12px;padding:0;margin-top:28px}
+  details.changes summary{cursor:pointer;list-style:none;padding:16px 18px;font-weight:600;font-size:14px;display:flex;align-items:center;gap:10px}
+  details.changes summary::-webkit-details-marker{display:none}
+  details.changes summary::after{content:"+";margin-left:auto;color:var(--green);font-weight:400;font-size:18px}
+  details.changes[open] summary::after{content:"–"}
+  details.changes .in{padding:0 18px 18px;border-top:1px solid var(--hair)}
+  details.changes h3{font:600 11px/1 Inter;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin:18px 0 8px}
+  details.changes ul{margin:0;padding-left:18px;font-size:12.5px}
+  details.changes li{margin:0 0 4px}
+  details.changes li b{font-weight:600}
+  details.changes .m{color:var(--muted)}
+  .count{color:var(--muted);font-size:12px;margin:0 0 28px}
+</style>
+</head>
+<body>
+<div class="page">
+  <h1>Brokerly — katalog služeb a systémů</h1>
+  <p class="sub">Finální verze po kontrole úplnosti councilem (2. 10. 2026). Všechno v katalogu chceme; rozdělení na teď / později je další krok. Malá šedá poznámka u položky = zdroj inspirace z průzkumu konkurence (konkurence.md).</p>
+  <p class="count">75 položek v 10 blocích · v1 měla 96</p>
+
+  <!-- 1 -->
+  <section class="block">
+    <h2>1. CRM jádro — sklad dat</h2>
+    <p class="what">Všechno o lidech, nemovitostech a obchodech na jednom místě. Na tom stojí každá další vrstva.</p>
+    <div class="grid">
+      <div class="card"><div class="t">Kontakty</div><p>Jedna karta na člověka, role, co hledá, GDPR souhlas, historie.</p></div>
+      <div class="card"><div class="t">Nemovitosti</div><p>Parametry podle druhu, fakta pro odpovědi, termín předání, ID inzerátu.</p></div>
+      <div class="card"><div class="t">Obchody — kanban</div><p>Zájemce × nemovitost, fáze lead → podpis, tažením.</p></div>
+      <div class="card"><div class="t">Aktivity a připomínky</div><p>Historie i to-do v jednom; timeline u člověka i obchodu.</p></div>
+      <div class="card"><div class="t">Nastavení asistenta</div><p>Jméno, podpis, tón, oslovení, pravidla eskalace, pracovní doba.</p></div>
+      <div class="card"><div class="t">Dashboard</div><p>Přehled dne; část dat zatím natvrdo.</p></div>
+      <div class="card"><div class="t">Import inzerátu z portálu</div><p>Odkaz → nemovitost i fotky. Sreality, iDNES, RE/MAX, Bezrealitky… Průběžná synchronizace aktivních inzerátů, aby párování leadu vždy našlo nemovitost.</p></div>
+      <div class="card"><div class="t">Fotky a dokumenty</div><p>Galerie s ořezem 3:2, dokumenty u nemovitosti, prohlížení v aplikaci.</p></div>
+      <div class="card"><div class="t">Provize a náklady</div><p>Sazba, částka, stav, náklady, čistá provize.</p></div>
+      <div class="card"><div class="t">Hledání a filtry</div><p>Panel ve stylu Sreality, filtr kontaktů podle nemovitosti.</p></div>
+      <div class="card"><div class="t">Data makléře</div><p>Přihlášení a oddělení dat (jeden makléř = jeho data), export všeho jedním tlačítkem a odchod klienta: vypnutí přeposílání, předání exportu, smazání dat, ukončení SMS. Nikdo jiný data nevidí, nepoužívají se jinde.</p></div>
+      <div class="card"><div class="t">Hlasový zápis</div><p>„Volal Novák, hledá 2+kk v Karlíně do 6M&quot; → kontakt + obchod + úkol.<span class="src">← stret.ai, Rex AI, Rechat</span></p></div>
+      <div class="card"><div class="t">Mobilní aplikace</div><p>Dnes responzivní web; nativní app až později.</p></div>
+    </div>
+  </section>
+
+  <!-- 2 -->
+  <section class="block">
+    <h2>2. Hero tok — poptávka → prohlídka</h2>
+    <p class="what">Jeden řetězec, odpověď do 2 minut jménem makléře. V ČR to nedělá nikdo.</p>
+    <div class="grid">
+      <div class="card"><div class="t">Příjem poptávky</div><p>Přeposlaný e-mail z portálu → jméno, telefon, dotaz, ID inzerátu. Záloha: ruční nebo telefonní zadání poptávky, když nepřijde e-mailem.</p></div>
+      <div class="card"><div class="t">Zápis leadu</div><p>Kontakt + obchod + párování + aktivita, automaticky.</p></div>
+      <div class="card"><div class="t">Okamžitá AI odpověď</div><p>Jen z karty nemovitosti, tónem makléře, s odkazem a otázkami.</p></div>
+      <div class="card"><div class="t">Kvalifikace A / B / C</div><p>Financování + termín → rezervační odkaz jen pro A a B.</p></div>
+      <div class="card"><div class="t">Rezervace prohlídky</div><p>Odkaz s volnými sloty z kalendáře makléře, 45 min výchozí. Stejná stránka slouží i jako prohlídkový den, kde si zájemci sami vyberou čas.<span class="src">← THEON, stret.ai, Street</span></p></div>
+      <div class="card"><div class="t">Notifikace makléři</div><p>SMS: kdo, co, kdy, jak financuje.</p></div>
+      <div class="card"><div class="t">SMS připomínky</div><p>24 h a 2 h předem, STOP ruší a uvolní slot. Včetně napojení SMS brány.</p></div>
+      <div class="card"><div class="t">Follow-up po prohlídce</div><p>Den po: vážný / zvažuji / ne. Nastavitelný čas; 48 h a týden další krok.</p></div>
+      <div class="card"><div class="t">Eskalace na člověka</div><p>Bez odpovědi v datech nebo citlivé → „ozve se makléř&quot; + upozornění.</p></div>
+      <div class="card"><div class="t">Bezpečnostní pojistky AI</div><p>AI odpovídá jen z karty nemovitosti; nikdy ceny, sliby, právní věci (GDPR, zákon o realitním zprostředkování); první týden schvalovací režim — každou odpověď makléř vidí dřív, než odejde; při nejistotě notifikace, nikdy spam.<span class="src">← stret.ai, Rex, Alto — „AI připraví, makléř schválí&quot;; S.MPLE compliance</span></p></div>
+      <div class="card"><div class="t">Ověření leadu</div><p>Telefon a e-mail existují, není to bot — dřív než link do kalendáře.<span class="src">← Real Geeks, Reapit Bookings</span></p></div>
+      <div class="card"><div class="t">Kvalifikace proti turistům</div><p>SMS/WhatsApp po rezervaci, skóre zelený / žlutý / červený.</p></div>
+      <div class="card"><div class="t">Hlasová AI</div><p>Zavolá a kvalifikuje místo textu; předá živému makléři.<span class="src">← Ylopo Voice, Sell.Do, Street Call Handler</span></p></div>
+      <div class="card"><div class="t">Hlídač provozu a záložní režim</div><p>Hlídá, že poptávka přišla a do několika minut na ni odešla odpověď; upozorní na den bez poptávek; při výpadku pošle záložní upozornění makléři podle runbooku.</p></div>
+      <div class="card"><div class="t">Přeposílací schránka a portály</div><p>Vyhrazená schránka pro každého klienta, parsery formátů Sreality / iDNES / Bezrealitky a návod na přeposílání.</p></div>
+      <div class="card"><div class="t">Napojení kalendáře</div><p>Obousměrná synchronizace kalendáře makléře, aby AI nabízela jen volné termíny.</p></div>
+    </div>
+  </section>
+
+  <!-- 3 -->
+  <section class="block">
+    <h2>3. Denní provoz — asistent, který hlídá</h2>
+    <p class="what">Běží každý den nad daty z jádra a hero toku.</p>
+    <div class="grid">
+      <div class="card"><div class="t">Ranní digest</div><p>7:30: tři priority, leady, prohlídky, majitelé k oslovení. U každého kontaktu důvod a co říct; signály (hypotéka schválena → plán prohlídek, 90 dní ticho → upozornění). Tvář produktu.<span class="src">← Rex AI Prospecting, Follow Up Boss, S.MPLE, Luxury Presence</span></p></div>
+      <div class="card"><div class="t">Matching</div><p>Nová nemovitost → nabídka sedícím zájemcům (±10 %), a naopak nový kupující → existující nabídky; i z konverzací. Ruční „Možní zájemci&quot; máme.<span class="src">← Notion, stret.ai</span></p></div>
+      <div class="card"><div class="t">Follow-up majitelů</div><p>„Ozvěte se za půl roku&quot; → cenové zprávy, úkol, SMS ve správný den. Moat.</p></div>
+      <div class="card"><div class="t">Sběr podkladů od majitelů</div><p>Checklist, Drive, urgence každé 3 dny, AI kontrola.</p></div>
+      <div class="card"><div class="t">Triáž schránky</div><p>Poptávka / aktivní obchod / úřady / newsletter. Google audit.</p></div>
+      <div class="card"><div class="t">Kontrola podkladů před nabídkou</div><p>Co chybí (LV, PENB, fotky), než jde nemovitost do nabídky.<span class="src">← Dezrez MarketReady</span></p></div>
+    </div>
+  </section>
+
+  <!-- 4 -->
+  <section class="block">
+    <h2>4. Akvizice — nové zakázky</h2>
+    <p class="what">Systém jen ukazuje a připravuje, volá vždy makléř.</p>
+    <div class="grid">
+      <div class="card"><div class="t">Akviziční pipeline</div><p>Denní monitoring samoprodejců a expirovaných inzerátů (60+ dní bez RK) → skóre náboru 0–100 (cena vs. trh, stáří, lokalita) → AI připraví scénář hovoru, e-mail a SMS na míru majiteli. Odesílá vždy makléř. Filipův scraper.<span class="src">← MyLeady</span></p></div>
+    </div>
+  </section>
+
+  <!-- 5 -->
+  <section class="block">
+    <h2>5. Klientské stránky — co makléř posílá ven</h2>
+    <p class="what">Mikrostránky pod jeho jménem, které sbírají zájem a kontakty. V ČR má jen THEON.</p>
+    <div class="grid">
+      <div class="card"><div class="t">Nabídka nemovitosti</div><p>Fotky, cena, parametry, tlačítko „zájem o prohlídku&quot;.<span class="src">← THEON, Asari klientská zóna</span></p></div>
+      <div class="card"><div class="t">Chci prodat</div><p>Odhad ceny zdarma jako lead magnet → majitel zanechá kontakt.<span class="src">← THEON, Realtopus, Bezvabot, Estatly</span></p></div>
+      <div class="card"><div class="t">Vizitka makléře</div><p>Kontakt, výsledky, nabídky na jedné stránce.<span class="src">← THEON</span></p></div>
+    </div>
+  </section>
+
+  <!-- 6 -->
+  <section class="block">
+    <h2>6. Péče a doporučení — uzavření smyčky</h2>
+    <p class="what">Z hotového obchodu další zakázky a recenze.</p>
+    <div class="grid">
+      <div class="card"><div class="t">Péče po obchodu</div><p>Jeden plánovač zpráv bývalému klientovi, tři šablony: žádost o Google recenzi 7 dní po předání, výroční zpráva + doporučení rok po předání, zpráva o hodnotě bytu v jeho lokalitě.<span class="src">← Luxury Presence Homeowner Report</span></p></div>
+      <div class="card"><div class="t">Program doporučení</div><p>Odměna za doporučeného makléře; říct ve chvíli úspěchu. Odkaz s atribucí, ze kterého je vidět, kdo koho doporučil.<span class="src">← THEON</span></p></div>
+    </div>
+  </section>
+
+  <!-- 7 -->
+  <section class="block">
+    <h2>7. AI Studio — servis mimo aplikaci</h2>
+    <p class="what">Objednávka → zpracování → dodání do 24 h. AI popisky má dnes každý; unikát je staging a půdorys za kus.</p>
+    <div class="grid">
+      <div class="card"><div class="t">2D / 3D půdorys</div><p>Ze scanu telefonem nebo náčrtu. 1 200 Kč.</p></div>
+      <div class="card"><div class="t">Virtual staging</div><p>2–4 styly, retuš, disclaimer. 400 Kč/foto.</p></div>
+      <div class="card"><div class="t">Renovační vizualizace</div><p>Starý byt → po rekonstrukci. 600 Kč/foto.</p></div>
+      <div class="card"><div class="t">Popisek + překlady</div><p>3 varianty, EN/DE/UA. 300 Kč.</p></div>
+      <div class="card"><div class="t">Balíček „inzerát komplet&quot;</div><p>5× staging + půdorys + popis. 3 500 Kč. Prodejní priorita.</p></div>
+      <div class="card"><div class="t">Platba za variantu</div><p>Staging přímo v kartě nemovitosti, účtováno po kusech.<span class="src">← onOffice 0,30 €/varianta</span></p></div>
+    </div>
+  </section>
+
+  <!-- 8 -->
+  <section class="block">
+    <h2>8. Kancelář — pro vedení s 5+ makléři</h2>
+    <p class="what">Druhá fáze. Prodává se šéfovi.</p>
+    <div class="grid">
+      <div class="card"><div class="t">Distribuce leadů s eskalací</div><p>Rotace / lokalita, 15 min na převzetí, pak dalšímu, pak řediteli.</p></div>
+      <div class="card"><div class="t">Reporting vedení</div><p>Pondělí PDF: reakční časy, poptávky, prohlídky, kdo zaostává.</p></div>
+      <div class="card"><div class="t">Skóre týdne</div><p>0–100 za schůzky, úkoly, posunuté obchody; 90denní cíl.<span class="src">← THEON</span></p></div>
+      <div class="card"><div class="t">Dotazy na vlastní data</div><p>„Kolik prohlídek měl Novák v září?&quot; — odpověď z CRM.<span class="src">← Alto IQ</span></p></div>
+    </div>
+  </section>
+
+  <!-- 9 -->
+  <section class="block">
+    <h2>9. Servis a prodej — done-for-you</h2>
+    <p class="what">To, co klient platí v setupu a provozu. Model, který v ČR dělá jen THEON a Implee.</p>
+    <div class="grid">
+      <div class="card"><div class="t">Prodejní schůzka</div><p>Prezentace v pěti krocích (co · co umí · proč pro něj · jak a kolik · akce), demo účet s jeho importovaným inzerátem, interaktivní dotazník (jedna otázka na obrazovce, diktování), plán na míru: bolesti → řešení → cena, „teď&quot; / „za 2 měsíce&quot;.</p></div>
+      <div class="card"><div class="t">Smlouva + zpracovatelská smlouva</div><p>Rozsah, cena, GDPR — najednou.</p></div>
+      <div class="card"><div class="t">Fakturace 50 / 50 + měsíčně</div><p>Rozhodnout s Filipem. Včetně upomínek a pozastavení služby při neplacení.</p></div>
+      <div class="card"><div class="t">Onboarding za 20 minut</div><p>Vzdálená plocha; checklist „co od vás potřebujeme&quot;.</p></div>
+      <div class="card"><div class="t">Revizní cally</div><p>Týden 1, měsíc 1, měsíc 3.<span class="src">← THEON ladí každých 14 dní</span></p></div>
+      <div class="card"><div class="t">Report hodnoty</div><p>Čtvrtletně klientovi jeho čísla: odbaveno, reakce, hodiny, majitelé. Stejný generátor posílá prodávajícímu týdenní report: zájemci, prohlídky, zpětná vazba.<span class="src">← Vault (vendor update)</span></p></div>
+      <div class="card"><div class="t">Složka klienta</div><p>Jeho problémy a co má zapnuté — podklad pro upsell.</p></div>
+      <div class="card"><div class="t">Testovací verze a online předplatné</div><p>Až budeme známí.<span class="src">← stret.ai freemium, Wasi</span></p></div>
+      <div class="card"><div class="t">Měření hodnoty od dne 1</div><p>Výchozí stav před nasazením a průběžný sběr reakčního času, propadlých leadů a ušetřených hodin — z toho čerpá Report hodnoty.</p></div>
+      <div class="card"><div class="t">Ladění hlasu a testy AI</div><p>Ze tří reálných e-mailů vznikne profil hlasu, opravy makléře se do něj propisují; regresní sada otázek a zakázaných odpovědí běží před každou změnou.</p></div>
+      <div class="card"><div class="t">Subdodavatelé a DPA</div><p>Seznam subdodavatelů (SMS brána, LLM, hosting) a zpracovatelské smlouvy s nimi — bez nich nejde podepsat zpracovatelskou smlouvu s klientem.</p></div>
+      <div class="card"><div class="t">Podpora klienta</div><p>Kanál podpory, garantovaná doba reakce a zástup, když Ondřej ani Filip nejsou k dispozici.</p></div>
+      <div class="card"><div class="t">Kvalifikace vlastních leadů</div><p>Skript pro první hovor s makléřem (3+ inzerátů, jak odpovídá na poptávky, kolik majitelů „prodám později&quot;) a evidence vlastních zájemců přímo v Brokerly CRM.</p></div>
+    </div>
+  </section>
+
+  <!-- 10 -->
+  <section class="block">
+    <h2>10. Pravidla systému — pojistky</h2>
+    <p class="what">Platí všude. Bez nich nejde vyvrátit obavy makléře.</p>
+    <div class="grid">
+      <div class="card"><div class="t">Nikdy sám neoslovuje majitele</div><p>Jen seznam; volá makléř. Smluvně.</p></div>
+      <div class="card"><div class="t">Každá akce zanechá stopu</div><p>Aktivita u kontaktu i obchodu, i bez člověka.</p></div>
+      <div class="card"><div class="t">Auditní log AI</div><p>Pro makléře čitelný záznam: co AI komu poslala, z jakého pole karty a kdo to schválil.</p></div>
+      <div class="card"><div class="t">Souhlasy, STOP a výmaz</div><p>Evidence souhlasů a odhlášení napříč SMS, follow-upy a péčí; právo na výmaz; doba uchování dat.</p></div>
+    </div>
+  </section>
+
+  <!-- 11 -->
+  <section class="block">
+    <h2>Odloženo nebo vědomě neděláme</h2>
+    <p class="what">Aby bylo jasné, co jsme viděli a vědomě nebereme — a co je odložené na rozhodnutí po pilotu.</p>
+    <div class="grid">
+      <div class="card"><div class="t">Chatbot v aplikaci</div><p>Makléř si to řekne ChatGPT sám.</p></div>
+      <div class="card"><div class="t">E-podpis, katastr, AML, lustrace</div><p>Standard velkých CRM; ne naše hra. Případně napojit cizí.</p></div>
+      <div class="card"><div class="t">Online aukce, MLS, sdílení nabídek</div><p>Realman, Apimarket, EasyBroker — jiný byznys.</p></div>
+      <div class="card"><div class="t">Export na portály</div><p>Poski/Realman vyhrávají 50+ serverů. My přijímáme, ne vystavujeme.</p></div>
+      <div class="card"><div class="t">Web makléře s IDX/SEO</div><p>Dělá to Ondřejova agentura mimo produkt; do CRM nepatří.</p></div>
+      <div class="card"><div class="t">Napojení na cizí CRM</div><p>Vrstva Brokerly nad CRM, které makléř už používá (Raynet, stret.ai…). Odloženo — rozhodnout po pilotu.</p></div>
+      <div class="card"><div class="t">Konzole provozovatele</div><p>Přehled všech klientů, jejich stavu a výpadků plus šablona nasazení. Odloženo — potřeba od 3.–5. klienta.</p></div>
+    </div>
+  </section>
+
+  <details class="changes"><summary>Co se změnilo oproti v1</summary><div class="in"><h3>Přidáno (12)</h3><ul><li><b>Hlídač provozu a záložní režim</b></li><li><b>Přeposílací schránka a portály</b></li><li><b>Napojení kalendáře</b></li><li><b>Auditní log AI</b></li><li><b>Souhlasy, STOP a výmaz</b></li><li><b>Měření hodnoty od dne 1</b></li><li><b>Ladění hlasu a testy AI</b></li><li><b>Subdodavatelé a DPA</b></li><li><b>Podpora klienta</b></li><li><b>Kvalifikace vlastních leadů</b></li><li><b>Napojení na cizí CRM</b></li><li><b>Konzole provozovatele</b></li></ul><h3>Sloučeno (11)</h3><ul><li><b>Data makléře</b> <span class="m">← Přihlášení a oddělení dat, Export dat jedním tlačítkem, Data jsou makléřova, nový Odchod klienta</span></li><li><b>Bezpečnostní pojistky AI</b> <span class="m">← Schvalovací režim, Kontrola před odesláním, AI odpovídá jen z karty, Nejistota = notifikace, nikdy spam</span></li><li><b>Rezervace prohlídky</b> <span class="m">← Rezervace prohlídky, Rezervace / prohlídkový den</span></li><li><b>Chci prodat</b> <span class="m">← Chci prodat, AI odhad ceny jako lead magnet</span></li><li><b>Matching</b> <span class="m">← Matching, Dvoustranné párování</span></li><li><b>Ranní digest</b> <span class="m">← Ranní digest, Komu zavolat a proč, Signály</span></li><li><b>Péče po obchodu</b> <span class="m">← Výroční zpráva + doporučení, Žádost o Google recenzi, Zpráva o hodnotě bytu</span></li><li><b>Program doporučení</b> <span class="m">← Program doporučení, Doporučení s atribucí</span></li><li><b>Report hodnoty</b> <span class="m">← Report hodnoty, Týdenní report majiteli</span></li><li><b>Prodejní schůzka</b> <span class="m">← Prezentace v pěti krocích, Demo účet, Interaktivní dotazník, Plán na míru</span></li><li><b>Akviziční pipeline</b> <span class="m">← Monitoring samoprodejců, Alert na expirované inzeráty, Skóre náboru, AI příprava oslovení</span></li></ul><h3>Vyřazeno (12)</h3><ul><li><b>Nemovitost z e-mailů a příloh</b> <span class="m">— jde proti obavě 2 (čtení schránky)</span></li><li><b>Skóre zájemce podle chování</b> <span class="m">— bez dat, kvalifikaci řeší A/B/C</span></li><li><b>Hlídání obchodu po rezervaci</b> <span class="m">— žádný slib ani obava</span></li><li><b>Archivace</b> <span class="m">— žádná vazba na slib, výmaz řeší Souhlasy</span></li><li><b>Klientský portál se stavem obchodu</b> <span class="m">— mimo sliby a kapacitu</span></li><li><b>Narozeniny a svátky</b> <span class="m">— kosmetika bez vazby na slib</span></li><li><b>Úprava fotek</b> <span class="m">— komodita</span></li><li><b>Nábor makléřů</b> <span class="m">— jiný zákazník</span></li><li><b>Web brokerly.cz</b> <span class="m">— marketing Brokerly, ne služba makléři → interní backlog</span></li><li><b>Case study šablona</b> <span class="m">— marketing Brokerly → interní backlog</span></li><li><b>Smlouvy + e-podpis z dat obchodu</b> <span class="m">— v rozporu s „E-podpis — nedělat&quot;</span></li><li><b>Predikce příjmu</b> <span class="m">— žádná vazba na slib</span></li></ul><h3>Přeřazeno</h3><ul><li>Čtyři sliby (Přihlášení a oddělení dat, Export dat, Schvalovací režim, Data jsou makléřova) a kroky cesty (Interaktivní dotazník, Plán na míru, Fakturace, Report hodnoty, Smlouva) už nejsou „inspirace z konkurence" — jsou to závazky.</li><li>Kvalifikace proti turistům: z „později" do katalogu, odpovídá na obavu 8.</li><li>Rozšířeno: Import inzerátu (průběžná synchronizace), Příjem poptávky (ruční záloha), SMS připomínky (SMS brána), Fakturace (upomínky).</li></ul><p class="m" style="font-size:11.5px;color:var(--muted);margin:14px 0 0">Podklad: <code>council/council-uplnost-transcript.md</code> · návrh se štítky: <code>sluzby-katalog-v2.html</code> · původní: <code>sluzby-katalog.html</code>.</p></div></details>
+</div>
+</body>
+</html>
