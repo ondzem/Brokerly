@@ -1,0 +1,208 @@
+<!doctype html>
+<html lang="cs">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Brokerly — cesta klienta</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Hanken+Grotesk:wght@300;500&display=swap" rel="stylesheet">
+<style>
+  :root{--ground:#F4F6F1;--surface:#FFFFFF;--ink:#0B1F1A;--muted:rgba(11,31,26,.55);--hair:rgba(11,31,26,.08);--accent:#0E8A5F;--accent-soft:#DCF5E7;--amber:#FBEED8;--amber-ink:#8A5A16}
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--ground);color:var(--ink);font:14px/1.45 Inter,system-ui,sans-serif;-webkit-font-smoothing:antialiased}
+  .page{max-width:960px;margin:0 auto;padding:40px 24px 80px}
+  h1{font:300 34px/1.1 'Hanken Grotesk',Inter,sans-serif;letter-spacing:-.01em;margin:0 0 6px}
+  .sub{color:var(--muted);margin:0 0 10px;font-size:13.5px}
+  .legend{display:flex;gap:16px;flex-wrap:wrap;margin:0 0 32px;font-size:12px;color:var(--muted)}
+  .tag{display:inline-block;font-size:10px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;padding:2px 6px;border-radius:4px;vertical-align:1px}
+  .tag.ty{background:var(--accent-soft);color:#0B5C3D}
+  .tag.navrh{background:var(--amber);color:var(--amber-ink)}
+  .tag.pozor{background:#FADFD9;color:#A33A28}
+
+  .phase{font:600 11px/1 Inter,sans-serif;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin:30px 0 12px 44px}
+  .phase:first-of-type{margin-top:0}
+
+  .step{position:relative;padding-left:44px;margin-bottom:12px}
+  .step::before{content:"";position:absolute;left:13px;top:34px;bottom:-12px;width:1px;background:var(--hair)}
+  .step:last-child::before{display:none}
+  .num{position:absolute;left:0;top:10px;width:27px;height:27px;border-radius:50%;background:var(--ink);color:#fff;font-size:12px;font-weight:600;display:grid;place-items:center}
+  .step.loop .num{background:var(--accent)}
+  .card{background:var(--surface);border:1px solid var(--hair);border-radius:10px;padding:14px 16px 12px}
+  .card .name{font-weight:600;font-size:15px;margin:0 0 3px}
+  .card .what{margin:0 0 10px;font-size:13px;color:var(--muted)}
+  .card ul{margin:0;padding:0;list-style:none;display:grid;gap:5px}
+  .card li{font-size:12.5px;line-height:1.4;display:grid;grid-template-columns:52px 1fr;gap:8px;align-items:start}
+  .card li .tag{margin-top:2px}
+  .split{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+  .split .card{padding:12px 14px}
+  .split .card .name{font-size:13.5px}
+  .split .card .what{margin:0}
+  .exit{margin:26px 0 0 44px;font-size:12px;color:var(--muted)}
+  @media (max-width:640px){.split{grid-template-columns:1fr}.card li{grid-template-columns:1fr}}
+  @media print{body{background:#fff}.page{padding:0}.card{break-inside:avoid}}
+</style>
+</head>
+<body>
+<div class="page">
+  <h1>Brokerly — cesta klienta</h1>
+  <p class="sub">Od studeného telefonátu k makléři, který nás doporučuje kolegům. Jen kroky — služby k nim přiřadíme, až kroky potvrdíme.</p>
+  <div class="legend">
+    <span><i class="tag ty">ty</i> nadiktováno</span>
+    <span><i class="tag navrh">návrh</i> doplněno strategicky</span>
+    <span><i class="tag pozor">pozor</i> kde se ztrácí důvěra</span>
+  </div>
+
+  <div class="phase">I. Získání</div>
+
+  <div class="step">
+    <div class="num">1</div>
+    <div class="split">
+      <div class="card"><div class="name">Horký lead</div><p class="what">Náš stávající klient (web, call-centrum) nebo někdo, koho nám doporučil.</p></div>
+      <div class="card"><div class="name">Studený lead</div><p class="what">Navolávání makléřů z call-centra: „nehledáte něco takového?"</p></div>
+      <div class="card"><div class="name">Sociální sítě</div><p class="what">Obsah a osobní značka → ozve se sám.</p></div>
+    </div>
+  </div>
+
+  <div class="step">
+    <div class="num">2</div>
+    <div class="card">
+      <div class="name">Krátká kvalifikace</div>
+      <p class="what">Ještě v telefonu nebo ve zprávě: je to náš člověk? Teprve pak schůzka.</p>
+      <ul>
+        <li><i class="tag navrh">návrh</i><span>Tři otázky z ideálního klienta: kolik má aktivních inzerátů (3+), jak dnes odpovídá na poptávky, kolik majitelů „prodám později" má v hlavě a ne v systému. Kdo neprojde, dostane jen odkaz na web — šetří to schůzky nám i jemu.</span></li>
+        <li><i class="tag pozor">pozor</i><span>Schůzka s makléřem bez inzerátů = ztracený čas a produkt, který mu „nefunguje".</span></li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="phase">II. Přesvědčení</div>
+
+  <div class="step">
+    <div class="num">3</div>
+    <div class="card">
+      <div class="name">Poznávací schůzka — ukázka a poznání</div>
+      <p class="what">Prezentace, video nebo web upravený k ukázce; my u toho mluvíme a ukazujeme, co to umí.</p>
+      <ul>
+        <li><i class="tag ty">ty</i><span>Pět kroků prezentace: 1) co to je · 2) co to umí · 3) proč je to benefit pro něj · 4) jak to probíhá a co to orientačně stojí · 5) akční tlačítko — „jdu do toho / chci to vyzkoušet".</span></li>
+        <li><i class="tag ty">ty</i><span>Ze začátku se to prodává hůř, nikdo o tom neví — proto s nimi na schůzce sedíme. Až budeme známější: testovací verze a web, kde si to předplatí sami. To je budoucnost.</span></li>
+        <li><i class="tag ty">ty</i><span>Potřebujeme vědět, k čemu by to on potřeboval, dřív než naceníme. Tady se ptáme na jeho práci, ne jen ukazujeme.</span></li>
+        <li><i class="tag navrh">návrh</i><span>Sloučit „schůzku o ceně" do téhle: řekneme <b>orientační rozpětí</b> (jako u webů), přesná cena přijde až s plánem na míru v kroku 5. Ušetří to jednu schůzku a cena nepřijde dřív než hodnota.</span></li>
+        <li><i class="tag navrh">návrh</i><span>Konec schůzky = domluva: „pošlu vám dotazník, do pátku ho vyplníte, v pondělí vám ukážu plán." Termín je závazek — bez něj dotazník leží.</span></li>
+        <li><i class="tag pozor">pozor</i><span>Ukazovat jen hezké obrazovky bez jeho dat. Nejsilnější je, když vidí vlastní inzerát importovaný během minuty.</span></li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="step">
+    <div class="num">4</div>
+    <div class="card">
+      <div class="name">Interaktivní dotazník</div>
+      <p class="what">Ne Google Forms. Krok po kroku, jedna otázka na obrazovce, dá se diktovat.</p>
+      <ul>
+        <li><i class="tag ty">ty</i><span>Zjišťuje: jeho misi, potřeby, co ho v podnikání trápí, jak pracuje — to, z čeho sestavíme plán na míru.</span></li>
+        <li><i class="tag ty">ty</i><span>Formuláře pod sebou lidi nebaví a nevyplňují je — proto interaktivní, příjemné, krátké.</span></li>
+        <li><i class="tag ty">ty</i><span>Diktování přes <b>Wispr Flow</b> místo psaní. A obchodní příležitost: <b>affiliate odkaz</b> — kdo si přes nás Wispr Flow pořídí, platí nám provizi.</span></li>
+        <li><i class="tag ty">ty</i><span>Někde tady zjistit i <b>jeho tón</b>: jak mluví, jak působí, aby to, co za něj posíláme, znělo jako on.</span></li>
+        <li><i class="tag navrh">návrh</i><span>Tón neřešit otázkou, ale <b>podkladem</b>: „nahrajte 3 e-maily, které jste reálně poslal zájemci". Z toho se tón odvodí líp než z popisu. Patří do kroku 7, do dotazníku jen „jak chcete působit" (3 slova).</span></li>
+        <li><i class="tag navrh">návrh</i><span>Metodika tří kanálů: do dotazníku jen to, nad čím musí přemýšlet (bolesti, klient, cíle); věci, které existují (fotky, přístupy, čísla), až do kroku 7; rozhodnutí na schůzku 5.</span></li>
+        <li><i class="tag pozor">pozor</i><span>Víc než ~15 otázek a bez termínu = nevyplní. Odpovědi nejdou zpět k makléři beze změny — viz krok 5.</span></li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="step">
+    <div class="num">5</div>
+    <div class="card">
+      <div class="name">Plán na míru — zpětná vazba a návrh</div>
+      <p class="what">Druhá schůzka. Řekneme mu, co jsme z dotazníku pochopili, a ukážeme, co pro něj doporučujeme a za kolik.</p>
+      <ul>
+        <li><i class="tag ty">ty</i><span>Zpětná vazba: „máte tyhle problémy — my je řešíme takhle, takhle, takhle."</span></li>
+        <li><i class="tag ty">ty</i><span>Jeho sitemapa: z ~15 služeb mu doporučíme ~10. Osobní pouto, profesionalita — plán sestavený pro něj, ne ceník.</span></li>
+        <li><i class="tag ty">ty</i><span>Ze začátku skládačka na míru: CRM stojí tolik, připomínky a e-maily tolik, volitelné služby navíc; další si přidá později. Do budoucna předpřipravené balíčky, pro větší firmy custom — a aby to šlo i bez našeho zásahu u každého prodeje.</span></li>
+        <li><i class="tag navrh">návrh</i><span>Plán <b>ukázat, ne popsat</b> — jedna stránka jako tahle sitemapa, s jeho jménem, jeho bolestmi vedle řešení a cenou pod tím. Stejná zásada jako u webů: klienti si z popisu nic nepředstaví.</span></li>
+        <li><i class="tag navrh">návrh</i><span>Doporučených 10 rozdělit na „teď" a „za 2 měsíce". Menší první ticket, jasný druhý krok, a upsell v kroku 9 je domluvený od začátku.</span></li>
+        <li><i class="tag pozor">pozor</i><span>Doporučit všech 15 = je to ceník, ne plán. Doporučit něco, co jeho dotazník nezmínil = pozná, že jsme ho nečetli.</span></li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="step">
+    <div class="num">6</div>
+    <div class="card">
+      <div class="name">Doladění a dohoda</div>
+      <p class="what">Přidá, odebere, odsouhlasí. Finální cena, smlouva, první platba.</p>
+      <ul>
+        <li><i class="tag ty">ty</i><span>Faktura: záloha 33 % → 33 % po sestavení → 33 % po dokončení? Nebo celá najednou, jak to dělá Filip? Ještě promyslet, co je nejdůvěryhodnější a nejlíp „dostane peníze".</span></li>
+        <li><i class="tag navrh">návrh</i><span>Setup je krátký (dny, ne týdny) — tři platby nedávají smysl. Návrh: <b>50 % setupu při podpisu, 50 % při předání</b>, měsíční provoz od předání. Krok 7 začíná až po první platbě (stejné pravidlo jako u webů).</span></li>
+        <li><i class="tag navrh">návrh</i><span>Smlouva má dvě části: cena a rozsah + <b>zpracovatelská smlouva</b> (GDPR). Podepsat najednou, ne dodatečně. Tady padne většina z deseti obav.</span></li>
+        <li><i class="tag pozor">pozor</i><span>Záloha bez termínu předání. Cena, která se v kroku 7 ještě mění.</span></li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="phase">III. Nasazení</div>
+
+  <div class="step">
+    <div class="num">7</div>
+    <div class="card">
+      <div class="name">Nastavení a propojení</div>
+      <p class="what">Technická část: co od něj potřebujeme, co napojíme, jak to bude znít jako on.</p>
+      <ul>
+        <li><i class="tag ty">ty</i><span>Propojení s e-mailem, s jeho systémy — podle toho, co si vybral. Tady po něm chceme přístupy a podklady.</span></li>
+        <li><i class="tag ty">ty</i><span>Zjistit jeho tón, jak mluví a působí, a převést to do toho, co za něj odchází.</span></li>
+        <li><i class="tag navrh">návrh</i><span>Jeden checklist „co od vás potřebujeme" poslaný hned po podpisu: 3 vaše e-maily zájemcům, podpis, telefon, přeposílání poptávek (nastavíme spolu za 20 min), karty nemovitostí (importujeme z inzerátů my). Nic z toho se neptá v dotazníku.</span></li>
+        <li><i class="tag navrh">návrh</i><span>Začínat přes přeposílání poptávek, ne přístupem do schránky. Schránku napojit až jako volitelný krok později.</span></li>
+        <li><i class="tag pozor">pozor</i><span>Honit ho po částech o podklady. Chtít přístup do celé schránky hned první den.</span></li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="step">
+    <div class="num">8</div>
+    <div class="card">
+      <div class="name">Předání a první měsíce ladění</div>
+      <p class="what">Produkt běží. Prvních 1–3 měsíce ho spolu ladíme na něj — je to v ceně a je to slib.</p>
+      <ul>
+        <li><i class="tag ty">ty</i><span>Říct mu: „funguje to, ale teď se vás snažíme poznat; když něco nesedí, tyhle měsíce jsou na to, abychom to doladili." Dává feedback, my upravujeme.</span></li>
+        <li><i class="tag navrh">návrh</i><span><b>První týden schvalovací režim</b>: každou odpověď, kterou AI napíše jeho jménem, vidí dřív, než odejde. Nejrychlejší cesta k důvěře; po týdnu to vypne sám.</span></li>
+        <li><i class="tag navrh">návrh</i><span>Od prvního dne měřit: reakční čas, propadlé poptávky, ušetřené hodiny. Tahle čísla jsou krok 9 i krok 10.</span></li>
+        <li><i class="tag navrh">návrh</i><span>Revizní cally 3× (týden 1, měsíc 1, měsíc 3), domluvené dopředu s termínem.</span></li>
+        <li><i class="tag pozor">pozor</i><span>Propadlý lead v prvním měsíci, o kterém se dozví sám. Změna, kterou neohlásíme.</span></li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="phase">IV. Vztah</div>
+
+  <div class="step">
+    <div class="num">9</div>
+    <div class="card">
+      <div class="name">Běžný provoz, novinky a upsell</div>
+      <p class="what">Používá to, dává feedback, platí měsíčně. My ukazujeme, že se produkt vyvíjí — a nabízíme, co mu pomůže dál.</p>
+      <ul>
+        <li><i class="tag ty">ty</i><span>Každý klient má svou složku s problémy, které řeší. Když přidáme novou službu, napíšeme mu: „pomůže ti s tímhle a tímhle" + sleva (např. 20 %) za to, že je u nás.</span></li>
+        <li><i class="tag ty">ty</i><span>Smysl: vidí, že produkt má budoucnost větší než dnes. Když má špatný měsíc a hledá výmluvu v systému, zůstane — ví, že se to rozvíjí. A dává nám nápady.</span></li>
+        <li><i class="tag navrh">návrh</i><span>Čtvrtletní <b>report hodnoty</b>: kolik poptávek odbaveno, průměrná reakce, kolik hodin ušetřeno, kolik majitelů připomenuto. Jedna stránka, jeho čísla. Nejlepší obrana proti „platím a nevím za co".</span></li>
+        <li><i class="tag navrh">návrh</i><span>Upsell vázat na číslo, ne na novinku: „za 3 měsíce 40 zájemců nezaujalo — matching by je oslovil sám."</span></li>
+        <li><i class="tag pozor">pozor</i><span>Novinky bez vztahu k jeho složce. Zdražení bez reportu hodnoty.</span></li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="step loop">
+    <div class="num">10</div>
+    <div class="card">
+      <div class="name">Doporučení — zpět na krok 1</div>
+      <p class="what">Ultimátní cíl: spokojený makléř to ukazuje kolegům, propaguje to sám a posílá nám horké leady.</p>
+      <ul>
+        <li><i class="tag navrh">návrh</i><span>O doporučení říct ve chvíli úspěchu, ne v dotazníku spokojenosti: po prvním zachráněném obchodu nebo s reportem hodnoty. Odměna za doporučení (měsíc provozu zdarma).</span></li>
+        <li><i class="tag navrh">návrh</i><span>Z jeho čísel <b>case study</b> — se jménem, pokud dovolí. To je obsah pro sociální sítě (vstup 1) a argument do call-centra.</span></li>
+        <li><i class="tag pozor">pozor</i><span>Prosit o doporučení dřív, než má co doporučit.</span></li>
+      </ul>
+    </div>
+  </div>
+
+  <p class="exit">V každém kroku může odstoupit — a má to být jasné dopředu, ne až když se ptá. Dole v každé nabídce, smlouvě i e-mailu: co se stane, když řekne ne.</p>
+</div>
+</body>
+</html>
