@@ -262,6 +262,16 @@ Věci, které stret.ai nemá a stojí za zvážení:
 
 ---
 
+### 3.13 Deset obav makléře a co mu slíbíme
+
+Co makléř řekne, než nám dá data a schránku, co odpovíme doslova a co pro to
+musí být technicky a smluvně pravda — tabulka u otázky 12 v
+[dotazníku](dotaznik-mise-a-vize.md) (odsouhlaseno 2. 10. 2026). Čtyři sliby
+z ní dnes nedržíme a jsou **podmínkou před prvním klientem**: schvalovací
+režim odpovědí na začátku, export dat jedním tlačítkem, oddělení dat makléřů,
+zpracovatelská smlouva. Start přes přeposílání poptávek, ne přes přístup do
+schránky (čtení Gmailu přes API = ověření u Googlu + roční audit).
+
 ## 4. Vrstva 3 — servisní produkty
 
 ### 4.1 AI Studio

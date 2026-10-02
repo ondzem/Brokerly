@@ -201,7 +201,7 @@ Filip:
 Ondřej:
 Zatím jsem nad tím nepřemýšlel — jsme v procesu stavby.
 
-**Návrh (Claude, 2. 10. 2026) — k ověření s Dorinou.** Obavy jsou seřazené
+**Odsouhlaseno Ondřejem 2. 10. 2026** (návrh Claude; ověřit ještě s Dorinou). Obavy jsou seřazené
 od nejčastější. U každé: co makléř řekne → co mu odpovíme doslova → co musí
 být pravda, aby to nebyl jen slib.
 
