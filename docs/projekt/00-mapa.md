@@ -22,6 +22,8 @@
 | 05 | [Nástroje a technika](05-nastroje-a-technika.md) | Stack, databáze, hosting, vývojářské nástroje, AI nástroje, tajné klíče, náklady | *Na čem to stavíme a čím?* |
 | 06 | [Postup a spolupráce](06-postup-a-spoluprace.md) | Jak pracujeme ve dvou, pravidla etap, definice hotového, jak navazuje Ondřejova webová metodika | *Jak pracujeme?* |
 | 07 | [Otevřené otázky](07-otevrene-otazky.md) | Rozpory mezi dokumenty a realitou, co nevíme, co musíme rozhodnout — podklad pro dotazník a strategii | *Co si musíme ujasnit, než uděláme strategii?* |
+| — | [Konkurence](konkurence.md) | ~40 produktů (CZ/SK, USA, UK, DACH, FR/NL, PL, AU, Asie, LatAm): funkce, unikáty, ceny; co z toho plyne | *Kdo to dělá a čím se lišíme?* |
+| — | [Katalog služeb](sluzby-katalog.html) · [Cesta klienta](cesta-klienta.html) · [Co postavit](co-postavit.html) · [Sitemapa](sitemapa-sluzeb.html) | HTML přehledy: bloky služeb s inspirací z konkurence; 10 kroků cesty klienta; co ke kterému kroku postavit | *Co a v jakém pořadí stavíme?* |
 | 08 | [Byznys a plán](08-byznys-a-plan.md) | Ceny, go-to-market, roadmapa, tým, rizika — plán, jak misi uskutečnit; bude se přepisovat ve strategii | *Jak a kdy to zpeněžíme?* |
 
 ## Zdroje, ze kterých to vzniklo
