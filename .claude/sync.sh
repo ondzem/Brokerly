@@ -14,6 +14,9 @@
 # Zprávy pro uživatele jdou ven jako JSON se systemMessage.
 
 set -uo pipefail
+
+# Cloud session (claude.ai/code) si větve a PR řeší sama — tam nesynchronizovat.
+[ "${CLAUDE_CODE_REMOTE:-}" = "true" ] && exit 0
 cd "$(dirname "$0")/.." 2>/dev/null || exit 0
 
 BRANCH=main
