@@ -139,7 +139,7 @@ Nejsou otázky, jsou to fakta k rozhodnutí *kdy*:
 
 | Otázka | Kde vzniklo |
 |---|---|
-| Doména `brokerly.cz` — máme ji? Web? | kap. 19.1 alias `makler@brokerly.cz` |
+| Doména `brokerly.cz` — **máme** (2. 10.). Web na ní není; kdo ji spravuje a kde? | kap. 19.1 alias `makler@brokerly.cz` |
 | Logo — kdo ho dělal, jsou zdroje, barvy značky mimo aplikaci? | jen webp v `public/` |
 | Právní forma — produktová řada agentury (kap. 1), nebo společná firma s Filipem? Smlouva mezi námi? | nikde |
 | Ceník — platí? Byl testován? | kap. 5 |

@@ -116,6 +116,6 @@ Master dokument počítá s dalšími vizuálními výstupy, pro které zatím n
 - **E-maily jménem makléře** (odpověď na poptávku, follow-up, výroční,
   žádost o recenzi) — šablony v makléřově tónu.
 - **Prodejní materiály:** ceník, PDF prezentace, case study (roadmapa červenec).
-- **Web brokerly.cz** — není; doména `?`.
+- **Web brokerly.cz** — není; doména je koupená (2. 10. 2026).
 
 Všechno z toho spadá do Ondřejovy domény (design a texty) a nic z toho nezačalo.

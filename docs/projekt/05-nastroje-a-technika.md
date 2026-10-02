@@ -128,8 +128,9 @@ otevřený — [07 §3](07-otevrene-otazky.md).
 
 ## 6. Nasazení a provoz
 
-- **Nenasazeno.** Běží jen lokálně. Žádná doména, hosting, SSL, monitoring,
-  zálohy nad rámec Supabase.
+- **Nenasazeno.** Běží jen lokálně. Doména **brokerly.cz je koupená** (kdo ji
+  spravuje a kde — doplnit); hosting, SSL, monitoring a zálohy nad rámec Supabase
+  nejsou.
 - `README` zmiňuje deployovatelnost (Vercel + Supabase); `public/_redirects`
   je zbytek pro Netlify. Ani jedno není nastavené.
 - Před nasazením nutné: přihlášení (Supabase Auth), RLS podle uživatele,
@@ -146,7 +147,7 @@ otevřený — [07 §3](07-otevrene-otazky.md).
 | Hosting | 0 (nic neběží) |
 | Gemini, ScraperAPI | 0 od 21. 9. (**zrušit předplatná, pokud ještě běží**) |
 | Claude Code, ChatGPT | osobní předplatná Ondřeje |
-| Doména brokerly.cz | `?` |
+| Doména brokerly.cz | máme (cena/registrátor `?`) |
 
 Master dokument počítal s ~1K/měs na klienta (nástroje, API, SMS) — to je
 náklad vrstvy 2, která neexistuje.
