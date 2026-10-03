@@ -1,5 +1,7 @@
 # 02 — Produkt a služby: co všechno má Brokerly umět
 
+> ► **Stav 3. 10. 2026:** aktuální seznam služeb je [sluzby-katalog.html](sluzby-katalog.html), pořadí stavby [plan-stavby.html](plan-stavby.html). Tenhle dokument zůstává jako zdroj provozních detailů jednotlivých funkcí z master dokumentu; etapy a pořadí v něm už neplatí.
+
 Zdroj: master dokument kap. 4, 10–12, 14, 17–19, 21–23. Statusy doplněny
 k 1. 10. 2026 podle kódu a databáze (detail v [03](03-stav-aplikace.md)).
 
