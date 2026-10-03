@@ -1,5 +1,27 @@
 # Úklid repozitáře — inventura (3. 10. 2026)
 
+## Provedeno 3. 10.
+
+**Smazáno**
+- `postcss.config.mjs` + devDependency `@tailwindcss/postcss` (lock přegenerován) — Tailwind už neběží dvakrát; CSS buildu 117,85 → 108,88 kB.
+- `src/components/ui/dropdown-menu.tsx`, `src/components/ui/tabs.tsx` — zbývá 13 ui komponent.
+- `public/Black Logo - Brokerly.png.webp`.
+- `.mcp.json` (21st.dev MCP se nepoužíval).
+- `.design-sync/` (20 souborů) — synchronizace do Claude Designu zrušena; `NOTES.md` a `conventions.md` přesunuty do `docs/projekt/04-design/historie/design-sync-*.md`. Z `vite.config.ts` a `.gitignore` odstraněny odkazy na ni (`.ds-sync/` a `ds-bundle/` zůstávají v `.gitignore` — jsou jen lokální, smazat ručně).
+- `docs/design-system.md` → `docs/projekt/04-design/design-system.md`.
+
+**Opraveno**
+- `eslint.config.mjs` — flat config pro Vite + React + TS (`@eslint/js@9`, `typescript-eslint`, `eslint-plugin-react-hooks`, `eslint-plugin-react-refresh`, `globals`). `npm run lint` se spouští; hlásí **120 problémů (118 chyb, 2 varování)** v existujícím kódu, nic neopraveno: `no-unused-vars` 66, `no-explicit-any` 37, `react-hooks/set-state-in-effect` 10, `react-hooks/refs` 3, `no-useless-escape` 2 — v `App.tsx`, `ContactsView`, `DashboardView`, `KanbanView`, `PhotoGallery`, `PhotoUploader`, `PropertiesView`, `RemindersView`, `lib/*`.
+- `components.json` — `css: src/index.css`, `rsc: false`, `tailwind.config: ""`.
+- `.claude/settings.json` — hooky graphify jako `command -v graphify >/dev/null 2>&1 && graphify … || true` (fungují na každém stroji, chování zachováno).
+- Dokumenty: odkazy opraveny v `00-mapa.md`, `04-design.md` (sync označen „zrušeno 3. 10. 2026"), `design-system.md`, `05-nastroje-a-technika.md`, `07-otevrene-otazky.md`, `03-stav-aplikace.md` §7–8 (vyřešené položky přeškrtnuté), `historie/2026-09-25-redesign-plan.md`.
+
+**Ověřeno**: `npm run build` exit 0 · `npx tsc --noEmit` exit 0 · `npm run lint` se spustí (exit 1 kvůli 118 chybám v kódu) · grep na smazané cesty najde už jen historické zmínky v dokumentech.
+
+Oddíl B (kód stránek) a zbytek C (tmavý režim, `NEXT_PUBLIC_` prefix, `docx`) beze změny.
+
+---
+
 > Jen seznam s důkazy. Nic nebylo smazáno, žádný kód nebyl pushnut. Zkouška z kroku 5 proběhla v pracovní kopii a byla vrácena `git checkout .`.
 >
 > Postup: `git ls-files` (139 souborů) → kategorie · `npx knip` + `npx depcheck` · ruční grep (importy, dynamické `import(`, HTML/CSS/config, package.json scripts, `.claude/`, hooky, `start.sh`, `supabase/config.toml`, odkazy z docs/AGENTS/README) · každý kandidát „nepoužívá se" prověřen samostatným agentem (Sonnet), který hledal opak · zkouška buildu bez kandidátů A.

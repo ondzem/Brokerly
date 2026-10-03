@@ -24,7 +24,7 @@ Každé téma má svou složku. Hlavní dokument má číslo, vedle leží mater
 | **01** Mise a vize | [01-mise-a-vize.md](01-mise-a-vize/01-mise-a-vize.md) — co Brokerly je, pro koho, jaký problém řeší, čím vyhrává | [dotazník](01-mise-a-vize/dotaznik-mise-a-vize.md) (17 otázek, Ondřejovy odpovědi) | *Proč to děláme a pro koho?* |
 | **02** Produkt a služby | [02-produkt-a-sluzby.md](02-produkt-a-sluzby/02-produkt-a-sluzby.md) — provozní detaily funkcí z master dokumentu | [**katalog služeb**](02-produkt-a-sluzby/sluzby-katalog.html) (78 položek) · [**plán projektu**](02-produkt-a-sluzby/plan-stavby.html) · [cesta klienta](02-produkt-a-sluzby/cesta-klienta.html) (10 kroků) · [konkurence](02-produkt-a-sluzby/konkurence.md) (~40 produktů) · `council/` (dva councily z 2. 10.) | *Co má Brokerly umět a v jakém pořadí?* |
 | **03** Stav aplikace | [03-stav-aplikace.md](03-stav-aplikace/03-stav-aplikace.md) — co dnes v kódu a databázi reálně je | [audit 26. 8.](03-stav-aplikace/audit-2026-08-26.md) · `historie/` (plán a ověření redesignu 25. 9.) | *Kde právě jsme?* |
-| **04** Design | [04-design.md](04-design/04-design.md) — vizuální pravidla, rozhodnutí, nekonzistence | hodnoty tokenů jsou v `docs/design-system.md` (čte ho Claude Design, proto zůstává tam) | *Jak to má vypadat?* |
+| **04** Design | [04-design.md](04-design/04-design.md) — vizuální pravidla, rozhodnutí, nekonzistence | hodnoty tokenů v [design-system.md](04-design/design-system.md); historie synchronizace do Claude Designu (zrušeno 3. 10.) v `04-design/historie/` | *Jak to má vypadat?* |
 | **05** Nástroje a technika | [05-nastroje-a-technika.md](05-nastroje-a-technika/05-nastroje-a-technika.md) — stack, databáze, AI nástroje, klíče, náklady | [nahrávání a ořez fotek](05-nastroje-a-technika/image-crop-uploader.md) | *Na čem to stavíme?* |
 | **06** Postup a spolupráce | [06-postup-a-spoluprace.md](06-postup-a-spoluprace/06-postup-a-spoluprace.md) — jak pracujeme, etapy, definice hotového | návod pro kolegu je v `docs/spoluprace.md` (odkazuje na něj AGENTS.md a README) | *Jak pracujeme?* |
 | **07** Otevřené otázky | [07-otevrene-otazky.md](07-otevrene-otazky/07-otevrene-otazky.md) — rozpory a nevyjasněné věci | — | *Co musíme rozhodnout před strategií?* |
@@ -42,7 +42,7 @@ smazány 3. 10.; najdeš je v historii gitu.
 | `docs/zdroje/Brokerly_master_dokument.docx` (5. 7. 2026) | **Hlavní zdroj pravdy.** 24 kapitol: produkt, byznys, trh, ceny, roadmapa, tým, celý datový model, automatizace, provozní detaily, pořadí stavby, KPI | Přečteno celé. Textová verze: `docs/zdroje/master-dokument-2026-07.md` |
 | `AGENTS.md` | Pravidla pro AI agenty: rozsah etapy 1, datový model, design systém, práce ve dvou | Přečteno |
 | `README.md`, `docs/spoluprace.md` | Spuštění, synchronizace, onboarding kolegy | Přečteno |
-| `docs/design-system.md`, `.design-sync/*` | Design systém a historie ladění palety | Přečteno |
+| `docs/projekt/04-design/design-system.md`, `04-design/historie/design-sync-*.md` | Design systém a historie ladění palety (dřív `docs/design-system.md` a `.design-sync/`) | Přečteno |
 | `docs/projekt/03-stav-aplikace/audit-2026-08-26.md` | Kritický audit kontaktů a nemovitostí — 24 bodů | Přečteno |
 | `docs/projekt/03-stav-aplikace/historie/` | Plán a ověření redesignu detailu nemovitosti (25. 9.) | Přečteno |
 | `docs/projekt/05-nastroje-a-technika/image-crop-uploader.md` | Technická specifikace nahrávání a ořezu fotek | Přečteno |

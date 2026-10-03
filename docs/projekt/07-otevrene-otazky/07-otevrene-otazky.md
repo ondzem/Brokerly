@@ -148,7 +148,7 @@ Nejsou otázky, jsou to fakta k rozhodnutí *kdy*:
 | `Checklist_stavby_CRM.xlsx` (120 úkolů) — existuje? kde? | kap. 23 |
 | Notion: kořenové poznámky chtějí „udělat umělou inteligenci – chatbot", procesy 1.2 říkají „po dni 90, nestavět" — co platí? | Notion |
 | Notion: archivace kontaktů a nemovitostí — jak (stav `archivován`? skrytí?) | Notion poznámky |
-| 21st.dev MCP v `.mcp.json` — používá se? | repo |
+| ~~21st.dev MCP v `.mcp.json` — používá se?~~ vyřešeno 3. 10.: nepoužívalo se, smazáno | repo |
 | Tmavý režim — vrátit, nebo vyčistit z kódu? Ondřej proti, Filip pro; kód zatím zůstává (3. 10.), rozhodnout při návrhu stránek | 26. 8. |
 | Kancelářský segment — Q4 2026 je za rohem; pořád platí? | kap. 7, 8 |
 

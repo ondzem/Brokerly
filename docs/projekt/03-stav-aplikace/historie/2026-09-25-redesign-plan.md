@@ -46,7 +46,7 @@ Krátké přechody 150–200 ms při otevření, přepnutí záložky a rozbalen
 2. **Kompaktní vodorovná hlavička.** Jednodušší zásah, ale zachovává většinu dnešního dojmu dlouhého formuláře.
 3. **Velká fotografie přes šířku.** Silnější první dojem, ale znovu odsouvá pracovní obsah; pro každodenní CRM ji nedoporučuji.
 
-Referencí je disciplína rozložení a hierarchie z [Linear na Refero](https://styles.refero.design/style/90ce5883-bb24-4466-93f7-801cd617b0d1). Přenáší se principy, nikoli jeho barvy, fonty či marketingové efekty. Identitu určuje současný Brokerly a `docs/design-system.md`; při rozporu dokumentace s požadavkem na zachování současného vzhledu mají přednost aktuální barvy a písma aplikace.
+Referencí je disciplína rozložení a hierarchie z [Linear na Refero](https://styles.refero.design/style/90ce5883-bb24-4466-93f7-801cd617b0d1). Přenáší se principy, nikoli jeho barvy, fonty či marketingové efekty. Identitu určuje současný Brokerly a `docs/design-system.md` (dnes `docs/projekt/04-design/design-system.md`); při rozporu dokumentace s požadavkem na zachování současného vzhledu mají přednost aktuální barvy a písma aplikace.
 
 ## Implementace po schválení
 

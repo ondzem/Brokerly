@@ -247,7 +247,7 @@ počty), C13 (hledání), C16 (filtr stavů), část D. **Otevřené:**
 | E24 | Aktivita z karty kontaktu vždy `done = ano` | nízká |
 | nový | Dashboard: vymyšlená data, vlastní paleta | střední |
 | nový | Seznam nemovitostí a dashboard nepoužívají surface tokeny (vlastní `colors`) | nízká |
-| nový | `npm run lint` nejde spustit (chybí `eslint-config-next` — zbytek po Next.js) | nízká |
+| nový | ~~`npm run lint` nejde spustit~~ — opraveno 3. 10. (flat config pro Vite + React + TS); lint teď hlásí skutečné chyby v kódu, viz `uklid.md` | nízká |
 | nový | ~338 `dark:` tříd a `.dark` blok leží v kódu mrtvé | nízká |
 
 ---
@@ -270,13 +270,16 @@ Zbývá k rozhodnutí:
 | Co | Proč je to tam | Co s tím |
 |---|---|---|
 | `dist/`, `tsconfig.tsbuildinfo` | výstup buildu, cache TypeScriptu | v `.gitignore`, jen lokální — nic k řešení |
-| `eslint.config.mjs` → `eslint-config-next` | zbytek po Next.js; lint nejde spustit | přepsat na Vite/React config (změna, ne mazání) |
-| `components.json` | shadcn konfigurace | nechat |
-| `.ds-sync/` (vč. vlastního `node_modules`), `ds-bundle/` | nástroje a výstup synchronizace do Claude Designu (26.–27. 8.) | nechat, ale sync se dělá jen na vyžádání |
+| ~~`eslint.config.mjs` → `eslint-config-next`~~ | zbytek po Next.js | **vyřešeno 3. 10.** — přepsáno na flat config (typescript-eslint, react-hooks, react-refresh) |
+| ~~`components.json`~~ | shadcn konfigurace | **vyřešeno 3. 10.** — opraveno (`css: src/index.css`, `rsc: false`) |
+| ~~`.ds-sync/`, `ds-bundle/`, `.design-sync/`~~ | nástroje a výstup synchronizace do Claude Designu (26.–27. 8.) | **vyřešeno 3. 10.** — sync zrušen, `.design-sync/` smazána (poznámky v `04-design/historie/`); `.ds-sync/` a `ds-bundle/` jsou jen lokální (gitignore), smazat ručně |
 | `agentdb.rvf`, `agentdb.rvf.lock`, `ruvector.db` (1,6 MB), `.claude-flow/`, `.swarm/`, `.claude/memory.db` | lokální stav ruflo/agentdb | v `.gitignore`; ověřit, že `ruvector.db` tam je |
-| `.mcp.json` (21st.dev MCP) | nástroj na UI komponenty | používá se? `?` |
+| ~~`.mcp.json` (21st.dev MCP)~~ | nástroj na UI komponenty | **vyřešeno 3. 10.** — nepoužívalo se, smazáno |
 | `.env.local.example`: `NEXT_PUBLIC_*` prefix | historický, Vite ho čte přes `envPrefix` | nechat (změna = oba musí přepsat `.env.local`) |
 | tmavý režim v kódu | vypnutý 26. 8. | rozhodnout: vrátit, nebo vyčistit |
+| ~~`postcss.config.mjs` + `@tailwindcss/postcss`~~ | Tailwind zpracováván dvakrát (Vite plugin + PostCSS) | **vyřešeno 3. 10.** — smazáno, CSS buildu o 9 kB menší |
+| ~~`ui/tabs.tsx`, `ui/dropdown-menu.tsx`, černé logo~~ | nepoužité | **vyřešeno 3. 10.** — smazáno (detail v `uklid.md`) |
+| `.claude/settings.json` hooky graphify | absolutní cesta na Ondřejův Mac | **vyřešeno 3. 10.** — `command -v graphify … \|\| true` |
 
 ---
 

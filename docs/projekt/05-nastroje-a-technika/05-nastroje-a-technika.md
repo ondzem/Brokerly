@@ -19,7 +19,7 @@ Na čem Brokerly běží, čím se staví a co to stojí. Stav k 1. 10. 2026.
 
 > **Rozpor:** AGENTS.md §3 říká „Next.js (App Router)". Projekt vznikl 5. 7.
 > jako Create Next App a **tentýž den byl přepsán na Vite**. Next.js nikde není,
-> jen zbytky (`eslint-config-next`, `public/next.svg`, prefix `NEXT_PUBLIC_`).
+> jen zbytky (prefix `NEXT_PUBLIC_`; `eslint-config-next` a `public/next.svg` už jsou pryč).
 > AGENTS.md opravit.
 
 **Žádný backend kromě Supabase.** Žádný vlastní server, žádné API, žádný
@@ -99,9 +99,9 @@ ani do chatu.** Nové proměnné: název do `.env.local.example`, hodnota soukro
 | **ruflo** (claude-flow) | paměť `brokerly` namespace, routing úloh, agenti | od 21. 9.; **jen lokální runtime** — nikdy `ruflo init` (přepsal by sync hooky) |
 | **superpowers** skilly | brainstorming → plán → provedení → ověření; systematic-debugging | globální policy |
 | Design skilly | `minimalist-ui`, `high-end-visual-design`, `design-taste-frontend`, `web-design-guidelines` | AGENTS.md §10 |
-| **Claude Design / DesignSync** | katalog komponent + tokeny (`ds-bundle/`, `.ds-sync/`, `.design-sync/`) | 26.–27. 8.; sync **jen na vyžádání** |
+| ~~Claude Design / DesignSync~~ | katalog komponent + tokeny | **zrušeno 3. 10. 2026** — `.design-sync/` smazána, poznámky v `04-design/historie/` |
 | **ChatGPT / codex** | první návrh dvousloupcového detailu (25. 9., větev `codex/property-detail-redesign`, sloučena) | příležitostně |
-| 21st.dev MCP (`.mcp.json`) | knihovna UI komponent | používá se? `?` |
+| ~~21st.dev MCP (`.mcp.json`)~~ | knihovna UI komponent | nepoužívalo se, **smazáno 3. 10. 2026** |
 | headroom proxy (port 8787) | lokální proxy pro Claude API | infrastruktura Ondřejova počítače, ne projektu |
 
 ### Služby, se kterými zadání počítá pro vrstvu 2 (nic z toho není napojené)

@@ -1,7 +1,8 @@
 # Brokerly — Design system
 
-Zkopíruj celý tenhle soubor do Claude Design (nebo do jakéhokoli jiného
-nástroje) jako kontext. Popisuje, jak Brokerly vypadá a proč — ne jednotlivé
+Tenhle soubor slouží jako kontext pro jakýkoli nástroj nebo agenta, který
+má zasahovat do vzhledu aplikace (synchronizace do Claude Designu byla zrušena
+3. 10. 2026). Popisuje, jak Brokerly vypadá a proč — ne jednotlivé
 obrazovky.
 
 ---

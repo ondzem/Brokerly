@@ -1,8 +1,9 @@
 # 04 — Design: jak Brokerly vypadá a proč
 
-Zdroj pravdy pro hodnoty: `docs/design-system.md` (CZ, pro Claude Design)
-a `.design-sync/conventions.md` (EN, pro komponentový katalog). Historie
-rozhodnutí: `.design-sync/NOTES.md`. Tenhle dokument je shrnutí + rozhodnutí
+Zdroj pravdy pro hodnoty: [`design-system.md`](design-system.md) (CZ).
+Historie ladění palety a konvence komponentového katalogu z doby synchronizace
+do Claude Designu (**zrušeno 3. 10. 2026**): `historie/design-sync-NOTES.md`,
+`historie/design-sync-conventions.md`. Tenhle dokument je shrnutí + rozhodnutí
 + reference + co je nekonzistentní. Hodnoty tu neopakuji do detailu.
 
 ---
@@ -65,6 +66,7 @@ V Tailwindu: `bg-panel`, `bg-surface`, `bg-inset`, `border-hairline`; nikdy
 | 25. 9. | Detail nemovitosti = **dvousloupcový dossier** (portrét vlevo ~25 %, obsah vpravo); návrh přišel z ChatGPT/codex, doladěn | na 1280×720 zabírala stará hlavička 380 px; obsah začínal až od 420 px |
 | 26.–28. 9. | Parametry **vedle obsahu** (pás pod záložkami jako karta), na mobilu v panelu jako mřížka 3×2 se zkrácenými dělítky; na mobilu bílá 64px lišta jako navbar appky; náhledy fotek pod hlavní fotkou; „Přidat foto" | série rozhodnutí z živého ladění s Ondřejem |
 | 27. 8. | Design systém **nenahrávat do Claude Designu automaticky**, jen na vyžádání | zdlouhavé, ladění se dělá v aplikaci |
+| 3. 10. | **Synchronizace do Claude Designu zrušena** — `.design-sync/` smazána, poznámky přesunuty do `historie/`; `.mcp.json` (21st.dev) smazán | nepoužívalo se od 28. 9.; ladění se dělá v aplikaci |
 
 ---
 
@@ -80,7 +82,7 @@ V Tailwindu: `bg-panel`, `bg-surface`, `bg-inset`, `border-hairline`; nikdy
   `design-taste-frontend`, `redesign-existing-projects`,
   `web-design-guidelines` (přístupnost po každé UI změně) — AGENTS.md §10.
 
-Logo: `public/White Logo - Brokerly.webp` (sidebar), `Black Logo - Brokerly.png.webp`.
+Logo: `public/White Logo - Brokerly.webp` (sidebar). Černá varianta byla v repu nepoužitá a 3. 10. smazána (originál má Ondřej mimo repo).
 Jiné brandové podklady (barvy loga, typografie značky, tone of voice mimo
 aplikaci) **neexistují** nebo nejsou v repu.
 
@@ -98,9 +100,9 @@ aplikaci) **neexistují** nebo nejsou v repu.
    tlumených dvojic.
 5. Tokeny `bg-panel/surface/hairline` jen v části PropertiesView; zbytek natvrdo
    hexy — změna palety = hon na hexy.
-6. Komponentový katalog v Claude Designu zahrnuje jen 6 z 15 komponent
-   (Button, Card, Input, Label, Select, Textarea); Tabs, Dialog, Popover,
-   DropdownMenu, Calendar, chip-picker, option-select, photo-img, sonner ne.
+6. ~~Komponentový katalog v Claude Designu zahrnuje jen 6 z 15 komponent~~
+   — synchronizace zrušena 3. 10. 2026; nepoužité `tabs.tsx` a
+   `dropdown-menu.tsx` smazány (zbývá 13 ui komponent).
 
 ---
 
