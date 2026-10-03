@@ -19,8 +19,9 @@
   (CRM = data, automatizace = ruce). Detail v `01-mise-a-vize.md`.
 - Dva zakladatelé: **Ondřej** (design, texty, obchod, metodika) a **Filip**.
   Filipovy odpovědi na dotazník zatím chybí — nečekáme na ně.
-- **Aplikace:** etapa 1 (CRM jádro: kontakty, nemovitosti, obchody, aktivity,
-  nastavení) je postavená. Stav v `03-stav-aplikace.md`. Kód teď nestavíme.
+- **Aplikace:** žádná stránka není hotová. Nemovitosti ~60–70 %, ostatní
+  stránky narychlo a bez promyšleného obsahu (Ondřej, 3. 10.). Stavělo se bez
+  strategie, proto teď vzniká plán. Detail v `03-stav-aplikace.md`. Kód teď nestavíme.
 - **Fáze projektu:** sepsání všeho → dotazník → **teď: produkt a služby (dokument 02)**
   → strategie → wireframe → stavba.
 

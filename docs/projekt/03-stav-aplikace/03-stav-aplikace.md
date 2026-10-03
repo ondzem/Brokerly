@@ -1,27 +1,75 @@
-# 03 — Stav aplikace k 1. 10. 2026
+# 03 — Stav aplikace k 3. 10. 2026
 
-Co dnes reálně existuje v kódu a databázi, jak se to stavělo, čím se to liší od
-specifikace, co víme, že je rozbité, a co je balast.
+Kde aplikace doopravdy je. Nahoře je hodnocení od Ondřeje (oddíly 1–3), pod ním
+technický popis toho, co v kódu existuje (oddíly 4–10).
 
 ---
 
 ## 1. V jedné větě
 
-Máme **funkční, vizuálně propracované ruční CRM** (etapa 1 „Denní jádro"):
-6 obrazovek nad 5 tabulkami v Supabase, běžící lokálně na Vite + React, bez
-přihlášení, bez nasazení, bez jediné automatizace. Nejvíc práce šlo do
-nemovitostí (přidání, import z inzerátu, fotky, detail); kontakty jsou o generaci
-pozadu; kanban, připomínky a nastavení jsou funkční a jednoduché.
+**Žádná stránka není hotová.** Nemovitosti jsou zhruba na 60–70 %, ostatní
+stránky (dashboard, obchody, kontakty, připomínky, nastavení) vznikly narychlo
+a nikdo zatím nepromyslel, co na nich má být. Aplikace běží jen lokálně, bez
+přihlášení a bez automatizací.
+
+> Verze z 1. 10. tvrdila, že „máme funkční CRM a etapa 1 je de facto hotová“.
+> Ondřej ji 3. 10. opravil: to platí o kódu, ne o produktu.
+
+## 2. Proč jsme tady
+
+Stavělo se **bez strategie a bez návrhu stránek**. Nejvíc času šlo do
+nemovitostí, ale nebylo jasné, kdy jsou hotové a co dělat dál; ostatní stránky
+čekaly. Proto teď vzniká celý plán: podklady → strategie → návrh → stavba.
+Než se bude na stránkách dál stavět, má každá dostat návrh obsahu (fáze C
+v [plánu projektu](../02-produkt-a-sluzby/plan-stavby.html)).
+
+## 3. Stav po stránkách
+
+| Stránka | Stav | Co chybí |
+|---|---|---|
+| **Nemovitosti** | ~60–70 % | Ondřejův seznam níže |
+| **Kontakty** | narychlo | promyslet obsah; detail je pořád v režimu úprav, starší vzhled |
+| **Obchody (kanban)** | narychlo | promyslet obsah a detail obchodu |
+| **Připomínky** | narychlo | promyslet obsah |
+| **Dashboard** | narychlo | promyslet obsah; dnes zčásti ukazuje vymyšlená data |
+| **Nastavení asistenta** | narychlo | formulář existuje, nic ho nečte |
+| Přihlášení, nasazení na doménu | není | blokátor před prvním klientem |
+
+**Co je na nemovitostech potřeba dodělat** (Ondřejova tabule, 3. 10.):
+
+1. Přidávání nemovitosti
+2. Přehled (detail) nemovitosti
+3. Vyhledávání nemovitostí
+4. Upravování nemovitosti
+5. Přehlednost karty nemovitosti
+6. Nahrávání fotek a dokumentů
+7. Rychlost načítání
+8. Scraping inzerátů (import z portálů)
+9. Responzivita
+10. Doplňování a odstraňování (funguje vždy a všude)
+11. Správné výpočty (cena za m², provize, čistá provize)
+12. Napojení na kontakty
+
+**Rozhodnuto 3. 10.:**
+- **Tmavý režim:** kód zůstává. Ondřejovi se nelíbí, Filipovi ano; rozhodne se
+  při návrhu stránek (otázka v 07).
+- **Teplota** (jak moc zájemce chce koupit: horký / vlažný / studený) se vrátí
+  ve verzi 1.1 jako kvalifikace A / B / C.
+- **Testovací průchod** nejde udělat, dokud nejsou stránky hotové.
 
 ---
 
-## 2. Obrazovky — co která umí
+## 4. Co v kódu existuje — obrazovky
+
+*Technický popis, co je naprogramované. „Existuje“ neznamená „hotové“ — stav
+je v oddílu 3.*
+
 
 Navigace: levý sidebar (desktop) / horní zelená lišta s hamburgerem (mobil).
 Záložky: Dashboard · Obchody (kanban) · Kontakty · Nemovitosti · Připomínky
 · Nastavení. Aktivní záložka a otevřený detail se pamatují přes obnovení stránky.
 
-### 2.1 Dashboard („rozcestník") — `rozestavěno`
+### 4.1 Dashboard („rozcestník")
 
 - Pozdrav podle denní doby a jména makléře, datum.
 - Bloky: **Dnešní priority**, **Připomínky** (z databáze), **Nové poptávky**,
@@ -30,7 +78,7 @@ Záložky: Dashboard · Obchody (kanban) · Kontakty · Nemovitosti · Připomí
   Koterovská 18, Dvořákovi…) — maketa z 6. 7., která se nikdy nepropojila s daty.
   Má vlastní barevnou paletu mimo design systém.
 
-### 2.2 Obchody — kanban — `hotovo`
+### 4.2 Obchody — kanban
 
 - Sloupce = fáze (Lead, Kontaktován, Kvalifikován, Prohlídka, Nabídka,
   Rezervace, Podpis, Prohráno); kartička: název, financování, další krok + termín.
@@ -39,7 +87,7 @@ Záložky: Dashboard · Obchody (kanban) · Kontakty · Nemovitosti · Připomí
 - Nový obchod: výběr kupujícího (povinný) + nemovitosti.
 - Horizontální scroll na mobilu.
 
-### 2.3 Kontakty — `hotovo`, UX stará generace
+### 4.3 Kontakty
 
 - Seznam: tabulka na desktopu / karty na mobilu; záložky Zájemci / Vlastníci;
   hledání; filtry podle nemovitosti (druh, prodej/pronájem, konkrétní nemovitost,
@@ -54,7 +102,7 @@ Záložky: Dashboard · Obchody (kanban) · Kontakty · Nemovitosti · Připomí
 - **Dedup** při založení (telefon → e-mail) — od 26. 8. „aditivní": přidá roli,
   nepřepíše stav; servisní hlášky už nelepí do poznámky.
 
-### 2.4 Nemovitosti — `hotovo`, nejpropracovanější
+### 4.4 Nemovitosti
 
 **Seznam:** karty (foto, štítky Prodej/V nabídce, titul = druh + dispozice,
 cena, adresa, parametry, počet „zájemců" = matching) nebo řádkový seznam
@@ -91,12 +139,12 @@ Všechny fotky jsou **1200×800 (3:2)** — nikdy neskáčou.
 
 Akce: duplikovat nemovitost, odstranit (s potvrzením).
 
-### 2.5 Připomínky — `hotovo`
+### 4.5 Připomínky
 
 Filtr: připomínka = ano, hotovo = ne, kdy ≤ dnes; řazení dle kdy; odškrtnutí.
 Prázdný stav „Máte hotovo".
 
-### 2.6 Nastavení asistenta — `hotovo` jako formulář
+### 4.6 Nastavení asistenta
 
 Všech 15 polí ze specifikace (jméno, telefon, e-mail, podpis, oslovení, tón,
 ukázky odpovědí, jazyky, reakční limit, pravidlo eskalace, pracovní doba,
@@ -105,7 +153,7 @@ spotřebitele.
 
 ---
 
-## 3. Databáze — co je, a čím se to liší od specifikace
+## 5. Databáze — co je, a čím se to liší od specifikace
 
 Supabase Postgres, projekt `xmfjnrwypcbektwatbil`, **jedna sdílená instance
 pro oba vývojáře** (= i jedna testovací data pro oba). 15 migrací.
@@ -156,7 +204,7 @@ aktualizovat, nebo rozhodnout, co se vrací.
 
 ---
 
-## 4. Jak se to stavělo — časová osa
+## 6. Jak se to stavělo — časová osa
 
 | Období | Co vzniklo |
 |---|---|
@@ -177,7 +225,7 @@ Celkem 151 commitů v 18 pracovních dnech. Všechny od `ondzem`.
 
 ---
 
-## 5. Známé problémy (otevřené z auditu 26. 8. a od té doby)
+## 7. Známé problémy (otevřené z auditu 26. 8. a od té doby)
 
 Z `docs/projekt/03-stav-aplikace/audit-2026-08-26.md` je opraveno: A1, A2 (dedup), A3, A4 (poctivé
 počty), C13 (hledání), C16 (filtr stavů), část D. **Otevřené:**
@@ -204,7 +252,7 @@ počty), C13 (hledání), C16 (filtr stavů), část D. **Otevřené:**
 
 ---
 
-## 6. Balast — co v projektu leželo a nepoužívá se
+## 8. Balast — co v projektu leželo a nepoužívá se
 
 Vyčištěno 1. 10. 2026 (vše je v git historii, kdyby bylo třeba):
 
@@ -232,13 +280,13 @@ Zbývá k rozhodnutí:
 
 ---
 
-## 7. Co z toho plyne
+## 9. Co z toho plyne
 
-1. **Etapa 1 je de facto hotová, ale neuzavřená.** Chybí formální testovací
-   průchod a aktualizace specifikace podle toho, co se reálně postavilo.
-2. **Největší riziko dalšího vývoje je `PropertiesView.tsx`.** Než se začne
-   stavět vrstva 2, rozdělit.
-3. **Kontakty** potřebují stejnou generaci jako nemovitosti — jinak bude
-   produkt působit jako dva různé.
-4. **Před prvním klientem** je blokátor přihlášení + RLS; bez toho nejde nic
-   nasadit na veřejnou adresu.
+1. **Nestavět dál bez návrhu.** Každá stránka nejdřív dostane návrh obsahu
+   (fáze C plánu), pak se dodělá (fáze D, „Jádro CRM“).
+2. **Nemovitosti dotáhnout podle seznamu v oddílu 3** a pak je odškrtnout.
+3. **Soubor nemovitostí rozdělit** (`PropertiesView.tsx`, 6 216 řádků v jednom
+   souboru). Pro Ondřeje: celá stránka nemovitostí je naprogramovaná v jednom
+   obřím souboru, takže každá úprava může rozbít něco jinde. Rozdělení na menší
+   části je čistě technická práce, na obrazovce se nic nezmění.
+4. **Před prvním klientem** je blokátor přihlášení a oddělení dat.
