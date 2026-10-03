@@ -93,7 +93,7 @@ klienta jde postup:
 |---|---|---|
 | 1. Poznávací schůzka | Zakladatelské rozhovory — master dokument z července je jejich výstup | hotovo (7/2026) |
 | 2. **Sepsání informací a podkladů** | **tahle složka `docs/projekt/`** | **hotovo (1. 10.)** |
-| 3. **Dotazník** — „lékařská anamnéza": kdo jste → kam jdete → co vás brzdí → pro koho → co od toho čekáte → jak chcete být vidět | dotazník **na nás dva** — otázky, které nejdou zodpovědět z dokumentů; podklad je [07](07-otevrene-otazky.md) | další krok |
+| 3. **Dotazník** — „lékařská anamnéza": kdo jste → kam jdete → co vás brzdí → pro koho → co od toho čekáte → jak chcete být vidět | dotazník **na nás dva** — otázky, které nejdou zodpovědět z dokumentů; podklad je [07](../07-otevrene-otazky/07-otevrene-otazky.md) | další krok |
 | 4. Podklady (portál) — co existuje: čísla, recenze, přístupy | co existuje: piloti? klienti? smlouvy? Notion? čísla z call-centra? | k posbírání |
 | 5. Hovor — rozhodnutí, která potřebují debatu | zakladatelská schůzka nad 07 | |
 | 6. **Strategie** — struktura, pořadí, proč | produktová strategie + přepsaná roadmapa + rozhodnutí o architektuře vrstvy 2 | |
@@ -116,7 +116,7 @@ v 07 §8.
 1. **Aktualizovat AGENTS.md** podle reality (stack, pole navíc, odložené bloky,
    teplota) — jinak každá session začíná s nepravdivou specifikací.
 2. **Uzavřít etapu 1 formálně** — projít testovací průchod, zapsat výsledek do
-   `docs/verification/`.
+   `docs/projekt/03-stav-aplikace/historie/`.
 3. **Před etapou 2 rozdělit `PropertiesView.tsx`** a dodělat kontakty — jinak
    se vrstva 2 staví na písku.
 4. **Rozhodnutí o produktu dělat ve dvou a zapisovat** (`docs/rozhodnuti/` nebo

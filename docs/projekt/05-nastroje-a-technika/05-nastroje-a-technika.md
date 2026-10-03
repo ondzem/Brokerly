@@ -25,7 +25,7 @@ Na čem Brokerly běží, čím se staví a co to stojí. Stav k 1. 10. 2026.
 **Žádný backend kromě Supabase.** Žádný vlastní server, žádné API, žádný
 cron, žádná fronta. Pro vrstvu 2 (automatizace) bude třeba rozhodnout, kde
 poběží (Supabase Edge Functions + pg_cron? n8n/Make? vlastní server?) —
-viz [07 §3](07-otevrene-otazky.md).
+viz [07 §3](../07-otevrene-otazky/07-otevrene-otazky.md).
 
 ---
 
@@ -122,7 +122,7 @@ ne v no-code nástrojích. Tohle jsou externí služby, které zadání (Notion
 | Studio | CubiCasa / Matterport, Floorplanner, Virtual Staging AI, Reimagine Home, Photoshop | servis, ne build |
 
 Výběr konkrétních služeb (a jestli např. rezervaci nepostavit vlastní) je
-otevřený — [07 §3](07-otevrene-otazky.md).
+otevřený — [07 §3](../07-otevrene-otazky/07-otevrene-otazky.md).
 
 ---
 

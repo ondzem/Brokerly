@@ -6,7 +6,7 @@ a Notion. Doplněno o posuny k 1. 10. 2026 (`► Stav 10/2026`).
 > **Co sem patří a co ne.** Mise a vize jsou základní pravidla, na kterých
 > projekt stojí: co to je, proč, pro koho, čím vyhrává. Ceny, go-to-market,
 > roadmapa, tým a rizika jsou *plán*, ne základ — jsou v
-> [08 — Byznys a plán](08-byznys-a-plan.md). Dokument se dolaďuje přes
+> [08 — Byznys a plán](../08-byznys-a-plan/08-byznys-a-plan.md). Dokument se dolaďuje přes
 > [dotazník](dotaznik-mise-a-vize.md).
 
 ---
@@ -26,7 +26,7 @@ nepropadl**.
 
 Vedle automatizační služby staví produkt i **vlastní jádro CRM** přizpůsobené
 realitám — nejdřív pro sólo makléře, kancelářský segment ve druhé fázi. Tohle
-jádro je to, co se právě staví (viz [03](03-stav-aplikace.md)).
+jádro je to, co se právě staví (viz [03](../03-stav-aplikace/03-stav-aplikace.md)).
 
 ### Hub-and-spoke — princip, na kterém všechno stojí
 
@@ -50,7 +50,7 @@ krok — po zápisu k nám se pošle API volání do jeho CRM (mapování polí)
 
 > ► **Stav 10/2026:** stavíme výhradně vlastní CRM. Napojení na cizí CRM se
 > nikde neřeší a nikdo o něm od července nemluvil. Je to jedna z klíčových
-> otevřených otázek — viz [07 §1](07-otevrene-otazky.md).
+> otevřených otázek — viz [07 §1](../07-otevrene-otazky/07-otevrene-otazky.md).
 
 ---
 

@@ -3,7 +3,7 @@
 > ► **Stav 3. 10. 2026:** aktuální seznam služeb je [sluzby-katalog.html](sluzby-katalog.html), pořadí stavby [plan-stavby.html](plan-stavby.html). Tenhle dokument zůstává jako zdroj provozních detailů jednotlivých funkcí z master dokumentu; etapy a pořadí v něm už neplatí.
 
 Zdroj: master dokument kap. 4, 10–12, 14, 17–19, 21–23. Statusy doplněny
-k 1. 10. 2026 podle kódu a databáze (detail v [03](03-stav-aplikace.md)).
+k 1. 10. 2026 podle kódu a databáze (detail v [03](../03-stav-aplikace/03-stav-aplikace.md)).
 
 Legenda statusů: `hotovo` · `rozestavěno` · `plán` (je ve specifikaci, nezačalo
 se) · `nový návrh` (doplněk z mapy automatizace, bez specifikace) · `odloženo`
@@ -268,7 +268,7 @@ Věci, které stret.ai nemá a stojí za zvážení:
 
 Co makléř řekne, než nám dá data a schránku, co odpovíme doslova a co pro to
 musí být technicky a smluvně pravda — tabulka u otázky 12 v
-[dotazníku](dotaznik-mise-a-vize.md) (odsouhlaseno 2. 10. 2026). Čtyři sliby
+[dotazníku](../01-mise-a-vize/dotaznik-mise-a-vize.md) (odsouhlaseno 2. 10. 2026). Čtyři sliby
 z ní dnes nedržíme a jsou **podmínkou před prvním klientem**: schvalovací
 režim odpovědí na začátku, export dat jedním tlačítkem, oddělení dat makléřů,
 zpracovatelská smlouva. Start přes přeposílání poptávek, ne přes přístup do

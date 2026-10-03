@@ -55,7 +55,7 @@ Filip:
 Ondřej:
 Tři věty z dokumentů (AI odpovídá jen z karty nemovitosti; systém nikdy sám
 neoslovuje majitele; nejistota = notifikace, nikdy spam) **platí dál** — ale
-jsou to pojistky systému, ne hodnoty; jsou zapsané v [02](02-produkt-a-sluzby.md)
+jsou to pojistky systému, ne hodnoty; jsou zapsané v [02](../02-produkt-a-sluzby/02-produkt-a-sluzby.md)
 §3.1, §3.3 a §3.5. Na čem si zakládám doopravdy:
 
 - **Lidi.** Férovost a aspoň část priorit v realitách. Člověk, který není

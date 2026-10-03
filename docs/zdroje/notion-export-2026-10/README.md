@@ -12,4 +12,4 @@ https://app.notion.com/p/Brokerly-37bdbed6009480bba815ec8a032f64ee
 | [03-crm-system-struktura.md](03-crm-system-struktura.md) | tři patra CRM: jádro / laťka stret.ai / kde předběhnout + chytré detaily navíc |
 | [04-proces-maklere.md](04-proces-maklere.md) | 6 fází práce makléře, podrobněji než v master dokumentu |
 
-Co z toho plyne, je zapsané v [docs/projekt](../projekt/00-mapa.md).
+Co z toho plyne, je zapsané v [docs/projekt](../../projekt/00-mapa.md).

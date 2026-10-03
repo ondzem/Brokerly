@@ -179,7 +179,7 @@ Celkem 151 commitů v 18 pracovních dnech. Všechny od `ondzem`.
 
 ## 5. Známé problémy (otevřené z auditu 26. 8. a od té doby)
 
-Z `docs/audit-2026-08-26.md` je opraveno: A1, A2 (dedup), A3, A4 (poctivé
+Z `docs/projekt/03-stav-aplikace/audit-2026-08-26.md` je opraveno: A1, A2 (dedup), A3, A4 (poctivé
 počty), C13 (hledání), C16 (filtr stavů), část D. **Otevřené:**
 
 | # | Problém | Závažnost |
@@ -211,7 +211,7 @@ Vyčištěno 1. 10. 2026 (vše je v git historii, kdyby bylo třeba):
 | Co | Proč to tam bylo | Hotovo |
 |---|---|---|
 | `Brokerly Dashboard - standalone.html`, `Detail nemovitosti - mobil.html` | makety z července, od té doby dvakrát předělané | smazáno |
-| `Brokerly_master_dokument.docx` v kořeni | hlavní zdroj pravdy jako Word v kořeni | přesunut do `docs/archiv/`; textová verze v `docs/master-dokument-2026-07.md` |
+| `Brokerly_master_dokument.docx` v kořeni | hlavní zdroj pravdy jako Word v kořeni | přesunut do `docs/zdroje/`; textová verze v `docs/zdroje/master-dokument-2026-07.md` |
 | `scratch/` | pracovní soubory z července | smazáno |
 | `public/next.svg`, `vercel.svg`, `file.svg`, `globe.svg`, `window.svg` | zbytky po Create Next App, nikde nepoužité | smazáno |
 | `public/_redirects` | Netlify proxy pro ScraperAPI, které už není | smazáno |

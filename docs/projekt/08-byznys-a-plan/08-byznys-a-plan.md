@@ -1,7 +1,7 @@
 # 08 — Byznys a plán
 
 Ceny, go-to-market, roadmapa, tým a rizika — tedy *plán*, jak misi a vizi
-z [01](01-mise-a-vize.md) uskutečnit. Zdroj: master dokument kap. 5–9, 13;
+z [01](../01-mise-a-vize/01-mise-a-vize.md) uskutečnit. Zdroj: master dokument kap. 5–9, 13;
 Notion. Doplněno o posuny k 1. 10. 2026 (`► Stav 10/2026`). Tohle se bude
 přepisovat ve strategii; mise a vize ne.
 
@@ -28,7 +28,7 @@ zaplatí službu trojnásobně. Jeden vrácený majitel = 100K+ provize.
 > ► **Stav 10/2026:** ceník nebyl od července revidován a nebyl ověřen na
 > žádném klientovi. Zda proběhly piloty (červen „NEMO + 1 sólo makléř",
 > červenec „pilot č. 2 za plnou cenu"), z repa ani z pamětí nejde zjistit.
-> Viz [07 §4](07-otevrene-otazky.md).
+> Viz [07 §4](../07-otevrene-otazky/07-otevrene-otazky.md).
 
 ---
 
@@ -95,7 +95,7 @@ Z master dokumentu (červenec):
 > všechny od `ondzem`. Filipův podíl na kódu není v repu vidět (druhý vývojář je
 > od 20. 8. nastavený, ale commity nejsou). Staví se **v kódu nad Supabase**,
 > ne v no-code nástrojích, se kterými červenec počítal. Viz
-> [07 §2](07-otevrene-otazky.md).
+> [07 §2](../07-otevrene-otazky/07-otevrene-otazky.md).
 
 ---
 

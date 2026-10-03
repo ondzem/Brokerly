@@ -10,42 +10,47 @@
 > dotazník → strategie → wireframe → stavba). Dotazník „na nás dva" a strategie
 > přijdou až nad těmihle dokumenty.
 
-## Dokumenty
+## Kde začít
 
-| # | Dokument | Co v něm je | Na co odpovídá |
+**[Plán projektu](02-produkt-a-sluzby/plan-stavby.html)** — úkolníček celého projektu
+od podkladů přes strategii po stavbu (fáze A–D), u každého bodu co to je, proč a kdy je hotový. Ukazuje, kde právě jsme a co je další krok.
+
+## Složky
+
+Každé téma má svou složku. Hlavní dokument má číslo, vedle leží materiály k němu.
+
+| Složka | Hlavní dokument | Materiály v ní | Na co odpovídá |
 |---|---|---|---|
-| 01 | [Mise a vize](01-mise-a-vize.md) | Základní pravidla: co Brokerly je, jaký problém řeší, pro koho, čím vyhrává | *Proč to děláme a pro koho?* |
-| — | [Dotazník mise a vize](dotaznik-mise-a-vize.md) | 17 otázek pro oba zakladatele, které 01 doladí (podle metodiky anamnézy) | *Co si o tom každý z nás doopravdy myslí?* |
-| 02 | [Produkt a služby](02-produkt-a-sluzby.md) | Kompletní katalog všeho, co má systém umět: balíčky, hero funkce, mapa automatizace po fázích práce makléře, provozní detaily každé funkce, KPI, etapy stavby | *Co všechno chceme postavit a v jakém pořadí?* |
-| 03 | [Stav aplikace](03-stav-aplikace.md) | Co dnes reálně existuje v kódu a databázi, čím se to liší od specifikace, časová osa stavby, známé problémy, co je balast k vyčištění | *Kde právě jsme?* |
-| 04 | [Design](04-design.md) | Vizuální identita, tokeny, pravidla, reference, rozhodnutí, co je nekonzistentní | *Jak to má vypadat?* |
-| 05 | [Nástroje a technika](05-nastroje-a-technika.md) | Stack, databáze, hosting, vývojářské nástroje, AI nástroje, tajné klíče, náklady | *Na čem to stavíme a čím?* |
-| 06 | [Postup a spolupráce](06-postup-a-spoluprace.md) | Jak pracujeme ve dvou, pravidla etap, definice hotového, jak navazuje Ondřejova webová metodika | *Jak pracujeme?* |
-| 07 | [Otevřené otázky](07-otevrene-otazky.md) | Rozpory mezi dokumenty a realitou, co nevíme, co musíme rozhodnout — podklad pro dotazník a strategii | *Co si musíme ujasnit, než uděláme strategii?* |
-| — | [Konkurence](konkurence.md) | ~40 produktů (CZ/SK, USA, UK, DACH, FR/NL, PL, AU, Asie, LatAm): funkce, unikáty, ceny; co z toho plyne | *Kdo to dělá a čím se lišíme?* |
-| — | [**Plán stavby**](plan-stavby.html) | Všechny služby z katalogu rozdělené do verzí (1.0 pilot → 3.0 kancelář), pořadí milníků, odškrtávání | *Co stavíme teď a co potom?* |
-| — | [Katalog služeb](sluzby-katalog.html) | Finální seznam všeho, co chceme (po kontrole úplnosti councilem 2. 10.) | *Co všechno má Brokerly umět?* |
-| — | [Cesta klienta](cesta-klienta.html) | 10 kroků od prvního kontaktu po doporučení | *Jak makléř projde od zájmu po doporučení?* |
-| — | `council/` | Dva councily z 2. 10. (rozdělení teď / později, kontrola úplnosti): reporty, přepisy, vstupy | *Z čeho plán a katalog vychází?* |
-| — | `../archiv/` | Nahrazené přehledy: katalog v1 a v2, sitemapa služeb, „co postavit“ | — |
-| 08 | [Byznys a plán](08-byznys-a-plan.md) | Ceny, go-to-market, roadmapa, tým, rizika — plán, jak misi uskutečnit; bude se přepisovat ve strategii | *Jak a kdy to zpeněžíme?* |
+| **01** Mise a vize | [01-mise-a-vize.md](01-mise-a-vize/01-mise-a-vize.md) — co Brokerly je, pro koho, jaký problém řeší, čím vyhrává | [dotazník](01-mise-a-vize/dotaznik-mise-a-vize.md) (17 otázek, Ondřejovy odpovědi) | *Proč to děláme a pro koho?* |
+| **02** Produkt a služby | [02-produkt-a-sluzby.md](02-produkt-a-sluzby/02-produkt-a-sluzby.md) — provozní detaily funkcí z master dokumentu | [**katalog služeb**](02-produkt-a-sluzby/sluzby-katalog.html) (78 položek) · [**plán projektu**](02-produkt-a-sluzby/plan-stavby.html) · [cesta klienta](02-produkt-a-sluzby/cesta-klienta.html) (10 kroků) · [konkurence](02-produkt-a-sluzby/konkurence.md) (~40 produktů) · `council/` (dva councily z 2. 10.) | *Co má Brokerly umět a v jakém pořadí?* |
+| **03** Stav aplikace | [03-stav-aplikace.md](03-stav-aplikace/03-stav-aplikace.md) — co dnes v kódu a databázi reálně je | [audit 26. 8.](03-stav-aplikace/audit-2026-08-26.md) · `historie/` (plán a ověření redesignu 25. 9.) | *Kde právě jsme?* |
+| **04** Design | [04-design.md](04-design/04-design.md) — vizuální pravidla, rozhodnutí, nekonzistence | hodnoty tokenů jsou v `docs/design-system.md` (čte ho Claude Design, proto zůstává tam) | *Jak to má vypadat?* |
+| **05** Nástroje a technika | [05-nastroje-a-technika.md](05-nastroje-a-technika/05-nastroje-a-technika.md) — stack, databáze, AI nástroje, klíče, náklady | [nahrávání a ořez fotek](05-nastroje-a-technika/image-crop-uploader.md) | *Na čem to stavíme?* |
+| **06** Postup a spolupráce | [06-postup-a-spoluprace.md](06-postup-a-spoluprace/06-postup-a-spoluprace.md) — jak pracujeme, etapy, definice hotového | návod pro kolegu je v `docs/spoluprace.md` (odkazuje na něj AGENTS.md a README) | *Jak pracujeme?* |
+| **07** Otevřené otázky | [07-otevrene-otazky.md](07-otevrene-otazky/07-otevrene-otazky.md) — rozpory a nevyjasněné věci | — | *Co musíme rozhodnout před strategií?* |
+| **08** Byznys a plán | [08-byznys-a-plan.md](08-byznys-a-plan/08-byznys-a-plan.md) — ceny, go-to-market, roadmapa, tým, rizika | — | *Jak a kdy to zpeněžíme?* |
+
+Mimo složky: [kontext-pro-cloud.md](kontext-pro-cloud.md) (předávací dokument
+pro cloud sessions) a `docs/zdroje/` (master dokument z července a export
+z Notionu). Nahrazené verze katalogu, sitemapa služeb a „co postavit“ byly
+smazány 3. 10.; najdeš je v historii gitu.
 
 ## Zdroje, ze kterých to vzniklo
 
 | Zdroj | Co obsahuje | Stav |
 |---|---|---|
-| `docs/archiv/Brokerly_master_dokument.docx` (5. 7. 2026) | **Hlavní zdroj pravdy.** 24 kapitol: produkt, byznys, trh, ceny, roadmapa, tým, celý datový model, automatizace, provozní detaily, pořadí stavby, KPI | Přečteno celé. Textová verze: `docs/master-dokument-2026-07.md` |
+| `docs/zdroje/Brokerly_master_dokument.docx` (5. 7. 2026) | **Hlavní zdroj pravdy.** 24 kapitol: produkt, byznys, trh, ceny, roadmapa, tým, celý datový model, automatizace, provozní detaily, pořadí stavby, KPI | Přečteno celé. Textová verze: `docs/zdroje/master-dokument-2026-07.md` |
 | `AGENTS.md` | Pravidla pro AI agenty: rozsah etapy 1, datový model, design systém, práce ve dvou | Přečteno |
 | `README.md`, `docs/spoluprace.md` | Spuštění, synchronizace, onboarding kolegy | Přečteno |
 | `docs/design-system.md`, `.design-sync/*` | Design systém a historie ladění palety | Přečteno |
-| `docs/audit-2026-08-26.md` | Kritický audit kontaktů a nemovitostí — 24 bodů | Přečteno |
-| `docs/superpowers/plans/…`, `docs/verification/…` | Plán a ověření redesignu detailu nemovitosti (25. 9.) | Přečteno |
-| `docs/image-crop-uploader.md` | Technická specifikace nahrávání a ořezu fotek | Přečteno |
+| `docs/projekt/03-stav-aplikace/audit-2026-08-26.md` | Kritický audit kontaktů a nemovitostí — 24 bodů | Přečteno |
+| `docs/projekt/03-stav-aplikace/historie/` | Plán a ověření redesignu detailu nemovitosti (25. 9.) | Přečteno |
+| `docs/projekt/05-nastroje-a-technika/image-crop-uploader.md` | Technická specifikace nahrávání a ořezu fotek | Přečteno |
 | `supabase/migrations/*` (15 souborů), `supabase/functions/*` | Skutečné schéma databáze a serverové funkce | Přečteno |
 | `src/` (36 souborů, 14 700 řádků) | Kód aplikace — prošly se obrazovky, ne řádek po řádku | Prošlo se |
 | Git historie (151 commitů, 5. 7.–28. 9. 2026) | Co se kdy stavělo a proč | Prošlo se |
 | Paměť z předchozích Claude sessions (claude-mem, ruflo, memory) | Rozhodnutí a preference z práce od 16. 8. | Prošlo se |
-| **Notion „Brokerly"** (Filipův workspace, 5 stránek) | Business plán, „Co bude aplikace umět", **procesy s konkrétními nástroji a pravidly**, ukázkový průchod hero tokem, tři patra CRM vs. stret.ai, 6 fází práce makléře, prodejní trychtýř | Přečteno celé 1. 10. (export). Kopie v `docs/notion-export-2026-10/`. Je to **předloha master dokumentu** — ten z něj vznikl; Notion má navíc konkrétní nástroje, pravidla a chytré detaily |
+| **Notion „Brokerly"** (Filipův workspace, 5 stránek) | Business plán, „Co bude aplikace umět", **procesy s konkrétními nástroji a pravidly**, ukázkový průchod hero tokem, tři patra CRM vs. stret.ai, 6 fází práce makléře, prodejní trychtýř | Přečteno celé 1. 10. (export). Kopie v `docs/zdroje/notion-export-2026-10/`. Je to **předloha master dokumentu** — ten z něj vznikl; Notion má navíc konkrétní nástroje, pravidla a chytré detaily |
 | `Checklist_stavby_CRM.xlsx` (zmíněn v master dokumentu, kap. 23) | 120 úkolů stavby s vysvětlením | **Nenalezen** v repu ani ve složce |
 
 ## Jak dokumenty číst

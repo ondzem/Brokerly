@@ -1,7 +1,7 @@
 # Kontext pro novou session (cloud)
 
 > Předávací dokument. Kdo ho čte, pokračuje v rozhovoru s Ondřejem tam, kde
-> skončila lokální session 2. 10. 2026. Přečti ho celý, pak `00-mapa.md`.
+> skončila lokální session 2. 10. 2026. Přečti ho celý, pak `00-mapa.md`. Dokumenty jsou ve složkách 01–08 podle témat.
 
 ## 1. Jak s Ondřejem mluvit
 
@@ -45,14 +45,14 @@
   - Trend 2026: **„AI připraví, makléř schválí"** → potřebujeme schvalovací režim.
   - Jádro CRM je dnes standard; rozdíl dělají automatizace. Export na portály, weby
     makléřů, e-podpis a AI popisky nedohánět.
-- **Katalog služeb** (`sluzby-katalog.html`): 10 bloků, ~70 služeb, u žlutých položek
+- **Katalog služeb** (`sluzby-katalog.html`): 10 bloků, 78 položek, u žlutých položek
   inspirace z konkurence se zdrojem.
 
 ## 4. Co je hotové a co je otevřené
 
 - **Katalog služeb je uzavřený:** `sluzby-katalog.html` (po dvou councilech 2. 10.,
-  podklady v `council/`). Staré verze a přehledy jsou v `docs/archiv/`.
-- **Pořadí stavby je v `plan-stavby.html`:** krok 0 (ověření u Doriny) → verze 1.0
+  podklady v `council/`). Staré verze jsou jen v historii gitu.
+- **Úkolníček celého projektu je `02-produkt-a-sluzby/plan-stavby.html`:** fáze A podklady → B strategie → C návrh → D stavba. Teď jsme ve fázi A (procházení dokumentů 01–08). Stavba: krok 0 (ověření u Doriny) → verze 1.0
   (milníky M1–M6, pilot se spouští po M3) → 1.1 → 1.2 → 1.3 → 2.0 → 3.0.
 - Otevřené: pět rozhodnutí v kroku 0 plánu (cena pilotu, fakturace, kdo co staví,
   nástroje, rozsah v AGENTS.md) a Filipův dotazník.
@@ -69,4 +69,4 @@
 
 Řiď se `plan-stavby.html`. Council skill je v `.claude/skills/llm-council/SKILL.md`;
 při dalším councilu vkládej poradcům vstup přímo do zadání a poradce i recenzenty
-pouštěj na Sonnetu, předsedu na silném modelu. Výstupy ukládej do `docs/projekt/council/`.
+pouštěj na Sonnetu, předsedu na silném modelu. Výstupy ukládej do `docs/projekt/02-produkt-a-sluzby/council/`.

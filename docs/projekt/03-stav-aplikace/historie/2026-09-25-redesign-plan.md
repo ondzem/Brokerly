@@ -1,6 +1,6 @@
 # Detail nemovitosti — návrh a implementační plán
 
-**Stav:** Schváleno uživatelem („continue“), implementováno. Výsledky a omezení kontrol: `docs/verification/2026-09-25-property-detail-redesign.md`.
+**Stav:** Schváleno uživatelem („continue“), implementováno. Výsledky a omezení kontrol: `docs/projekt/03-stav-aplikace/historie/2026-09-25-redesign-overeni.md`.
 
 **Cíl:** Výrazně přepracovat kompozici otevřeného detailu nemovitosti, aby byl přehledný, příjemný a působil osobitě. Zachovat všechny současné informace, české texty, barvy, rodiny písem a funkce.
 
@@ -79,7 +79,7 @@ Pracovat postupně v tomto úkolu. Použít `superpowers:executing-plans` a pře
 
 ### 4. Doplnit odezvu a ověřit výsledek
 
-**Soubory:** lokální styly detailu; `docs/verification/2026-09-25-property-detail-redesign.md`.
+**Soubory:** lokální styly detailu; `docs/projekt/03-stav-aplikace/historie/2026-09-25-redesign-overeni.md`.
 
 - [x] Doplnit přechody, hover, stisk, fokus a omezení pohybu. Zachovat ovládání dotykem i klávesnicí; žádná akce nesmí být dostupná jen při hoveru.
 - [x] V prohlížeči projít otevření/zavření, všechny záložky, filtry, galerii, náhledy a otevření/zrušení editorů. Zápisy a mazání ověřovat na izolovaných testovacích datech nebo simulovaném datovém rozhraní, ne na sdílených klientských záznamech.

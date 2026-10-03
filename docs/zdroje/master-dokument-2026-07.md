@@ -1,4 +1,4 @@
-> **Textový převod `Brokerly_master_dokument.docx` (5. 7. 2026).** Automaticky převedeno 1. 10. 2026, aby šel dokument číst, hledat a porovnávat v gitu. Tabulky jsou rozpadlé na řádky (buňka pod buňkou) — pro přesné čtení tabulek použij původní Word. Obsahově je to zdroj pravdy pro [docs/projekt](projekt/00-mapa.md).
+> **Textový převod `Brokerly_master_dokument.docx` (5. 7. 2026).** Automaticky převedeno 1. 10. 2026, aby šel dokument číst, hledat a porovnávat v gitu. Tabulky jsou rozpadlé na řádky (buňka pod buňkou) — pro přesné čtení tabulek použij původní Word. Obsahově je to zdroj pravdy pro [docs/projekt](../projekt/00-mapa.md).
 
 BROKERLY
 

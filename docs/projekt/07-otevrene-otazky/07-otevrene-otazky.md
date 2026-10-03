@@ -62,7 +62,7 @@ mimo repo. Notion u každé funkce píše „Staví: Filip".
 e-mailů, AI generování odpovědí, odesílání e-mailů jménem makléře, kalendář
 s rezervací, SMS, plánované úlohy (remindery, digest 7:30, urgence každé
 3 dny). Kandidáti služeb ze zadání: Claude API, Resend, smsbrana, Cal.com,
-Google Drive API (viz [05 §5](05-nastroje-a-technika.md)).
+Google Drive API (viz [05 §5](../05-nastroje-a-technika/05-nastroje-a-technika.md)).
 
 **Otázky:**
 - Které z externích služeb vzít, a co postavit vlastní (rezervační stránka?
@@ -174,7 +174,7 @@ z dokumentů (✓) a na co se musí ptát dotazník (→ otázka v §):
 | Ceny | ✓ kap. 5 — ověřit §4, §8 |
 | Rizika | ✓ kap. 13 — doplnit §7 |
 | KPI | ✓ kap. 22 |
-| Design a tón | ✓ [04](04-design.md) — doplnit design mimo aplikaci |
+| Design a tón | ✓ [04](../04-design/04-design.md) — doplnit design mimo aplikaci |
 | Právní, GDPR, smlouvy | → §7, §8 |
 
 **Z toho plyne dotazník:** zhruba 12–15 otázek, hlavně k §1–§5. Formát podle

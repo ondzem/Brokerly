@@ -31,11 +31,11 @@ Bez skriptu: `npm install && npm run dev`.
 | soubor | co v něm je |
 |---|---|
 | [docs/projekt/00-mapa.md](docs/projekt/00-mapa.md) | **začni tady** — mise a vize, produkt a služby, stav aplikace, design, nástroje, postup, otevřené otázky |
-| [docs/master-dokument-2026-07.md](docs/master-dokument-2026-07.md) | textová verze zakládajícího master dokumentu (červenec 2026) |
-| [docs/notion-export-2026-10/](docs/notion-export-2026-10/README.md) | export Notionu — procesy s nástroji, business plán, ukázkový hero tok |
+| [docs/zdroje/master-dokument-2026-07.md](docs/zdroje/master-dokument-2026-07.md) | textová verze zakládajícího master dokumentu (červenec 2026) |
+| [docs/zdroje/notion-export-2026-10/](docs/zdroje/notion-export-2026-10/README.md) | export Notionu — procesy s nástroji, business plán, ukázkový hero tok |
 | [AGENTS.md](AGENTS.md) | pravidla projektu — datový model, rozsah etapy 1, design systém |
 | [docs/spoluprace.md](docs/spoluprace.md) | jak na projektu pracovat ve dvou |
-| [docs/image-crop-uploader.md](docs/image-crop-uploader.md) | logika nahrávání a ořezu fotek (přenositelné do jiných projektů) |
+| [docs/projekt/05-nastroje-a-technika/image-crop-uploader.md](docs/projekt/05-nastroje-a-technika/image-crop-uploader.md) | logika nahrávání a ořezu fotek (přenositelné do jiných projektů) |
 | `graphify-out/GRAPH_REPORT.md` | znalostní graf repozitáře (generuje se lokálně) |
 
 ## Databáze
